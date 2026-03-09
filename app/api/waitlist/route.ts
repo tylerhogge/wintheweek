@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
-import { resend, buildWaitlistConfirmation } from '@/lib/resend'
+import { getResend, buildWaitlistConfirmation } from '@/lib/resend'
 
 export async function POST(req: Request) {
   const { email } = await req.json()
@@ -22,7 +22,7 @@ export async function POST(req: Request) {
 
   // Send confirmation email
   const { subject, html } = buildWaitlistConfirmation(email)
-  await resend.emails.send({
+  await getResend().emails.send({
     from: `Win the Week <${process.env.FROM_EMAIL ?? 'hello@wintheweek.co'}>`,
     to: email,
     subject,

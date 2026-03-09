@@ -10,7 +10,7 @@
 
 import { NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
-import { resend, buildCampaignEmail } from '@/lib/resend'
+import { getResend, buildCampaignEmail } from '@/lib/resend'
 import { buildReplyToAddress, getWeekStart } from '@/lib/utils'
 import { format } from 'date-fns'
 
@@ -93,7 +93,7 @@ export async function POST(req: Request) {
       })
 
       // Send via Resend
-      const { error: sendErr } = await resend.emails.send({
+      const { error: sendErr } = await getResend().emails.send({
         from: `${process.env.FROM_NAME ?? 'Win the Week'} <${process.env.FROM_EMAIL ?? 'hello@wintheweek.co'}>`,
         to: employee.email,
         replyTo: replyTo,
