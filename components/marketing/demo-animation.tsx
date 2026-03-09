@@ -376,7 +376,7 @@ export function DemoAnimation() {
       </div>
 
       {/* Dots */}
-      <div style={{ position: 'absolute', bottom: 0, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 6 }}>
+      <div style={{ position: 'absolute', bottom: 12, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 6 }}>
         {[0,1,2,3].map(i => (
           <button
             key={i}
