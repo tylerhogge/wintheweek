@@ -21,10 +21,10 @@ export default function LandingPage() {
           </Link>
 
           <ul className="hidden md:flex items-center gap-1">
-            {['#how', '#features', '#pricing'].map((href: string) => (
+            {[['#how', 'How it works'], ['#features', 'Features'], ['#pricing', 'Pricing']].map(([href, label]: string[]) => (
               <li key={href}>
                 <Link href={href} className="text-[#a1a1aa] hover:text-white text-sm px-3 py-1.5 rounded-md transition-colors">
-                  {href.replace('#', '').replace(/^\w/, (c: string) => c.toUpperCase())}
+                  {label}
                 </Link>
               </li>
             ))}
