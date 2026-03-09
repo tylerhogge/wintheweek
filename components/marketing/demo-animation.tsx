@@ -62,7 +62,7 @@ export function DemoAnimation() {
       if (!target) { onDone(); return }
       function next() {
         if (i < text.length) {
-          target.textContent = text.slice(0, i + 1)
+          target!.textContent = text.slice(0, i + 1)
           i++
           const id = setTimeout(next, 38)
           timeouts.push(id)
