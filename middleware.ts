@@ -5,11 +5,24 @@ import { NextResponse, type NextRequest } from 'next/server'
 const PROTECTED_PREFIXES = ['/dashboard', '/campaigns', '/team', '/settings']
 
 export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl
+
+  // If Supabase isn't configured yet, only block protected routes
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  if (!supabaseUrl || supabaseUrl.includes('placeholder') || !supabaseKey || supabaseKey === 'placeholder') {
+    const isProtected = PROTECTED_PREFIXES.some((p) => pathname.startsWith(p))
+    if (isProtected) {
+      return NextResponse.redirect(new URL('/auth/login', request.url))
+    }
+    return NextResponse.next()
+  }
+
   let supabaseResponse = NextResponse.next({ request })
 
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    supabaseUrl,
+    supabaseKey,
     {
       cookies: {
         getAll() {
@@ -29,7 +42,6 @@ export async function middleware(request: NextRequest) {
   // Refresh session — important: do NOT remove this
   const { data: { user } } = await supabase.auth.getUser()
 
-  const { pathname } = request.nextUrl
   const isProtected = PROTECTED_PREFIXES.some((p) => pathname.startsWith(p))
 
   if (isProtected && !user) {
