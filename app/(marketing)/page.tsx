@@ -68,7 +68,7 @@ export default function LandingPage() {
             </div>
 
             {/* Right: animation */}
-            <div className="bg-[#111113] border border-white/[0.07] rounded-2xl overflow-hidden">
+            <div>
               <DemoAnimation />
             </div>
 
