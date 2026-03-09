@@ -6,7 +6,7 @@ const REPLY_TEXT = "Launched the new onboarding flow, closed 3 enterprise deals,
 
 export function DemoAnimation() {
   const containerRef = useRef<HTMLDivElement>(null)
-  const restartRef = useRef<(() => void) | null>(null)
+  const restartRef = useRef<((scene: number) => void) | null>(null)
 
   useEffect(() => {
     let timeouts: ReturnType<typeof setTimeout>[] = []
@@ -74,68 +74,51 @@ export function DemoAnimation() {
       next()
     }
 
-    function runLoop() {
+    function playFromScene(scene: number) {
       timeouts.forEach(clearTimeout)
       timeouts = []
       reset()
 
-      // Scene 0: Show phone + notification
-      t(() => {
-        show('demo-phone-wrap')
-        setDot(0)
-      }, 300)
-
-      t(() => {
-        show('demo-notification')
-        addClass('demo-notification', 'demo-slide-in')
-      }, 800)
-
-      // Scene 1: Email open
-      t(() => {
-        hide('demo-notification')
-        show('demo-scene-email')
-        setDot(1)
-      }, 2400)
-
-      // Scene 2: Compose + typing
-      t(() => {
-        hide('demo-scene-email')
-        show('demo-scene-compose')
-        setDot(2)
-        t(() => {
-          typeText(REPLY_TEXT, 'demo-typed', () => {
-            // Hide cursor after typing
-            const cursor = el('demo-cursor')
-            if (cursor) cursor.style.opacity = '0'
-
-            // Scene 3: Sent
-            t(() => {
-              hide('demo-scene-compose')
-              show('demo-scene-sent')
-              setDot(3)
-            }, 800)
-
-            // Switch to desktop
-            const desktopDelay = REPLY_TEXT.length * 38 + 800 + 1800
-            t(() => {
-              hide('demo-phone-wrap')
-              show('demo-desktop-wrap')
-            }, 1800)
-
-            // Heart reaction
-            t(() => { show('demo-heart') }, 1800 + 1800)
-
-            // Comment
-            t(() => { show('demo-comment') }, 1800 + 3200)
-
-            // Restart loop
-            t(runLoop, 1800 + 7000)
-          })
-        }, 400)
-      }, 4200)
+      if (scene === 0) {
+        // Scene 0: notification
+        t(() => { show('demo-phone-wrap'); setDot(0) }, 300)
+        t(() => { show('demo-notification') }, 800)
+        t(() => { hide('demo-notification'); show('demo-scene-email'); setDot(1) }, 2400)
+        t(() => { hide('demo-scene-email'); show('demo-scene-compose'); setDot(2); startTyping() }, 4200)
+      } else if (scene === 1) {
+        // Scene 1: email open
+        show('demo-phone-wrap'); setDot(1); show('demo-scene-email')
+        t(() => { hide('demo-scene-email'); show('demo-scene-compose'); setDot(2); startTyping() }, 1800)
+      } else if (scene === 2) {
+        // Scene 2: compose + typing
+        show('demo-phone-wrap'); setDot(2); show('demo-scene-compose')
+        startTyping()
+      } else if (scene === 3) {
+        // Scene 3: dashboard
+        show('demo-desktop-wrap'); setDot(3)
+        t(() => { show('demo-heart') }, 1800)
+        t(() => { show('demo-comment') }, 3200)
+        t(() => playFromScene(0), 7000)
+      }
     }
 
-    restartRef.current = runLoop
+    function startTyping() {
+      t(() => {
+        typeText(REPLY_TEXT, 'demo-typed', () => {
+          const cursor = el('demo-cursor')
+          if (cursor) cursor.style.opacity = '0'
+          t(() => { hide('demo-scene-compose'); show('demo-scene-sent'); setDot(3) }, 800)
+          t(() => { hide('demo-phone-wrap'); show('demo-desktop-wrap') }, 1800)
+          t(() => { show('demo-heart') }, 1800 + 1800)
+          t(() => { show('demo-comment') }, 1800 + 3200)
+          t(() => playFromScene(0), 1800 + 7000)
+        })
+      }, 400)
+    }
+
+    function runLoop() { playFromScene(0) }
+
+    restartRef.current = playFromScene
     runLoop()
 
     return () => {
@@ -398,8 +381,8 @@ export function DemoAnimation() {
           <button
             key={i}
             id={`demo-dot-${i}`}
-            onClick={() => restartRef.current?.()}
-            title="Replay animation"
+            onClick={() => restartRef.current?.(i)}
+            title={['Notification', 'Email', 'Reply', 'Dashboard'][i]}
             style={{ width: 10, height: 10, borderRadius: '50%', background: 'rgba(255,255,255,0.2)', transition: 'background 0.3s, transform 0.3s', border: 'none', padding: 0, cursor: 'pointer' }}
           />
         ))}
