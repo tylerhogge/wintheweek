@@ -37,7 +37,7 @@ export function WaitlistForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex gap-2 max-w-[420px] mx-auto">
+    <form onSubmit={handleSubmit} className="flex gap-2 max-w-[420px]">
       <input
         type="email"
         placeholder="you@company.com"
