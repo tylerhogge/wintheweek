@@ -3,6 +3,7 @@
 
 import Link from 'next/link'
 import { WaitlistForm } from '@/components/marketing/waitlist-form'
+import { DemoAnimation } from '@/components/marketing/demo-animation'
 
 export default function LandingPage() {
   return (
@@ -64,6 +65,14 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ── DEMO ── */}
+      <section className="pb-20 max-w-[680px] mx-auto px-6">
+        <div className="bg-[#111113] border border-white/[0.07] rounded-2xl overflow-hidden" style={{ minHeight: 520 }}>
+          <DemoAnimation />
+        </div>
+        <p className="text-center text-xs text-[#52525b] mt-4">Watch how it works — from inbox to dashboard in seconds</p>
+      </section>
+
       {/* ── HOW IT WORKS ── */}
       <section id="how" className="py-24 max-w-[1080px] mx-auto px-6">
         <p className="text-xs font-semibold tracking-[0.1em] uppercase text-accent mb-4">How it works</p>
@@ -78,6 +87,29 @@ export default function LandingPage() {
           ].map(({ n, title, body }: { n: string; title: string; body: string }) => (
             <div key={n} className="bg-surface border border-white/[0.07] rounded-xl p-7 hover:border-white/[0.12] transition-colors">
               <div className="w-7 h-7 border border-white/10 rounded-md flex items-center justify-center text-xs font-semibold text-[#71717a] mb-5">{n}</div>
+              <h3 className="text-[15px] font-semibold tracking-tight mb-2">{title}</h3>
+              <p className="text-sm text-[#a1a1aa] leading-relaxed">{body}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── FEATURES ── */}
+      <section id="features" className="py-24 max-w-[1080px] mx-auto px-6">
+        <p className="text-xs font-semibold tracking-[0.1em] uppercase text-accent mb-4">Features</p>
+        <h2 className="text-[clamp(26px,4vw,38px)] font-bold tracking-[-0.03em] leading-[1.15] mb-14">Everything you need. Nothing you don&apos;t.</h2>
+
+        <div className="grid md:grid-cols-3 gap-4">
+          {[
+            { icon: '📬', title: 'Zero-friction replies', body: 'Employees reply directly to the email. No app download, no login, no portal. Just hit Reply and type.' },
+            { icon: '✦', title: 'AI weekly summaries', body: 'Claude reads every reply and surfaces the highlights, themes, and standout wins — so you don\'t have to.' },
+            { icon: '🏢', title: 'Team-level views', body: 'Filter by team or function to see what Engineering shipped vs. what Sales closed this week.' },
+            { icon: '📅', title: 'Flexible scheduling', body: 'Send Friday mornings, Monday afternoons, biweekly — whatever cadence fits your company.' },
+            { icon: '❤️', title: 'Likes & comments', body: 'Managers can react and comment on replies, making recognition easy and visible to the whole team.' },
+            { icon: '📊', title: 'Reply rate tracking', body: 'See who responded and who didn\'t at a glance. Gently nudge stragglers without awkward Slack messages.' },
+          ].map(({ icon, title, body }: { icon: string; title: string; body: string }) => (
+            <div key={title} className="bg-surface border border-white/[0.07] rounded-xl p-7 hover:border-white/[0.12] transition-colors">
+              <div className="text-2xl mb-4">{icon}</div>
               <h3 className="text-[15px] font-semibold tracking-tight mb-2">{title}</h3>
               <p className="text-sm text-[#a1a1aa] leading-relaxed">{body}</p>
             </div>
