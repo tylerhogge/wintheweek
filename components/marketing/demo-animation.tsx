@@ -80,15 +80,16 @@ export function DemoAnimation() {
       reset()
 
       if (scene === 0) {
-        // Scene 0: notification
+        // Scene 0: notification (visible ~3s)
         t(() => { show('demo-phone-wrap'); setDot(0) }, 300)
         t(() => { show('demo-notification') }, 800)
-        t(() => { hide('demo-notification'); show('demo-scene-email'); setDot(1) }, 2400)
-        t(() => { hide('demo-scene-email'); show('demo-scene-compose'); setDot(2); startTyping() }, 4200)
+        t(() => { hide('demo-notification'); show('demo-scene-email'); setDot(1) }, 3800)
+        // Scene 1: email open (visible ~3s)
+        t(() => { hide('demo-scene-email'); show('demo-scene-compose'); setDot(2); startTyping() }, 7000)
       } else if (scene === 1) {
         // Scene 1: email open
         show('demo-phone-wrap'); setDot(1); show('demo-scene-email')
-        t(() => { hide('demo-scene-email'); show('demo-scene-compose'); setDot(2); startTyping() }, 1800)
+        t(() => { hide('demo-scene-email'); show('demo-scene-compose'); setDot(2); startTyping() }, 3000)
       } else if (scene === 2) {
         // Scene 2: compose + typing
         show('demo-phone-wrap'); setDot(2); show('demo-scene-compose')
