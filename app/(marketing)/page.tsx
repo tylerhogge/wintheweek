@@ -41,35 +41,39 @@ export default function LandingPage() {
         </div>
       </nav>
 
-      {/* ── HERO ── */}
-      <section className="pt-36 pb-24 text-center relative overflow-hidden">
-        <div className="absolute top-20 left-1/2 -translate-x-1/2 w-[700px] h-[400px] bg-[radial-gradient(ellipse_at_center,rgba(34,197,94,0.08)_0%,transparent_70%)] pointer-events-none" />
+      {/* ── HERO + DEMO ── */}
+      <section className="pt-28 pb-20 relative overflow-hidden">
+        <div className="absolute top-0 left-1/3 w-[600px] h-[500px] bg-[radial-gradient(ellipse_at_center,rgba(34,197,94,0.07)_0%,transparent_70%)] pointer-events-none" />
 
-        <div className="max-w-[1080px] mx-auto px-6 relative z-10">
-          <div className="inline-flex items-center gap-1.5 bg-accent/10 border border-accent/25 text-accent text-xs font-medium px-3 py-1 rounded-full mb-7">
-            <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
-            Now in beta — join the waitlist
+        <div className="max-w-[1160px] mx-auto px-6 relative z-10">
+          <div className="grid md:grid-cols-2 gap-12 items-center">
+
+            {/* Left: copy */}
+            <div>
+              <div className="inline-flex items-center gap-1.5 bg-accent/10 border border-accent/25 text-accent text-xs font-medium px-3 py-1 rounded-full mb-7">
+                <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
+                Now in beta — join the waitlist
+              </div>
+
+              <h1 className="text-[clamp(32px,4.5vw,54px)] font-bold tracking-[-0.04em] leading-[1.08] mb-5">
+                What did your company get done <em className="not-italic text-accent">this week?</em>
+              </h1>
+
+              <p className="text-[clamp(15px,1.8vw,17px)] text-[#a1a1aa] max-w-[440px] mb-10 leading-relaxed">
+                Send your team a single weekly question. Collect replies. Get an instant view of what the whole company accomplished — without a meeting.
+              </p>
+
+              <WaitlistForm />
+              <p className="text-xs text-[#52525b] mt-3">Free during beta · No credit card required</p>
+            </div>
+
+            {/* Right: animation */}
+            <div className="bg-[#111113] border border-white/[0.07] rounded-2xl overflow-hidden">
+              <DemoAnimation />
+            </div>
+
           </div>
-
-          <h1 className="text-[clamp(36px,6vw,64px)] font-bold tracking-[-0.04em] leading-[1.08] max-w-[760px] mx-auto mb-5">
-            What did your company get done <em className="not-italic text-accent">this week?</em>
-          </h1>
-
-          <p className="text-[clamp(16px,2vw,18px)] text-[#a1a1aa] max-w-[480px] mx-auto mb-10 leading-relaxed">
-            Send your team a single weekly question. Collect replies. Get an instant view of what the whole company accomplished — without a meeting.
-          </p>
-
-          <WaitlistForm />
-          <p className="text-xs text-[#52525b] mt-3">Free during beta · No credit card required</p>
         </div>
-      </section>
-
-      {/* ── DEMO ── */}
-      <section className="pb-20 max-w-[680px] mx-auto px-6">
-        <div className="bg-[#111113] border border-white/[0.07] rounded-2xl overflow-hidden" style={{ minHeight: 520 }}>
-          <DemoAnimation />
-        </div>
-        <p className="text-center text-xs text-[#52525b] mt-4">Watch how it works — from inbox to dashboard in seconds</p>
       </section>
 
       {/* ── HOW IT WORKS ── */}
