@@ -60,7 +60,7 @@ export default function LandingPage() {
               </h1>
 
               <p className="text-[clamp(15px,1.8vw,17px)] text-[#a1a1aa] max-w-[440px] mb-10 leading-relaxed">
-                Send your team a single weekly question. Collect replies. Get an instant view of what the whole company accomplished — without a meeting.
+                Send your team a single weekly email. Collect replies. Get an instant view of what the whole company accomplished — without a meeting.
               </p>
 
               <WaitlistForm />
