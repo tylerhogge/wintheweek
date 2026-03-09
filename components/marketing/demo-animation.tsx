@@ -84,7 +84,7 @@ export function DemoAnimation() {
         t(() => { show('demo-phone-wrap'); setDot(0) }, 300)
         t(() => { show('demo-notification') }, 800)
         t(() => { hide('demo-notification'); show('demo-scene-email'); setDot(1) }, 3800)
-        // Scene 1: email open (visible ~3s)
+        // Scene 1: email open (visible ~3.2s)
         t(() => { hide('demo-scene-email'); show('demo-scene-compose'); setDot(2); startTyping() }, 7000)
       } else if (scene === 1) {
         // Scene 1: email open
