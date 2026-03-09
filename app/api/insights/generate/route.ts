@@ -49,8 +49,8 @@ export async function POST(req: Request) {
   }
 
   // Shape the data for the AI prompt
-  const replies = submissions
-    .map((s: any) => ({
+  const replies = (submissions as { employees: { name: string; team: string | null } | null; responses: { body_clean: string } | null }[])
+    .map((s) => ({
       name: s.employees?.name ?? 'Unknown',
       team: s.employees?.team ?? null,
       body: s.responses?.body_clean ?? '',
