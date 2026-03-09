@@ -47,7 +47,7 @@ export function Sidebar({ profile }: Props) {
 
       {/* Nav links */}
       <nav className="flex-1 p-3 flex flex-col gap-0.5 overflow-y-auto">
-        {NAV.map(({ href, icon: Icon, label }) => {
+        {NAV.map(({ href, icon: Icon, label }: typeof NAV[number]): React.ReactNode => {
           const active = pathname.startsWith(href)
           return (
             <Link

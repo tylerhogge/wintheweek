@@ -49,13 +49,13 @@ export async function POST(req: Request) {
   }
 
   // Shape the data for the AI prompt
-  const replies = (submissions as { employees: { name: string; team: string | null } | null; responses: { body_clean: string } | null }[])
-    .map((s) => ({
+  const replies = (submissions as unknown as { employees: { name: string; team: string | null } | null; responses: { body_clean: string } | null }[])
+    .map((s: { employees: { name: string; team: string | null } | null; responses: { body_clean: string } | null }) => ({
       name: s.employees?.name ?? 'Unknown',
       team: s.employees?.team ?? null,
       body: s.responses?.body_clean ?? '',
     }))
-    .filter((r) => r.body.trim().length > 0)
+    .filter((r: { body: string }): boolean => r.body.trim().length > 0)
 
   if (replies.length === 0) {
     return NextResponse.json({ ok: true, note: 'No clean reply bodies to summarize' })

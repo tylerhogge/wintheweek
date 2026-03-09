@@ -59,7 +59,7 @@ export default async function CampaignsPage() {
         </div>
       ) : (
         <div className="flex flex-col gap-3">
-          {campaigns?.map((c: Campaign) => (
+          {campaigns?.map((c: Campaign): React.ReactNode => (
             <div
               key={c.id}
               className="bg-surface border border-white/[0.07] rounded-xl px-6 py-5 flex items-center justify-between hover:border-white/[0.12] transition-colors"

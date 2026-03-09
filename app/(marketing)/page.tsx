@@ -20,10 +20,10 @@ export default function LandingPage() {
           </Link>
 
           <ul className="hidden md:flex items-center gap-1">
-            {['#how', '#features', '#pricing'].map((href) => (
+            {['#how', '#features', '#pricing'].map((href: string) => (
               <li key={href}>
                 <Link href={href} className="text-[#a1a1aa] hover:text-white text-sm px-3 py-1.5 rounded-md transition-colors">
-                  {href.replace('#', '').replace(/^\w/, (c) => c.toUpperCase())}
+                  {href.replace('#', '').replace(/^\w/, (c: string) => c.toUpperCase())}
                 </Link>
               </li>
             ))}
@@ -75,7 +75,7 @@ export default function LandingPage() {
             { n: '01', title: 'Configure your check-in', body: 'Customize the question, set your send schedule — Friday morning, every two weeks, whenever. Add your team in seconds.' },
             { n: '02', title: 'Employees just reply', body: 'They get a clean email. They hit Reply, type what they accomplished, and send. No app. No login. No friction whatsoever.' },
             { n: '03', title: 'You see everything', body: 'Replies land in your dashboard, organized by team. AI surfaces the highlights and trends so you don\'t have to dig.' },
-          ].map(({ n, title, body }) => (
+          ].map(({ n, title, body }: { n: string; title: string; body: string }) => (
             <div key={n} className="bg-surface border border-white/[0.07] rounded-xl p-7 hover:border-white/[0.12] transition-colors">
               <div className="w-7 h-7 border border-white/10 rounded-md flex items-center justify-center text-xs font-semibold text-[#71717a] mb-5">{n}</div>
               <h3 className="text-[15px] font-semibold tracking-tight mb-2">{title}</h3>
@@ -104,7 +104,7 @@ export default function LandingPage() {
               name: 'Growth', price: '$99', desc: 'For larger organizations', popular: false,
               features: ['Up to 250 employees', 'Everything in Team', 'Slack digest', 'Custom send domain', 'Priority support'],
             },
-          ].map(({ name, price, desc, popular, features }) => (
+          ].map(({ name, price, desc, popular, features }: { name: string; price: string; desc: string; popular: boolean; features: string[] }) => (
             <div key={name} className={`bg-surface border rounded-xl p-7 ${popular ? 'border-accent/40 bg-gradient-to-b from-accent/[0.06] to-surface' : 'border-white/[0.07]'}`}>
               <div className="flex items-center gap-2 mb-1">
                 <p className="text-[13px] font-semibold">{name}</p>
@@ -113,7 +113,7 @@ export default function LandingPage() {
               <p className="text-xs text-[#71717a] mb-5">{desc}</p>
               <p className="mb-6"><span className="text-[36px] font-bold tracking-[-0.04em]">{price}</span><span className="text-sm text-[#71717a] ml-1">/ mo</span></p>
               <ul className="space-y-2.5 mb-6">
-                {features.map((f) => (
+                {features.map((f: string) => (
                   <li key={f} className="text-sm text-[#a1a1aa] flex items-center gap-2">
                     <span className="text-accent font-bold text-xs">✓</span> {f}
                   </li>
@@ -139,7 +139,7 @@ export default function LandingPage() {
             Win the Week
           </Link>
           <div className="flex gap-5">
-            {['Privacy', 'Terms', 'Contact'].map((l) => (
+            {['Privacy', 'Terms', 'Contact'].map((l: string) => (
               <Link key={l} href="#" className="text-sm text-[#71717a] hover:text-[#a1a1aa] transition-colors">{l}</Link>
             ))}
           </div>

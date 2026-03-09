@@ -65,10 +65,10 @@ export default async function DashboardPage({ searchParams }: Props) {
     .eq('active', true)
     .not('team', 'is', null)
 
-  const uniqueTeams = [...new Set(teams?.map((t) => t.team).filter(Boolean))] as string[]
+  const uniqueTeams = [...new Set(teams?.map((t: { team: string | null }) => t.team).filter(Boolean))] as string[]
 
   const typed = (submissions ?? []) as SubmissionWithDetails[]
-  const replied = typed.filter((s) => s.response !== null)
+  const replied = typed.filter((s: SubmissionWithDetails): boolean => s.response !== null)
 
   return (
     <div>
@@ -99,7 +99,7 @@ export default async function DashboardPage({ searchParams }: Props) {
         >
           All teams
         </a>
-        {uniqueTeams.map((t) => (
+        {uniqueTeams.map((t: string) => (
           <a
             key={t}
             href={`/dashboard?week=${weekStart}&team=${t}`}
@@ -121,7 +121,7 @@ export default async function DashboardPage({ searchParams }: Props) {
         </div>
       ) : (
         <div className="flex flex-col gap-2">
-          {typed.map((submission) => (
+          {typed.map((submission: SubmissionWithDetails): React.ReactNode => (
             <ReplyCard key={submission.id} submission={submission} />
           ))}
         </div>

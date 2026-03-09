@@ -17,7 +17,7 @@ export async function generateWeeklyInsight(
   replies: Array<{ name: string; team: string | null; body: string }>,
 ): Promise<InsightResult> {
   const repliesText = replies
-    .map((r) => `[${r.name}${r.team ? ` · ${r.team}` : ''}]: ${r.body}`)
+    .map((r: { name: string; team: string | null; body: string }): string => `[${r.name}${r.team ? ` · ${r.team}` : ''}]: ${r.body}`)
     .join('\n\n')
 
   const message = await anthropic.messages.create({

@@ -17,8 +17,8 @@ export default async function TeamPage() {
     .eq('org_id', profile.org_id)
     .order('name')
 
-  const active = employees?.filter((e: Employee) => e.active) ?? []
-  const inactive = employees?.filter((e: Employee) => !e.active) ?? []
+  const active = employees?.filter((e: Employee): boolean => e.active) ?? []
+  const inactive = employees?.filter((e: Employee): boolean => !e.active) ?? []
 
   return (
     <div>
@@ -51,7 +51,7 @@ export default async function TeamPage() {
             No team members yet. Add your first member to get started.
           </div>
         ) : (
-          active.map((emp: Employee, i: number) => (
+          active.map((emp: Employee, i: number): React.ReactNode => (
             <div
               key={emp.id}
               className={`px-5 py-3.5 grid grid-cols-[2fr_1.5fr_1.5fr_100px] items-center ${i < active.length - 1 ? 'border-b border-white/[0.05]' : ''} hover:bg-white/[0.02] transition-colors`}
@@ -80,7 +80,7 @@ export default async function TeamPage() {
         <div className="mt-6">
           <p className="text-xs font-medium text-[#71717a] uppercase tracking-[0.06em] mb-3">Inactive ({inactive.length})</p>
           <div className="bg-surface border border-white/[0.07] rounded-xl overflow-hidden">
-            {inactive.map((emp: Employee, i: number) => (
+            {inactive.map((emp: Employee, i: number): React.ReactNode => (
               <div
                 key={emp.id}
                 className={`px-5 py-3.5 grid grid-cols-[2fr_1.5fr_1.5fr_100px] items-center opacity-50 ${i < inactive.length - 1 ? 'border-b border-white/[0.05]' : ''}`}

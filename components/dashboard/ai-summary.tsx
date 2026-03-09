@@ -18,7 +18,7 @@ export function AISummary({ insight, className }: Props) {
 
       {insight.highlights && insight.highlights.length > 0 && (
         <ul className="flex flex-col gap-1.5 mt-3 pt-3 border-t border-white/[0.06]">
-          {insight.highlights.map((h, i) => (
+          {insight.highlights.map((h: string, i: number): React.ReactNode => (
             <li key={i} className="flex items-start gap-2 text-sm text-[#a1a1aa]">
               <span className="text-accent font-bold text-xs mt-0.5 shrink-0">→</span>
               {h}

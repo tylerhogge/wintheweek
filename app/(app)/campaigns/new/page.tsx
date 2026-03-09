@@ -108,7 +108,7 @@ export default function NewCampaignPage() {
 
             <Field label="Day">
               <select value={form.send_day} onChange={(e) => update('send_day', Number(e.target.value))} className={selectCls}>
-                {DAYS.map((d, i) => (
+                {DAYS.map((d: string, i: number): React.ReactNode => (
                   <option key={d} value={i + 1}>{d}</option>
                 ))}
               </select>

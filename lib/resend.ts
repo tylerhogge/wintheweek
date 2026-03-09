@@ -51,7 +51,7 @@ export function buildCampaignEmail({
       </div>
       ${personalisedBody
         .split('\n\n')
-        .map((p) => `<p>${p.replace(/\n/g, '<br/>')}</p>`)
+        .map((p: string): string => `<p>${p.replace(/\n/g, '<br/>')}</p>`)
         .join('')}
       <div class="reply-hint">
         👆 <strong style="color:#fafafa">Just hit Reply</strong> and share what you accomplished. No login required.
