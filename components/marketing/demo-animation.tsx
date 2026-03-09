@@ -6,6 +6,7 @@ const REPLY_TEXT = "Launched the new onboarding flow, closed 3 enterprise deals,
 
 export function DemoAnimation() {
   const containerRef = useRef<HTMLDivElement>(null)
+  const restartRef = useRef<(() => void) | null>(null)
 
   useEffect(() => {
     let timeouts: ReturnType<typeof setTimeout>[] = []
@@ -74,6 +75,8 @@ export function DemoAnimation() {
     }
 
     function runLoop() {
+      timeouts.forEach(clearTimeout)
+      timeouts = []
       reset()
 
       // Scene 0: Show phone + notification
@@ -132,6 +135,7 @@ export function DemoAnimation() {
       }, 4200)
     }
 
+    restartRef.current = runLoop
     runLoop()
 
     return () => {
@@ -391,10 +395,12 @@ export function DemoAnimation() {
       {/* Dots */}
       <div style={{ position: 'absolute', bottom: 0, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 6 }}>
         {[0,1,2,3].map(i => (
-          <div
+          <button
             key={i}
             id={`demo-dot-${i}`}
-            style={{ width: 6, height: 6, borderRadius: '50%', background: 'rgba(255,255,255,0.2)', transition: 'background 0.3s, transform 0.3s' }}
+            onClick={() => restartRef.current?.()}
+            title="Replay animation"
+            style={{ width: 10, height: 10, borderRadius: '50%', background: 'rgba(255,255,255,0.2)', transition: 'background 0.3s, transform 0.3s', border: 'none', padding: 0, cursor: 'pointer' }}
           />
         ))}
       </div>
