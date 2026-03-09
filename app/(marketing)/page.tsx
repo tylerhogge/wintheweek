@@ -52,8 +52,7 @@ export default function LandingPage() {
           </div>
 
           <h1 className="text-[clamp(36px,6vw,64px)] font-bold tracking-[-0.04em] leading-[1.08] max-w-[760px] mx-auto mb-5">
-            One email.<br />
-            Every win, <span className="text-accent">visible.</span>
+            What did your company get done <em className="not-italic text-accent">this week?</em>
           </h1>
 
           <p className="text-[clamp(16px,2vw,18px)] text-[#a1a1aa] max-w-[480px] mx-auto mb-10 leading-relaxed">
