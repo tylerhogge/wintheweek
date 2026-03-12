@@ -26,7 +26,7 @@ export default function OnboardingPage() {
     })
 
     if (res.ok) {
-      router.push('/dashboard')
+      router.push('/team?onboarding=1')
     } else {
       const data = await res.json()
       setError(data.error ?? 'Something went wrong')
@@ -49,13 +49,6 @@ export default function OnboardingPage() {
         </Link>
 
         <div className="bg-surface border border-white/[0.08] rounded-xl p-8">
-          {/* Progress indicator */}
-          <div className="flex items-center gap-2 mb-6">
-            <div className="h-1 flex-1 rounded-full bg-accent" />
-            <div className="h-1 flex-1 rounded-full bg-white/10" />
-            <div className="h-1 flex-1 rounded-full bg-white/10" />
-          </div>
-
           <h2 className="text-[22px] font-bold tracking-[-0.03em] mb-1">Set up your workspace</h2>
           <p className="text-sm text-[#71717a] mb-6">Takes 30 seconds. You can change everything later.</p>
 
@@ -103,7 +96,7 @@ export default function OnboardingPage() {
         </div>
 
         <p className="text-center text-xs text-[#52525b] mt-5">
-          Step 1 of 3 — Next: add your team
+          Next: add your team members
         </p>
       </div>
     </div>

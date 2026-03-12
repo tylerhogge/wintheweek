@@ -114,10 +114,30 @@ export default async function DashboardPage({ searchParams }: Props) {
         ))}
       </div>
 
-      {/* Replies */}
+      {/* Replies / Empty state */}
       {typed.length === 0 ? (
-        <div className="text-center py-20 text-[#52525b] text-sm">
-          No emails sent for this week yet.
+        <div className="mt-4 bg-surface border border-white/[0.07] rounded-xl p-8 flex flex-col items-center text-center">
+          <div className="w-12 h-12 bg-white/[0.04] border border-white/[0.08] rounded-xl flex items-center justify-center mb-4 text-2xl">📬</div>
+          <h3 className="text-[15px] font-semibold mb-1">No responses yet</h3>
+          <p className="text-sm text-[#71717a] mb-6 max-w-xs">Responses will appear here after you send your first campaign. Get set up in two steps:</p>
+          <div className="w-full max-w-sm flex flex-col gap-2 text-left">
+            <a href="/team" className="flex items-center gap-3 px-4 py-3 bg-white/[0.03] border border-white/[0.07] rounded-lg hover:bg-white/[0.06] transition-colors group">
+              <span className="w-7 h-7 rounded-full bg-accent/10 border border-accent/20 flex items-center justify-center text-accent text-xs font-bold shrink-0">1</span>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium">Add your team members</p>
+                <p className="text-xs text-[#71717a]">Import or add the people who'll receive check-ins</p>
+              </div>
+              <span className="text-[#52525b] group-hover:text-white transition-colors">→</span>
+            </a>
+            <a href="/campaigns" className="flex items-center gap-3 px-4 py-3 bg-white/[0.03] border border-white/[0.07] rounded-lg hover:bg-white/[0.06] transition-colors group">
+              <span className="w-7 h-7 rounded-full bg-accent/10 border border-accent/20 flex items-center justify-center text-accent text-xs font-bold shrink-0">2</span>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium">Set up a campaign</p>
+                <p className="text-xs text-[#71717a]">Configure your weekly email and schedule it</p>
+              </div>
+              <span className="text-[#52525b] group-hover:text-white transition-colors">→</span>
+            </a>
+          </div>
         </div>
       ) : (
         <div className="flex flex-col gap-2">

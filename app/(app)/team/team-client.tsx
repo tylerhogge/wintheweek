@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import type { Employee } from '@/types'
 import { getInitials, avatarGradient } from '@/lib/utils'
 import { AddMemberModal } from '@/components/team/add-member-modal'
@@ -9,10 +10,23 @@ type Props = { active: Employee[]; inactive: Employee[] }
 
 export function TeamClient({ active, inactive }: Props) {
   const [showModal, setShowModal] = useState(false)
+  const searchParams = useSearchParams()
+  const isOnboarding = searchParams.get('onboarding') === '1'
 
   return (
     <>
       {showModal && <AddMemberModal onClose={() => setShowModal(false)} />}
+
+      {/* Onboarding welcome banner */}
+      {isOnboarding && active.length === 0 && (
+        <div className="mb-6 bg-accent/10 border border-accent/20 rounded-xl px-5 py-4 flex items-start gap-3">
+          <span className="text-xl mt-0.5">🎉</span>
+          <div>
+            <p className="text-sm font-semibold text-white mb-0.5">Workspace created! Now add your team.</p>
+            <p className="text-sm text-[#a1a1aa]">Add the people who will receive weekly check-in emails. You can always add more later.</p>
+          </div>
+        </div>
+      )}
 
       <div className="flex items-center justify-between mb-8">
         <div>

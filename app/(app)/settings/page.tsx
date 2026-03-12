@@ -34,7 +34,7 @@ export default async function SettingsPage() {
           </div>
           <div className="px-5 py-4 flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium">Slug</p>
+              <p className="text-sm font-medium">Workspace URL</p>
               <p className="text-xs text-[#71717a] mt-0.5">wintheweek.co/{org?.slug ?? '—'}</p>
             </div>
             <button className="text-xs border border-white/10 text-[#a1a1aa] hover:text-white px-3 py-1.5 rounded-md transition-colors">Edit</button>
