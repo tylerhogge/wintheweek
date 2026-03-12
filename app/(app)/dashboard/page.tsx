@@ -132,7 +132,7 @@ export default async function DashboardPage({ searchParams }: Props) {
             <a href="/campaigns" className="flex items-center gap-3 px-4 py-3 bg-white/[0.03] border border-white/[0.07] rounded-lg hover:bg-white/[0.06] transition-colors group">
               <span className="w-7 h-7 rounded-full bg-accent/10 border border-accent/20 flex items-center justify-center text-accent text-xs font-bold shrink-0">2</span>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium">Set up a campaign</p>
+                <p className="text-sm font-medium">Set up an email</p>
                 <p className="text-xs text-[#71717a]">Configure your weekly email and schedule it</p>
               </div>
               <span className="text-[#52525b] group-hover:text-white transition-colors">→</span>

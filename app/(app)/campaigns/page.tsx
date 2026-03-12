@@ -32,14 +32,14 @@ export default async function CampaignsPage() {
     <div>
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-[22px] font-bold tracking-[-0.03em] mb-0.5">Campaigns</h1>
+          <h1 className="text-[22px] font-bold tracking-[-0.03em] mb-0.5">Emails</h1>
           <p className="text-sm text-[#71717a]">Manage your weekly email check-ins</p>
         </div>
         <Link
           href="/campaigns/new"
           className="flex items-center gap-1.5 text-sm font-semibold bg-white text-black px-4 py-2 rounded-md hover:bg-white/90 transition-colors"
         >
-          <span className="text-lg leading-none">+</span> New campaign
+          <span className="text-lg leading-none">+</span> New email
         </Link>
       </div>
 
@@ -51,10 +51,10 @@ export default async function CampaignsPage() {
               <polyline points="22,6 12,13 2,6" />
             </svg>
           </div>
-          <p className="text-sm font-medium text-white mb-1">No campaigns yet</p>
-          <p className="text-sm text-[#71717a] mb-5">Create your first campaign to start collecting weekly check-ins.</p>
+          <p className="text-sm font-medium text-white mb-1">No emails yet</p>
+          <p className="text-sm text-[#71717a] mb-5">Create your first email to start collecting weekly check-ins.</p>
           <Link href="/campaigns/new" className="text-sm font-semibold bg-accent text-black px-4 py-2 rounded-md hover:bg-accent/90 transition-colors">
-            Create campaign →
+            Create email →
           </Link>
         </div>
       ) : (
