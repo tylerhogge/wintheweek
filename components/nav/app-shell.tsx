@@ -72,10 +72,10 @@ export function AppShell({ profile, children }: Props) {
         className="shrink-0 border-r border-white/[0.07] bg-bg flex flex-col h-screen fixed left-0 top-0 z-40 transition-[width] duration-200 overflow-hidden"
       >
         {/* Logo */}
-        <div className="h-14 flex items-center border-b border-white/[0.07] px-4 relative shrink-0">
+        <div className="h-14 flex items-center border-b border-white/[0.07] px-4 shrink-0 gap-2">
           <Link
             href="/dashboard"
-            className={cn('flex items-center gap-2 font-semibold text-[15px] tracking-tight', collapsed && 'justify-center w-full')}
+            className={cn('flex items-center gap-2 font-semibold text-[15px] tracking-tight flex-1 min-w-0', collapsed && 'justify-center')}
           >
             <span className="w-6 h-6 bg-accent rounded-[5px] flex items-center justify-center shrink-0">
               <CheckSquare className="w-3.5 h-3.5 text-black" strokeWidth={2.5} />
@@ -83,13 +83,13 @@ export function AppShell({ profile, children }: Props) {
             {!collapsed && <span className="whitespace-nowrap">Win the Week</span>}
           </Link>
 
-          {/* Collapse toggle — sits on right edge of sidebar */}
+          {/* Collapse toggle */}
           <button
             onClick={toggle}
             title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-bg border border-white/[0.12] flex items-center justify-center text-[#71717a] hover:text-white hover:border-white/25 transition-colors z-10 shadow-sm"
+            className="shrink-0 w-6 h-6 rounded-md flex items-center justify-center text-[#52525b] hover:text-white hover:bg-white/[0.07] transition-colors"
           >
-            {collapsed ? <ChevronRight className="w-3 h-3" /> : <ChevronLeft className="w-3 h-3" />}
+            {collapsed ? <ChevronRight className="w-3.5 h-3.5" /> : <ChevronLeft className="w-3.5 h-3.5" />}
           </button>
         </div>
 
