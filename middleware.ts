@@ -7,6 +7,13 @@ const PROTECTED_PREFIXES = ['/dashboard', '/campaigns', '/team', '/settings']
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
+  // Supabase sometimes redirects OAuth code to the Site URL root instead of /auth/callback.
+  // Intercept and forward to the callback route so the session can be established.
+  if (pathname === '/' && request.nextUrl.searchParams.has('code')) {
+    const code = request.nextUrl.searchParams.get('code')
+    return NextResponse.redirect(new URL(`/auth/callback?code=${code}`, request.url))
+  }
+
   // If Supabase isn't configured yet, only block protected routes
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
