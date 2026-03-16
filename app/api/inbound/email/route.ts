@@ -3,18 +3,16 @@
  *
  * Webhook endpoint called by Resend Inbound when an employee replies to their check-in email.
  *
- * Resend sends a POST with a JSON payload. The "to" address is the unique reply-to address
- * we embedded in the outgoing email: reply+{submissionId}@inbound.wintheweek.co
- *
- * We extract the submission ID, clean the email body, store the response,
- * then trigger AI insight generation for that org/week.
+ * Replies go to updates@wintheweek.co. We match the reply to the right submission
+ * by looking up the sender's email address against active employees and finding
+ * their most recent unsent/unreplied submission.
  *
  * Resend inbound docs: https://resend.com/docs/dashboard/emails/inbound-emails
  */
 
 import { NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
-import { parseSubmissionId, cleanEmailBody } from '@/lib/utils'
+import { cleanEmailBody } from '@/lib/utils'
 
 // Resend inbound webhook payload (simplified — see Resend docs for full schema)
 type ResendInboundPayload = {
@@ -26,10 +24,6 @@ type ResendInboundPayload = {
 }
 
 export async function POST(req: Request) {
-  // Optional: verify Resend webhook signature
-  // const signature = req.headers.get('svix-signature')
-  // ... verify with RESEND_WEBHOOK_SECRET
-
   let payload: ResendInboundPayload
   try {
     payload = await req.json()
@@ -37,31 +31,42 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
   }
 
-  // Find the reply-to address in the "to" list
-  const toAddress = payload.to?.find((t) => t.email.includes('reply+'))?.email
-  if (!toAddress) {
-    // Not a tracked reply — ignore
-    return NextResponse.json({ ok: true, note: 'No submission token found' })
-  }
-
-  const shortToken = parseSubmissionId(toAddress)
-  if (!shortToken) {
-    return NextResponse.json({ error: 'Could not parse submission token' }, { status: 400 })
+  // Get the sender's email address
+  const senderEmail = payload.from?.[0]?.email
+  if (!senderEmail) {
+    return NextResponse.json({ error: 'No sender found' }, { status: 400 })
   }
 
   const supabase = createServiceClient()
 
-  // Look up the submission by the short token prefix
-  // buildReplyToAddress uses the first 8 hex chars of the UUID (hyphens stripped)
+  // Find the employee by email
+  const { data: employee, error: empErr } = await supabase
+    .from('employees')
+    .select('id, org_id, name')
+    .eq('email', senderEmail)
+    .eq('active', true)
+    .single()
+
+  if (empErr || !employee) {
+    // Sender is not a tracked employee — silently ignore
+    console.log('Reply from unknown sender:', senderEmail)
+    return NextResponse.json({ ok: true, note: 'Sender not found' })
+  }
+
+  // Find their most recent submission that hasn't been replied to yet
   const { data: submission, error: subErr } = await supabase
     .from('submissions')
-    .select('*, employees(org_id, name, team), campaigns(org_id)')
-    .filter('id::text', 'ilike', `${shortToken}%`)
+    .select('*, campaigns(org_id)')
+    .eq('employee_id', employee.id)
+    .is('replied_at', null)
+    .not('sent_at', 'is', null)
+    .order('week_start', { ascending: false })
+    .limit(1)
     .single()
 
   if (subErr || !submission) {
-    console.error('Submission not found', submissionId, subErr)
-    return NextResponse.json({ error: 'Submission not found' }, { status: 404 })
+    console.log('No open submission for sender:', senderEmail)
+    return NextResponse.json({ ok: true, note: 'No open submission' })
   }
 
   // Don't double-store if they reply twice
@@ -98,7 +103,7 @@ export async function POST(req: Request) {
     .eq('id', submission.id)
 
   // Trigger AI insight generation in the background
-  const orgId = submission.employees?.org_id ?? submission.campaigns?.org_id
+  const orgId = employee.org_id
   const weekStart = submission.week_start
 
   if (orgId && weekStart) {

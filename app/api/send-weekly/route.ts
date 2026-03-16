@@ -11,7 +11,7 @@
 import { NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { getResend, buildCampaignEmail } from '@/lib/resend'
-import { buildReplyToAddress, getWeekStart } from '@/lib/utils'
+import { getWeekStart } from '@/lib/utils'
 import { format } from 'date-fns'
 
 export async function POST(req: Request) {
@@ -62,7 +62,7 @@ export async function POST(req: Request) {
         continue
       }
 
-      // Create the submission record first (we need its ID for the reply-to address)
+      // Create the submission record
       const { data: submission, error: subErr } = await supabase
         .from('submissions')
         .insert({
@@ -79,11 +79,7 @@ export async function POST(req: Request) {
         continue
       }
 
-      // Build the reply-to address with the submission ID encoded
-      const replyTo = buildReplyToAddress(
-        submission.id,
-        process.env.INBOUND_EMAIL_DOMAIN ?? 'inbound.wintheweek.co',
-      )
+      const replyTo = process.env.REPLY_TO_EMAIL ?? 'updates@wintheweek.co'
 
       const { subject, html, text } = buildCampaignEmail({
         employeeName: employee.name,
@@ -94,7 +90,7 @@ export async function POST(req: Request) {
 
       // Send via Resend
       const { error: sendErr } = await getResend().emails.send({
-        from: `${process.env.FROM_NAME ?? 'Win the Week'} <${process.env.FROM_EMAIL ?? 'hello@wintheweek.co'}>`,
+        from: `${process.env.FROM_NAME ?? 'Win the Week'} <${process.env.FROM_EMAIL ?? 'updates@wintheweek.co'}>`,
         to: employee.email,
         replyTo: replyTo,
         subject,

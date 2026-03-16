@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import type { Campaign } from '@/types'
+import SendTestEmail from './send-test-email'
 
 const FREQUENCY_LABEL: Record<Campaign['frequency'], string> = {
   weekly: 'Every week',
@@ -19,7 +20,7 @@ export default async function CampaignsPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/auth/login')
 
-  const { data: profile } = await supabase.from('profiles').select('org_id').eq('id', user.id).single()
+  const { data: profile } = await supabase.from('profiles').select('org_id, email').eq('id', user.id).single()
   if (!profile?.org_id) redirect('/onboarding')
 
   const { data: campaigns } = await supabase
