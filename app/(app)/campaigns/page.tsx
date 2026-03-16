@@ -91,6 +91,11 @@ export default async function CampaignsPage() {
           ))}
         </div>
       )}
+
+      <SendTestEmail
+        campaigns={campaigns ?? []}
+        defaultEmail={user.email ?? ''}
+      />
     </div>
   )
 }
