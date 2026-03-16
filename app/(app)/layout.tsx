@@ -1,18 +1,12 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { getAuthUser, getProfile } from '@/lib/supabase/server'
 import { AppShell } from '@/components/nav/app-shell'
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  // These are memoised via React.cache — no extra network calls when pages call them too
+  const [user, profile] = await Promise.all([getAuthUser(), getProfile()])
 
   if (!user) redirect('/auth/login')
-
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*, organizations(*)')
-    .eq('id', user.id)
-    .single()
 
   return (
     <AppShell profile={profile}>

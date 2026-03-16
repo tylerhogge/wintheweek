@@ -1,6 +1,6 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { format } from 'date-fns'
 import { getWeekStart, prevWeekStart, nextWeekStart } from '@/lib/utils'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
@@ -8,39 +8,48 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 type Props = { weekStart: string }
 
 export function WeekNav({ weekStart }: Props) {
-  const router = useRouter()
   const currentWeek = format(getWeekStart(), 'yyyy-MM-dd')
   const isCurrentWeek = weekStart === currentWeek
 
-  function go(week: string) {
-    router.push(`/dashboard?week=${week}`)
-  }
+  const prev = prevWeekStart(weekStart)
+  const next = nextWeekStart(weekStart)
 
   return (
     <div className="flex items-center gap-1">
-      <button
-        onClick={() => go(prevWeekStart(weekStart))}
+      {/* Previous week — always prefetched on hover */}
+      <Link
+        href={`/dashboard?week=${prev}`}
+        prefetch={true}
         className="w-8 h-8 flex items-center justify-center border border-white/10 rounded-md hover:bg-white/[0.05] transition-colors text-[#71717a] hover:text-white"
       >
         <ChevronLeft className="w-4 h-4" />
-      </button>
+      </Link>
 
+      {/* "This week" shortcut — shown when viewing a past week */}
       {!isCurrentWeek && (
-        <button
-          onClick={() => go(currentWeek)}
-          className="text-xs text-[#71717a] hover:text-white border border-white/10 px-3 h-8 rounded-md transition-colors"
+        <Link
+          href={`/dashboard?week=${currentWeek}`}
+          prefetch={true}
+          className="text-xs text-[#71717a] hover:text-white border border-white/10 px-3 h-8 flex items-center rounded-md transition-colors"
         >
           This week
-        </button>
+        </Link>
       )}
 
-      <button
-        onClick={() => go(nextWeekStart(weekStart))}
-        disabled={isCurrentWeek}
-        className="w-8 h-8 flex items-center justify-center border border-white/10 rounded-md hover:bg-white/[0.05] transition-colors text-[#71717a] hover:text-white disabled:opacity-30 disabled:cursor-not-allowed"
-      >
-        <ChevronRight className="w-4 h-4" />
-      </button>
+      {/* Next week — disabled when already on current week */}
+      {isCurrentWeek ? (
+        <span className="w-8 h-8 flex items-center justify-center border border-white/10 rounded-md opacity-30 cursor-not-allowed text-[#71717a]">
+          <ChevronRight className="w-4 h-4" />
+        </span>
+      ) : (
+        <Link
+          href={`/dashboard?week=${next}`}
+          prefetch={true}
+          className="w-8 h-8 flex items-center justify-center border border-white/10 rounded-md hover:bg-white/[0.05] transition-colors text-[#71717a] hover:text-white"
+        >
+          <ChevronRight className="w-4 h-4" />
+        </Link>
+      )}
     </div>
   )
 }

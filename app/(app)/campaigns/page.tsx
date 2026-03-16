@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient, getAuthUser, getProfile } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import type { Campaign } from '@/types'
@@ -16,12 +16,11 @@ const DAY_LABEL: Record<number, string> = {
 }
 
 export default async function CampaignsPage() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const [user, profile] = await Promise.all([getAuthUser(), getProfile()])
   if (!user) redirect('/auth/login')
-
-  const { data: profile } = await supabase.from('profiles').select('org_id, email, name').eq('id', user.id).single()
   if (!profile?.org_id) redirect('/onboarding')
+
+  const supabase = await createClient()
 
   const { data: campaigns } = await supabase
     .from('campaigns')

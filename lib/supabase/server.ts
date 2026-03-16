@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
+import { cache } from 'react'
 
 // Used in Server Components, Server Actions, and Route Handlers
 export async function createClient() {
@@ -36,3 +37,26 @@ export function createServiceClient() {
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
   )
 }
+
+// ─── Per-request memoised helpers ─────────────────────────────────────────────
+// React.cache deduplicates calls within a single server render pass.
+// This eliminates repeated auth.getUser() + profile round-trips when both
+// the layout and a page component need the same data.
+
+export const getAuthUser = cache(async () => {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  return user
+})
+
+export const getProfile = cache(async () => {
+  const user = await getAuthUser()
+  if (!user) return null
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from('profiles')
+    .select('id, org_id, name, email, organizations(*)')
+    .eq('id', user.id)
+    .single()
+  return data
+})
