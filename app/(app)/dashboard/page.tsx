@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import { redirect } from 'next/navigation'
 import { format } from 'date-fns'
 import Link from 'next/link'
@@ -14,77 +15,56 @@ interface Props {
   searchParams: Promise<{ week?: string; team?: string }>
 }
 
-export default async function DashboardPage({ searchParams }: Props) {
-  // Both of these are memoised — no extra network calls if layout already ran them
-  const [{ week, team }, user, profile] = await Promise.all([
-    searchParams,
-    getAuthUser(),
-    getProfile(),
-  ])
-
-  if (!user) redirect('/auth/login')
-  if (!profile?.org_id) redirect('/onboarding')
-
+// ── Streaming data component ──────────────────────────────────────────────────
+// Runs on the server and streams HTML to the browser as soon as it resolves.
+// The page shell (header + week nav) renders instantly without waiting for this.
+async function DashboardContent({
+  orgId,
+  weekStart,
+  team,
+}: {
+  orgId: string
+  weekStart: string
+  team?: string
+}) {
   const supabase = await createClient()
-  const weekStart = week ?? format(getWeekStart(), 'yyyy-MM-dd')
 
-  // Build the submissions query
   let submissionsQuery = supabase
     .from('submissions')
-    .select(`
-      *,
-      employee:employees(*),
-      response:responses(*)
-    `)
+    .select(`*, employee:employees(*), response:responses(*)`)
     .eq('week_start', weekStart)
-    .eq('employees.org_id', profile.org_id)
+    .eq('employees.org_id', orgId)
     .order('replied_at', { ascending: false, nullsFirst: false })
 
-  if (team) {
-    submissionsQuery = submissionsQuery.eq('employees.team', team)
-  }
+  if (team) submissionsQuery = submissionsQuery.eq('employees.team', team)
 
-  // Run all three data fetches in parallel — previously these were sequential
   const [{ data: submissions }, { data: insight }, { data: teams }] = await Promise.all([
     submissionsQuery,
     supabase
       .from('insights')
       .select('*')
-      .eq('org_id', profile.org_id)
+      .eq('org_id', orgId)
       .eq('week_start', weekStart)
       .single(),
     supabase
       .from('employees')
       .select('team')
-      .eq('org_id', profile.org_id)
+      .eq('org_id', orgId)
       .eq('active', true)
       .not('team', 'is', null),
   ])
 
   const uniqueTeams = [
-    ...new Set(
-      teams?.map((t: { team: string | null }) => t.team).filter(Boolean),
-    ),
+    ...new Set(teams?.map((t: { team: string | null }) => t.team).filter(Boolean)),
   ] as string[]
 
   const typed = (submissions ?? []) as SubmissionWithDetails[]
-  const replied = typed.filter((s: SubmissionWithDetails): boolean => s.response !== null)
+  const replied = typed.filter((s: SubmissionWithDetails) => s.response !== null)
 
   return (
-    <div>
-      {/* Page header */}
-      <div className="flex items-start justify-between mb-6">
-        <div>
-          <h1 className="text-[22px] font-bold tracking-[-0.03em] mb-0.5">Weekly Digest</h1>
-          <p className="text-sm text-[#71717a]">{formatWeekRange(weekStart)}</p>
-        </div>
-        <WeekNav weekStart={weekStart} />
-      </div>
-
-      {/* Stats row */}
+    <>
       <StatsBar total={typed.length} replied={replied.length} weekStart={weekStart} />
 
-      {/* AI Summary */}
       {insight && <AISummary insight={insight as Insight} className="mt-5" />}
 
       {/* Team filter chips */}
@@ -148,6 +128,73 @@ export default async function DashboardPage({ searchParams }: Props) {
           ))}
         </div>
       )}
+    </>
+  )
+}
+
+// ── Skeleton shown while DashboardContent streams in ─────────────────────────
+function DashboardContentSkeleton() {
+  return (
+    <div className="animate-pulse">
+      <div className="grid grid-cols-4 gap-3">
+        {[...Array(4)].map((_, i) => (
+          <div key={i} className="bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-3.5">
+            <div className="h-3 w-12 bg-white/[0.06] rounded mb-2" />
+            <div className="h-7 w-10 bg-white/[0.08] rounded" />
+          </div>
+        ))}
+      </div>
+      <div className="flex items-center gap-2 mt-6 mb-4">
+        <div className="h-7 w-20 bg-white/[0.04] border border-white/[0.06] rounded-full" />
+        <div className="h-7 w-24 bg-white/[0.04] border border-white/[0.06] rounded-full" />
+      </div>
+      <div className="flex flex-col gap-2">
+        {[...Array(5)].map((_, i) => (
+          <div key={i} className="bg-surface border border-white/[0.07] rounded-xl px-5 py-4 flex items-start gap-4">
+            <div className="w-8 h-8 rounded-full bg-white/[0.06] shrink-0 mt-0.5" />
+            <div className="flex-1 flex flex-col gap-2 pt-0.5">
+              <div className="flex items-center gap-2">
+                <div className="h-3.5 w-28 bg-white/[0.08] rounded" />
+                <div className="h-3 w-14 bg-white/[0.04] rounded-full" />
+              </div>
+              <div className="h-3 w-full bg-white/[0.04] rounded" />
+              <div className="h-3 w-3/4 bg-white/[0.04] rounded" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// ── Page shell — renders immediately, zero DB calls ───────────────────────────
+export default async function DashboardPage({ searchParams }: Props) {
+  const [{ week, team }, user, profile] = await Promise.all([
+    searchParams,
+    getAuthUser(),
+    getProfile(),
+  ])
+
+  if (!user) redirect('/auth/login')
+  if (!profile?.org_id) redirect('/onboarding')
+
+  const weekStart = week ?? format(getWeekStart(), 'yyyy-MM-dd')
+
+  return (
+    <div>
+      {/* Renders immediately — no DB calls needed for this section */}
+      <div className="flex items-start justify-between mb-6">
+        <div>
+          <h1 className="text-[22px] font-bold tracking-[-0.03em] mb-0.5">Weekly Digest</h1>
+          <p className="text-sm text-[#71717a]">{formatWeekRange(weekStart)}</p>
+        </div>
+        <WeekNav weekStart={weekStart} />
+      </div>
+
+      {/* Streams in as DB queries resolve — skeleton shows immediately */}
+      <Suspense fallback={<DashboardContentSkeleton />}>
+        <DashboardContent orgId={profile.org_id} weekStart={weekStart} team={team} />
+      </Suspense>
     </div>
   )
 }
