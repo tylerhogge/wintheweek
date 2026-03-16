@@ -7,20 +7,36 @@
  * by looking up the sender's email address against active employees and finding
  * their most recent unsent/unreplied submission.
  *
- * Resend inbound docs: https://resend.com/docs/dashboard/emails/inbound-emails
+ * Resend inbound docs: https://resend.com/docs/dashboard/receiving/introduction
+ *
+ * ⚠️  Payload notes:
+ *   - `data.from` is a raw RFC-5322 string, e.g. "Tyler Hogge <tyler@pelionvp.com>"
+ *   - `data.to` is an array of plain email strings, not objects
+ *   - The webhook does NOT include the email body — you must call
+ *     resend.emails.receiving.get(email_id) to retrieve text/html
  */
 
 import { NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { cleanEmailBody } from '@/lib/utils'
 
-// Resend inbound webhook payload (simplified — see Resend docs for full schema)
+// Actual Resend inbound webhook payload shape
 type ResendInboundPayload = {
-  to:      Array<{ email: string }>
-  from:    Array<{ email: string; name?: string }>
-  subject: string
-  text?:   string
-  html?:   string
+  type: string          // "email.received"
+  created_at: string
+  data: {
+    email_id: string
+    from: string        // "Display Name <email@domain.com>"  or just "email@domain.com"
+    to: string[]        // ["updates@wintheweek.co"]
+    subject: string
+    created_at: string
+  }
+}
+
+/** Extract the bare email address from an RFC-5322 From header value. */
+function parseEmail(raw: string): string {
+  const match = raw.match(/<([^>]+)>/)
+  return match ? match[1].trim().toLowerCase() : raw.trim().toLowerCase()
 }
 
 export async function POST(req: Request) {
@@ -31,8 +47,13 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
   }
 
-  // Get the sender's email address
-  const senderEmail = payload.from?.[0]?.email
+  // Only handle email.received events
+  if (payload.type !== 'email.received') {
+    return NextResponse.json({ ok: true, note: 'Ignored event type' })
+  }
+
+  // Extract sender email from the RFC-5322 From string
+  const senderEmail = parseEmail(payload.data?.from ?? '')
   if (!senderEmail) {
     return NextResponse.json({ error: 'No sender found' }, { status: 400 })
   }
@@ -80,8 +101,26 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true, note: 'Already recorded' })
   }
 
+  // Fetch the full email body — the webhook payload only contains metadata.
+  // We use a raw fetch rather than the SDK to avoid version compatibility issues.
+  const emailResp = await fetch(
+    `https://api.resend.com/emails/${payload.data.email_id}`,
+    {
+      headers: {
+        Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+      },
+    },
+  )
+
+  if (!emailResp.ok) {
+    console.error('Failed to fetch email body from Resend:', emailResp.status)
+    return NextResponse.json({ error: 'Could not retrieve email body' }, { status: 500 })
+  }
+
+  const receivedEmail = await emailResp.json() as { text?: string; html?: string }
+
   // Clean the email body — strip quoted text and signatures
-  const rawBody = payload.text ?? ''
+  const rawBody = receivedEmail.text ?? ''
   const cleanBody = cleanEmailBody(rawBody)
 
   // Store the response
