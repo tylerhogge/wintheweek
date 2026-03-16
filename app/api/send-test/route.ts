@@ -1,14 +1,18 @@
 /**
  * POST /api/send-test
  *
- * Sends a one-off test email for a given campaign to a specified address.
- * Does not create a submission record — purely for previewing the email.
+ * Sends a test email for a given campaign to a specified address.
+ * If the recipient is a registered employee, creates a real submission
+ * so that a reply will be tracked on the dashboard.
  * Requires an authenticated session.
  */
 
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/server'
 import { getResend, buildCampaignEmail } from '@/lib/resend'
+import { getWeekStart } from '@/lib/utils'
+import { format } from 'date-fns'
 
 export async function POST(req: Request) {
   const supabase = await createClient()
@@ -19,6 +23,8 @@ export async function POST(req: Request) {
   if (!campaign_id || !to_email) {
     return NextResponse.json({ error: 'Missing campaign_id or to_email' }, { status: 400 })
   }
+
+  const serviceSupabase = createServiceClient()
 
   // Verify the campaign belongs to the user's org
   const { data: profile } = await supabase
@@ -39,6 +45,37 @@ export async function POST(req: Request) {
   }
 
   const replyTo = process.env.REPLY_TO_EMAIL ?? 'updates@wintheweek.co'
+  const weekStart = format(getWeekStart(), 'yyyy-MM-dd')
+
+  // If the recipient is a registered employee, create a real submission
+  // so their reply will be tracked on the dashboard
+  const { data: employee } = await serviceSupabase
+    .from('employees')
+    .select('id')
+    .eq('email', to_email)
+    .eq('org_id', profile?.org_id)
+    .eq('active', true)
+    .single()
+
+  if (employee) {
+    // Check if a submission already exists for this week (avoid duplicates)
+    const { data: existing } = await serviceSupabase
+      .from('submissions')
+      .select('id')
+      .eq('campaign_id', campaign_id)
+      .eq('employee_id', employee.id)
+      .eq('week_start', weekStart)
+      .single()
+
+    if (!existing) {
+      await serviceSupabase.from('submissions').insert({
+        campaign_id,
+        employee_id: employee.id,
+        week_start: weekStart,
+        sent_at: new Date().toISOString(),
+      })
+    }
+  }
 
   const { subject, html, text } = buildCampaignEmail({
     employeeName: to_name || 'there',
@@ -61,5 +98,5 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
-  return NextResponse.json({ ok: true })
+  return NextResponse.json({ ok: true, trackedReply: !!employee })
 }

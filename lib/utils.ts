@@ -1,6 +1,6 @@
 import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
-import { format, startOfWeek, addWeeks, subWeeks } from 'date-fns'
+import { format, startOfWeek } from 'date-fns'
 
 // Merge Tailwind classes safely
 export function cn(...inputs: ClassValue[]) {
@@ -24,13 +24,17 @@ export function formatWeekRange(weekStart: string | Date): string {
   return `${format(start, 'MMM d')} – ${format(end, 'MMM d, yyyy')}`
 }
 
-// ISO date string for week navigation
+// ISO date string for week navigation — force UTC to avoid timezone day-shift
 export function prevWeekStart(weekStart: string): string {
-  return format(subWeeks(new Date(weekStart), 1), 'yyyy-MM-dd')
+  const d = new Date(weekStart + 'T00:00:00Z')
+  d.setUTCDate(d.getUTCDate() - 7)
+  return d.toISOString().slice(0, 10)
 }
 
 export function nextWeekStart(weekStart: string): string {
-  return format(addWeeks(new Date(weekStart), 1), 'yyyy-MM-dd')
+  const d = new Date(weekStart + 'T00:00:00Z')
+  d.setUTCDate(d.getUTCDate() + 7)
+  return d.toISOString().slice(0, 10)
 }
 
 // Generate initials from a name
