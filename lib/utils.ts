@@ -82,12 +82,15 @@ export function cleanEmailBody(raw: string): string {
   return cleaned.join('\n').trim()
 }
 
-// Build the reply-to address encoding a submission ID
+// Build the reply-to address encoding a submission ID.
+// Uses just the first 8 hex chars of the UUID so the address stays readable:
+//   reply+f159bfcc@inbound.wintheweek.co
 export function buildReplyToAddress(submissionId: string, domain: string): string {
-  return `reply+${submissionId}@${domain}`
+  const shortToken = submissionId.replace(/-/g, '').substring(0, 8)
+  return `reply+${shortToken}@${domain}`
 }
 
-// Parse a submission ID out of a reply-to address
+// Parse the short token out of a reply-to address
 export function parseSubmissionId(address: string): string | null {
   const match = address.match(/reply\+([^@]+)@/)
   return match ? match[1] : null

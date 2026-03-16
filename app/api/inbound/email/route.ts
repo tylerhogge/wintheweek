@@ -44,18 +44,19 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true, note: 'No submission token found' })
   }
 
-  const submissionId = parseSubmissionId(toAddress)
-  if (!submissionId) {
-    return NextResponse.json({ error: 'Could not parse submission ID' }, { status: 400 })
+  const shortToken = parseSubmissionId(toAddress)
+  if (!shortToken) {
+    return NextResponse.json({ error: 'Could not parse submission token' }, { status: 400 })
   }
 
   const supabase = createServiceClient()
 
-  // Look up the submission
+  // Look up the submission by the short token prefix
+  // buildReplyToAddress uses the first 8 hex chars of the UUID (hyphens stripped)
   const { data: submission, error: subErr } = await supabase
     .from('submissions')
     .select('*, employees(org_id, name, team), campaigns(org_id)')
-    .eq('id', submissionId)
+    .filter('id::text', 'ilike', `${shortToken}%`)
     .single()
 
   if (subErr || !submission) {
@@ -67,7 +68,7 @@ export async function POST(req: Request) {
   const { data: existingResponse } = await supabase
     .from('responses')
     .select('id')
-    .eq('submission_id', submissionId)
+    .eq('submission_id', submission.id)
     .single()
 
   if (existingResponse) {
@@ -80,7 +81,7 @@ export async function POST(req: Request) {
 
   // Store the response
   const { error: insertErr } = await supabase.from('responses').insert({
-    submission_id: submissionId,
+    submission_id: submission.id,
     body_raw: rawBody,
     body_clean: cleanBody,
   })
@@ -94,7 +95,7 @@ export async function POST(req: Request) {
   await supabase
     .from('submissions')
     .update({ replied_at: new Date().toISOString() })
-    .eq('id', submissionId)
+    .eq('id', submission.id)
 
   // Trigger AI insight generation in the background
   const orgId = submission.employees?.org_id ?? submission.campaigns?.org_id
