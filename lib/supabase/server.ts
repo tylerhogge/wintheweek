@@ -58,5 +58,11 @@ export const getProfile = cache(async () => {
     .select('id, org_id, name, email, organizations(*)')
     .eq('id', user.id)
     .single()
-  return data
+  if (!data) return null
+  // Supabase returns FK joins as arrays — normalize to the single object AppShell expects
+  const orgs = data.organizations
+  return {
+    ...data,
+    organizations: Array.isArray(orgs) ? (orgs[0] ?? null) : orgs,
+  }
 })
