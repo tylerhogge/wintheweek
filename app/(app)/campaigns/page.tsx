@@ -20,7 +20,7 @@ export default async function CampaignsPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/auth/login')
 
-  const { data: profile } = await supabase.from('profiles').select('org_id, email').eq('id', user.id).single()
+  const { data: profile } = await supabase.from('profiles').select('org_id, email, name').eq('id', user.id).single()
   if (!profile?.org_id) redirect('/onboarding')
 
   const { data: campaigns } = await supabase
@@ -95,6 +95,7 @@ export default async function CampaignsPage() {
       <SendTestEmail
         campaigns={campaigns ?? []}
         defaultEmail={user.email ?? ''}
+        defaultName={profile?.name ?? user.email ?? 'there'}
       />
     </div>
   )

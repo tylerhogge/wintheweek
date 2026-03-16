@@ -33,8 +33,6 @@ export function buildCampaignEmail({
     body { margin:0; padding:0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif; background:#ffffff; }
     .wrap { max-width:520px; margin:0 auto; padding:40px 24px; }
     p { font-size:15px; color:#111111; line-height:1.6; margin:0 0 16px; }
-    .footer { margin-top:32px; font-size:12px; color:#999999; }
-    .footer a { color:#999999; }
   </style>
 </head>
 <body>
@@ -43,9 +41,6 @@ export function buildCampaignEmail({
       .split('\n\n')
       .map((p: string): string => `<p>${p.replace(/\n/g, '<br/>')}</p>`)
       .join('')}
-    <div class="footer">
-      <a href="${process.env.NEXT_PUBLIC_APP_URL}/unsubscribe">Unsubscribe</a>
-    </div>
   </div>
 </body>
 </html>`

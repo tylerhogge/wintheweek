@@ -6,9 +6,11 @@ import type { Campaign } from '@/types'
 export default function SendTestEmail({
   campaigns,
   defaultEmail,
+  defaultName,
 }: {
   campaigns: Campaign[]
   defaultEmail: string
+  defaultName: string
 }) {
   const [open, setOpen] = useState(false)
   const [campaignId, setCampaignId] = useState(campaigns[0]?.id ?? '')
@@ -25,7 +27,7 @@ export default function SendTestEmail({
       const res = await fetch('/api/send-test', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ campaign_id: campaignId, to_email: email, to_name: 'Test' }),
+        body: JSON.stringify({ campaign_id: campaignId, to_email: email, to_name: defaultName }),
       })
       setStatus(res.ok ? 'success' : 'error')
     } catch {
