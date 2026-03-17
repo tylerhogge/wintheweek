@@ -15,7 +15,7 @@ export function WeekNav({ weekStart }: Props) {
   const next = nextWeekStart(weekStart)
 
   return (
-    <div className="flex flex-col items-end gap-1">
+    <div className="flex flex-col items-start gap-1">
       {/* Date range */}
       <span className="text-[13px] font-medium text-[#a1a1aa] select-none tabular-nums">
         {formatWeekRange(weekStart)}

@@ -187,7 +187,7 @@ export default async function DashboardPage({ searchParams }: Props) {
   return (
     <div>
       {/* Renders immediately — no DB calls needed for this section */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col items-start gap-2 mb-6">
         <h1 className="text-[22px] font-bold tracking-[-0.04em]">Weekly Digest</h1>
         <WeekNav weekStart={weekStart} />
       </div>
