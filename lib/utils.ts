@@ -67,21 +67,45 @@ export function avatarGradient(str: string): string {
 
 // Strip email reply noise (quoted text, signatures) from an email body
 export function cleanEmailBody(raw: string): string {
-  const lines = raw.split('\n')
+  // Remove Resend's [signature_XXXXXXXX] placeholders and inline image refs
+  let text = raw.replace(/\[signature_\d+\]/gi, '').replace(/\[cid:[^\]]+\]/gi, '')
+
+  const lines = text.split('\n')
   const cleaned: string[] = []
 
-  for (const line of lines) {
-    // Stop at common reply/signature delimiters
-    if (
-      line.startsWith('> ') ||
-      line.startsWith('On ') && line.includes(' wrote:') ||
-      line.trim() === '--' ||
-      line.includes('From:') && line.includes('@') ||
-      line.trim().startsWith('-----Original Message')
-    ) break
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i]
+    const trimmed = line.trim()
+
+    // Stop at quoted reply blocks (Gmail / Apple Mail style)
+    if (trimmed.startsWith('> ')) break
+
+    // Stop at "On [date], [name] wrote:" (single or multi-line)
+    if (trimmed.startsWith('On ') && (trimmed.endsWith('wrote:') || trimmed.includes(' wrote:'))) break
+
+    // Stop at Outlook horizontal dividers (5+ underscores or dashes)
+    if (/^[_\-]{5,}$/.test(trimmed)) break
+
+    // Stop at Outlook quoted header block: "From: Name <email@...>"
+    if (/^From:\s*.+@.+/i.test(trimmed)) break
+
+    // Stop at "-----Original Message-----"
+    if (/^-{3,}original message-{3,}/i.test(trimmed)) break
+
+    // Stop at bare "--" signature delimiter
+    if (trimmed === '--') break
+
+    // Stop at Outlook "Sent: Weekday, ..." header line
+    if (/^Sent:\s*\w+,/i.test(trimmed)) {
+      if (cleaned.length && cleaned[cleaned.length - 1].trim() === '') cleaned.pop()
+      break
+    }
 
     cleaned.push(line)
   }
+
+  // Trim trailing blank lines
+  while (cleaned.length && cleaned[cleaned.length - 1].trim() === '') cleaned.pop()
 
   return cleaned.join('\n').trim()
 }
