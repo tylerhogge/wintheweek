@@ -113,8 +113,12 @@ export async function POST(req: Request) {
   )
 
   if (!emailResp.ok) {
-    console.error('Failed to fetch email body from Resend:', emailResp.status)
-    return NextResponse.json({ error: 'Could not retrieve email body' }, { status: 500 })
+    const errBody = await emailResp.text()
+    console.error('Failed to fetch email body from Resend:', emailResp.status, errBody)
+    return NextResponse.json(
+      { error: 'Could not retrieve email body', resend_status: emailResp.status, resend_body: errBody },
+      { status: 500 },
+    )
   }
 
   const receivedEmail = await emailResp.json() as { text?: string; html?: string }
