@@ -104,7 +104,7 @@ export async function POST(req: Request) {
   // Fetch the full email body — the webhook payload only contains metadata.
   // We use a raw fetch rather than the SDK to avoid version compatibility issues.
   const emailResp = await fetch(
-    `https://api.resend.com/emails/${payload.data.email_id}`,
+    `https://api.resend.com/emails/received/${payload.data.email_id}`,
     {
       headers: {
         Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
