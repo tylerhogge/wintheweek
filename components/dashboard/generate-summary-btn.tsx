@@ -22,7 +22,7 @@ export function GenerateSummaryBtn({ weekStart }: Props) {
       })
       if (!res.ok) {
         const data = await res.json()
-        setError(data.error ?? 'Failed to generate')
+        setError(data.detail ?? data.error ?? 'Failed to generate')
       } else {
         router.refresh() // re-fetch server data so AISummary shows up
       }

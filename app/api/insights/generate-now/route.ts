@@ -61,9 +61,12 @@ export async function POST(req: Request) {
 
   try {
     insight = await generateWeeklyInsight(org?.name ?? 'the org', weekLabel, replies)
-  } catch (err) {
+  } catch (err: any) {
     console.error('AI generation failed', err)
-    return NextResponse.json({ error: 'AI generation failed' }, { status: 500 })
+    return NextResponse.json({
+      error: 'AI generation failed',
+      detail: err?.message ?? String(err),
+    }, { status: 500 })
   }
 
   const { error } = await service.from('insights').upsert(
