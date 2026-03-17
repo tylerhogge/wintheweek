@@ -4,7 +4,7 @@ import { format } from 'date-fns'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { getAuthUser, getProfile } from '@/lib/supabase/server'
-import { getWeekStart, formatWeekRange } from '@/lib/utils'
+import { getWeekStart } from '@/lib/utils'
 import { WeekNav } from '@/components/dashboard/week-nav'
 import { AISummary } from '@/components/dashboard/ai-summary'
 import { StatsBar } from '@/components/dashboard/stats-bar'
@@ -183,11 +183,8 @@ export default async function DashboardPage({ searchParams }: Props) {
   return (
     <div>
       {/* Renders immediately — no DB calls needed for this section */}
-      <div className="flex items-start justify-between mb-6">
-        <div>
-          <h1 className="text-[22px] font-bold tracking-[-0.03em] mb-0.5">Weekly Digest</h1>
-          <p className="text-sm text-[#71717a]">{formatWeekRange(weekStart)}</p>
-        </div>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-[22px] font-bold tracking-[-0.04em]">Weekly Digest</h1>
         <WeekNav weekStart={weekStart} />
       </div>
 

@@ -110,6 +110,7 @@ export function AppShell({ profile, children }: Props) {
               <Link
                 key={href}
                 href={href}
+                prefetch={true}
                 title={collapsed ? label : undefined}
                 className={cn(
                   'flex items-center rounded-md text-[13.5px] font-medium transition-colors',

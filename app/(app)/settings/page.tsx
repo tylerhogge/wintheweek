@@ -1,5 +1,6 @@
-import { getAuthUser, getProfile } from '@/lib/supabase/server'
+import { getAuthUser, getProfile, createServiceClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { DigestToggle } from '@/components/settings/digest-toggle'
 
 export default async function SettingsPage() {
   const [user, profile] = await Promise.all([getAuthUser(), getProfile()])
@@ -7,10 +8,22 @@ export default async function SettingsPage() {
 
   const org = (profile as any)?.organizations
 
+  // Fetch digest_notify preference
+  let digestNotify = false
+  if (profile?.org_id) {
+    const service = createServiceClient()
+    const { data } = await service
+      .from('organizations')
+      .select('digest_notify')
+      .eq('id', profile.org_id)
+      .single()
+    digestNotify = data?.digest_notify ?? false
+  }
+
   return (
     <div className="max-w-[640px]">
       <div className="mb-8">
-        <h1 className="text-[22px] font-bold tracking-[-0.03em] mb-0.5">Settings</h1>
+        <h1 className="text-[22px] font-bold tracking-[-0.04em] mb-0.5">Settings</h1>
         <p className="text-sm text-[#71717a]">Manage your workspace preferences</p>
       </div>
 
@@ -52,6 +65,15 @@ export default async function SettingsPage() {
               <p className="text-xs text-[#71717a] mt-0.5">inbound.wintheweek.co</p>
             </div>
             <span className="text-xs bg-accent/10 text-accent border border-accent/20 px-2.5 py-1 rounded-full">Active</span>
+          </div>
+          <div className="px-5 py-4 flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium">Email me the weekly digest</p>
+              <p className="text-xs text-[#71717a] mt-0.5">
+                Get the AI summary + all replies emailed to you once everyone has responded
+              </p>
+            </div>
+            <DigestToggle initialValue={digestNotify} />
           </div>
         </div>
       </section>

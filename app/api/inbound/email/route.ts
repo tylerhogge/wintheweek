@@ -17,9 +17,9 @@
  */
 
 import { NextResponse } from 'next/server'
-import { getResend } from '@/lib/resend'
+import { getResend, buildDigestEmail } from '@/lib/resend'
 import { createServiceClient } from '@/lib/supabase/server'
-import { cleanEmailBody } from '@/lib/utils'
+import { cleanEmailBody, formatWeekRange } from '@/lib/utils'
 
 // Actual Resend inbound webhook payload shape
 type ResendInboundPayload = {
@@ -38,6 +38,99 @@ type ResendInboundPayload = {
 function parseEmail(raw: string): string {
   const match = raw.match(/<([^>]+)>/)
   return match ? match[1].trim().toLowerCase() : raw.trim().toLowerCase()
+}
+
+/**
+ * After a reply is stored, check if all submissions for the week are replied.
+ * If so, and if the org has digest_notify enabled, send the weekly digest email.
+ */
+async function maybeFireDigest(orgId: string, weekStart: string) {
+  const supabase = createServiceClient()
+
+  // Count total vs replied for this week
+  const { data: allSubs } = await supabase
+    .from('submissions')
+    .select('id, replied_at, campaigns!inner(org_id)')
+    .eq('week_start', weekStart)
+    .eq('campaigns.org_id', orgId)
+    .not('sent_at', 'is', null)
+
+  if (!allSubs || allSubs.length === 0) return
+  const allReplied = allSubs.every((s: any) => s.replied_at !== null)
+  if (!allReplied) return
+
+  // Check if digest_notify is enabled and not already sent
+  const { data: org } = await supabase
+    .from('organizations')
+    .select('id, name, digest_notify')
+    .eq('id', orgId)
+    .single()
+
+  if (!org?.digest_notify) return
+
+  // Check if digest was already sent for this week
+  const { data: insight } = await supabase
+    .from('insights')
+    .select('id, summary, highlights, digest_sent_at')
+    .eq('org_id', orgId)
+    .eq('week_start', weekStart)
+    .single()
+
+  if ((insight as any)?.digest_sent_at) return // already sent
+
+  // Fetch admin email (the profile in this org)
+  const { data: adminProfile } = await supabase
+    .from('profiles')
+    .select('email')
+    .eq('org_id', orgId)
+    .limit(1)
+    .single()
+
+  if (!adminProfile?.email) return
+
+  // Fetch all replies for the email body
+  const { data: submissions } = await supabase
+    .from('submissions')
+    .select('employees(name, team), responses(body_clean)')
+    .eq('week_start', weekStart)
+    .eq('employees.org_id', orgId)
+    .not('responses', 'is', null)
+
+  const replies = ((submissions ?? []) as any[])
+    .map((s: any) => ({
+      name: s.employees?.name ?? 'Unknown',
+      team: s.employees?.team ?? null,
+      body: s.responses?.body_clean ?? '',
+    }))
+    .filter((r: any) => r.body.trim().length > 0)
+
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://www.wintheweek.co'
+  const weekLabel = formatWeekRange(weekStart)
+
+  const emailContent = buildDigestEmail({
+    orgName: org.name,
+    weekLabel,
+    summary: insight?.summary ?? null,
+    highlights: (insight?.highlights as string[] | null) ?? null,
+    replies,
+    dashboardUrl: `${appUrl}/dashboard?week=${weekStart}`,
+  })
+
+  const resend = getResend()
+  await resend.emails.send({
+    from: `Win the Week <${process.env.FROM_EMAIL ?? 'hello@wintheweek.co'}>`,
+    to: adminProfile.email,
+    subject: emailContent.subject,
+    html: emailContent.html,
+    text: emailContent.text,
+  })
+
+  // Mark digest as sent
+  await supabase
+    .from('insights')
+    .update({ digest_sent_at: new Date().toISOString() })
+    .eq('org_id', orgId)
+    .eq('week_start', weekStart)
 }
 
 export async function POST(req: Request) {
@@ -136,12 +229,11 @@ export async function POST(req: Request) {
     .update({ replied_at: new Date().toISOString() })
     .eq('id', submission.id)
 
-  // Trigger AI insight generation in the background
   const orgId = employee.org_id
   const weekStart = submission.week_start
 
   if (orgId && weekStart) {
-    // Fire and forget — don't block the webhook response
+    // Fire AI insights and digest check in the background — don't block the webhook response
     fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/insights/generate`, {
       method: 'POST',
       headers: {
@@ -150,6 +242,8 @@ export async function POST(req: Request) {
       },
       body: JSON.stringify({ org_id: orgId, week_start: weekStart }),
     }).catch(console.error)
+
+    maybeFireDigest(orgId, weekStart).catch(console.error)
   }
 
   return NextResponse.json({ ok: true })

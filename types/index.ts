@@ -3,6 +3,7 @@ export type Organization = {
   name: string
   slug: string
   logo_url: string | null
+  digest_notify: boolean
   created_at: string
 }
 
@@ -55,6 +56,7 @@ export type Response = {
   submission_id: string
   body_raw: string
   body_clean: string | null
+  liked_at: string | null
   created_at: string
 }
 

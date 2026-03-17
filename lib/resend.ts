@@ -50,6 +50,85 @@ export function buildCampaignEmail({
   return { subject, html, text }
 }
 
+export function buildDigestEmail({
+  orgName,
+  weekLabel,
+  summary,
+  highlights,
+  replies,
+  dashboardUrl,
+}: {
+  orgName: string
+  weekLabel: string
+  summary: string | null
+  highlights: string[] | null
+  replies: { name: string; team: string | null; body: string }[]
+  dashboardUrl: string
+}): { subject: string; html: string; text: string } {
+  const subject = `${orgName} — Weekly Digest: ${weekLabel}`
+
+  const repliesHtml = replies
+    .map(
+      (r) => `
+    <div style="padding:16px 0; border-bottom:1px solid rgba(255,255,255,0.06);">
+      <p style="font-size:13px; font-weight:600; color:#fafafa; margin:0 0 6px;">
+        ${r.name}${r.team ? ` <span style="font-weight:400; color:#71717a;">· ${r.team}</span>` : ''}
+      </p>
+      <p style="font-size:14px; color:#a1a1aa; line-height:1.65; margin:0; white-space:pre-wrap;">${r.body}</p>
+    </div>`,
+    )
+    .join('')
+
+  const summaryHtml = summary
+    ? `<div style="background:rgba(34,197,94,0.06); border:1px solid rgba(34,197,94,0.18); border-radius:10px; padding:20px 24px; margin-bottom:28px;">
+        <p style="font-size:10px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:#22c55e; margin:0 0 10px;">✦ AI Summary</p>
+        <p style="font-size:14px; color:#a1a1aa; line-height:1.65; margin:0 0 ${highlights && highlights.length > 0 ? '14px' : '0'};">${summary}</p>
+        ${
+          highlights && highlights.length > 0
+            ? highlights.map((h) => `<p style="font-size:14px; color:#a1a1aa; margin:6px 0; padding-left:14px; position:relative;">→ ${h}</p>`).join('')
+            : ''
+        }
+      </div>`
+    : ''
+
+  const html = `<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"/><style>
+  body { background:#09090b; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif; margin:0; padding:0; }
+  .wrap { max-width:560px; margin:40px auto; padding:0 20px; }
+  .card { background:#111113; border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:32px; }
+  h2 { font-size:20px; font-weight:700; color:#fafafa; letter-spacing:-0.03em; margin:0 0 4px; }
+  .sub { font-size:13px; color:#71717a; margin:0 0 24px; }
+  .cta { display:inline-block; margin-top:28px; padding:10px 20px; background:#22c55e; color:#000; font-size:13px; font-weight:600; border-radius:8px; text-decoration:none; }
+</style></head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h2>Weekly Digest</h2>
+      <p class="sub">${weekLabel} · ${orgName}</p>
+      ${summaryHtml}
+      <div>${repliesHtml}</div>
+      <a href="${dashboardUrl}" class="cta">View on Dashboard →</a>
+    </div>
+  </div>
+</body>
+</html>`
+
+  const text = [
+    `Weekly Digest — ${weekLabel}`,
+    '',
+    summary ? `AI Summary:\n${summary}` : '',
+    '',
+    ...replies.map((r) => `${r.name}${r.team ? ` (${r.team})` : ''}:\n${r.body}`),
+    '',
+    `View on dashboard: ${dashboardUrl}`,
+  ]
+    .filter((l) => l !== undefined)
+    .join('\n')
+
+  return { subject, html, text }
+}
+
 export function buildWaitlistConfirmation(email: string): { subject: string; html: string } {
   return {
     subject: "You're on the list 🎉",
