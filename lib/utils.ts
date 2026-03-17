@@ -72,10 +72,19 @@ export function cleanEmailBody(raw: string): string {
 
   const lines = text.split('\n')
   const cleaned: string[] = []
+  let consecutiveBlanks = 0
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i]
     const trimmed = line.trim()
+
+    // Track consecutive blank lines — 2+ in a row = signature/footer territory
+    if (trimmed === '') {
+      consecutiveBlanks++
+      if (consecutiveBlanks >= 2) break
+    } else {
+      consecutiveBlanks = 0
+    }
 
     // Stop at quoted reply blocks (Gmail / Apple Mail style)
     if (trimmed.startsWith('> ')) break
