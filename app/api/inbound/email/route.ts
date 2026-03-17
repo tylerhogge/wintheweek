@@ -17,6 +17,7 @@
  */
 
 import { NextResponse } from 'next/server'
+import { getResend } from '@/lib/resend'
 import { createServiceClient } from '@/lib/supabase/server'
 import { cleanEmailBody } from '@/lib/utils'
 
@@ -101,27 +102,17 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true, note: 'Already recorded' })
   }
 
-  // Fetch the full email body — the webhook payload only contains metadata.
-  // We use a raw fetch rather than the SDK to avoid version compatibility issues.
-  const emailResp = await fetch(
-    `https://api.resend.com/emails/received/${payload.data.email_id}`,
-    {
-      headers: {
-        Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
-      },
-    },
+  // Fetch the full email body via the Resend SDK (requires resend ^6.0.0).
+  // The webhook payload only contains metadata — body must be fetched separately.
+  const resend = getResend()
+  const { data: receivedEmail, error: fetchErr } = await resend.emails.receiving.get(
+    payload.data.email_id,
   )
 
-  if (!emailResp.ok) {
-    const errBody = await emailResp.text()
-    console.error('Failed to fetch email body from Resend:', emailResp.status, errBody)
-    return NextResponse.json(
-      { error: 'Could not retrieve email body', resend_status: emailResp.status, resend_body: errBody },
-      { status: 500 },
-    )
+  if (fetchErr || !receivedEmail) {
+    console.error('Failed to fetch email body from Resend:', fetchErr)
+    return NextResponse.json({ error: 'Could not retrieve email body', detail: fetchErr }, { status: 500 })
   }
-
-  const receivedEmail = await emailResp.json() as { text?: string; html?: string }
 
   // Clean the email body — strip quoted text and signatures
   const rawBody = receivedEmail.text ?? ''
