@@ -9,6 +9,7 @@ import { WeekNav } from '@/components/dashboard/week-nav'
 import { AISummary } from '@/components/dashboard/ai-summary'
 import { StatsBar } from '@/components/dashboard/stats-bar'
 import { ReplyCard } from '@/components/dashboard/reply-card'
+import { GenerateSummaryBtn } from '@/components/dashboard/generate-summary-btn'
 import type { SubmissionWithDetails, Insight } from '@/types'
 
 interface Props {
@@ -65,7 +66,10 @@ async function DashboardContent({
     <>
       <StatsBar total={typed.length} replied={replied.length} weekStart={weekStart} />
 
-      {insight && <AISummary insight={insight as Insight} className="mt-5" />}
+      {insight
+        ? <AISummary insight={insight as Insight} className="mt-5" />
+        : replied.length > 0 && <GenerateSummaryBtn weekStart={weekStart} />
+      }
 
       {/* Team filter chips */}
       <div className="flex items-center gap-2 mt-6 mb-4 flex-wrap">
