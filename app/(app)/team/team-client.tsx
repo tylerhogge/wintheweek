@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
+import { useRouter } from 'next/navigation'
 import { useSearchParams } from 'next/navigation'
 import type { Employee } from '@/types'
 import { getInitials, avatarGradient } from '@/lib/utils'
@@ -8,14 +9,84 @@ import { AddMemberModal } from '@/components/team/add-member-modal'
 
 type Props = { active: Employee[]; inactive: Employee[] }
 
+function parseCSV(text: string) {
+  const lines = text.trim().split('\n').filter(Boolean)
+  if (lines.length < 2) return []
+  const headers = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/[^a-z]/g, ''))
+  return lines.slice(1).map(line => {
+    // handle quoted fields with commas inside
+    const cols: string[] = []
+    let cur = '', inQuote = false
+    for (const ch of line) {
+      if (ch === '"') { inQuote = !inQuote }
+      else if (ch === ',' && !inQuote) { cols.push(cur.trim()); cur = '' }
+      else { cur += ch }
+    }
+    cols.push(cur.trim())
+    const row: Record<string, string> = {}
+    headers.forEach((h, i) => { row[h] = cols[i] ?? '' })
+    return {
+      name: row.name ?? row.fullname ?? row.firstname ?? '',
+      email: row.email ?? row.emailaddress ?? '',
+      team: row.team ?? row.department ?? '',
+      function: row.function ?? row.role ?? row.title ?? row.jobtitle ?? '',
+    }
+  }).filter(r => r.name && r.email)
+}
+
 export function TeamClient({ active, inactive }: Props) {
   const [showModal, setShowModal] = useState(false)
+  const [importing, setImporting] = useState(false)
+  const [importResult, setImportResult] = useState<{ ok: boolean; msg: string } | null>(null)
+  const csvRef = useRef<HTMLInputElement>(null)
+  const router = useRouter()
   const searchParams = useSearchParams()
   const isOnboarding = searchParams.get('onboarding') === '1'
+
+  async function handleCSV(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setImporting(true)
+    setImportResult(null)
+    try {
+      const text = await file.text()
+      const members = parseCSV(text)
+      if (members.length === 0) {
+        setImportResult({ ok: false, msg: 'No valid rows found. CSV needs at least name and email columns.' })
+        return
+      }
+      const res = await fetch('/api/team/import', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ members }),
+      })
+      const data = await res.json()
+      if (res.ok) {
+        setImportResult({ ok: true, msg: `Imported ${data.imported} member${data.imported !== 1 ? 's' : ''}` })
+        router.refresh()
+      } else {
+        setImportResult({ ok: false, msg: data.error ?? 'Import failed' })
+      }
+    } catch {
+      setImportResult({ ok: false, msg: 'Failed to read file' })
+    } finally {
+      setImporting(false)
+      if (csvRef.current) csvRef.current.value = ''
+    }
+  }
 
   return (
     <>
       {showModal && <AddMemberModal onClose={() => setShowModal(false)} />}
+
+      {/* Hidden file input */}
+      <input
+        ref={csvRef}
+        type="file"
+        accept=".csv"
+        className="hidden"
+        onChange={handleCSV}
+      />
 
       {/* Onboarding welcome banner */}
       {isOnboarding && active.length === 0 && (
@@ -34,8 +105,12 @@ export function TeamClient({ active, inactive }: Props) {
           <p className="text-sm text-[#71717a]">{active.length} active member{active.length !== 1 ? 's' : ''}</p>
         </div>
         <div className="flex items-center gap-2">
-          <button className="text-sm border border-white/10 text-[#a1a1aa] hover:text-white hover:border-white/20 px-4 py-2 rounded-md transition-colors">
-            Import CSV
+          <button
+            onClick={() => csvRef.current?.click()}
+            disabled={importing}
+            className="text-sm border border-white/10 text-[#a1a1aa] hover:text-white hover:border-white/20 px-4 py-2 rounded-md transition-colors disabled:opacity-50"
+          >
+            {importing ? 'Importing…' : 'Import CSV'}
           </button>
           <button
             onClick={() => setShowModal(true)}
@@ -45,6 +120,14 @@ export function TeamClient({ active, inactive }: Props) {
           </button>
         </div>
       </div>
+
+      {/* Import result toast */}
+      {importResult && (
+        <div className={`mb-4 px-4 py-3 rounded-lg text-sm flex items-center justify-between ${importResult.ok ? 'bg-accent/10 border border-accent/20 text-accent' : 'bg-red-500/10 border border-red-500/20 text-red-400'}`}>
+          {importResult.msg}
+          <button onClick={() => setImportResult(null)} className="ml-4 opacity-60 hover:opacity-100 text-lg leading-none">×</button>
+        </div>
+      )}
 
       {/* Active employees */}
       <div className="bg-surface border border-white/[0.07] rounded-xl overflow-hidden">
