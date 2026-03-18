@@ -12,7 +12,6 @@ export function GenerateSummaryBtn({ weekStart }: Props) {
 
   async function generate() {
     setLoading(true)
-    setError(null)
     try {
       const res = await fetch('/api/insights/generate-now', {
         method: 'POST',
