@@ -57,8 +57,8 @@ export default async function SettingsPage() {
           </div>
           <div className="px-5 py-4 flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium">Reply-to domain</p>
-              <p className="text-xs text-[#71717a] mt-0.5">inbound.wintheweek.co</p>
+              <p className="text-sm font-medium">Reply-to address</p>
+              <p className="text-xs text-[#71717a] mt-0.5">updates@wintheweek.co</p>
             </div>
             <span className="text-xs bg-accent/10 text-accent border border-accent/20 px-2.5 py-1 rounded-full">Active</span>
           </div>
