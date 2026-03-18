@@ -8,7 +8,6 @@ type Props = { weekStart: string }
 
 export function GenerateSummaryBtn({ weekStart }: Props) {
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
   const router = useRouter()
 
   async function generate() {
@@ -22,12 +21,12 @@ export function GenerateSummaryBtn({ weekStart }: Props) {
       })
       if (!res.ok) {
         const data = await res.json()
-        setError(data.detail ?? data.error ?? 'Failed to generate')
+        console.error('[generate-summary]', data.detail ?? data.error ?? 'Failed to generate')
       } else {
         router.refresh() // re-fetch server data so AISummary shows up
       }
-    } catch {
-      setError('Something went wrong')
+    } catch (err) {
+      console.error('[generate-summary]', err)
     } finally {
       setLoading(false)
     }
@@ -43,7 +42,6 @@ export function GenerateSummaryBtn({ weekStart }: Props) {
         <Sparkles className={`w-3.5 h-3.5 ${loading ? 'animate-pulse text-accent' : ''}`} />
         {loading ? 'Generating AI summary…' : 'Generate AI summary'}
       </button>
-      {error && <p className="text-[11px] text-red-400 mt-1.5">{error}</p>}
     </div>
   )
 }

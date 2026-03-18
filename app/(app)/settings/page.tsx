@@ -1,6 +1,7 @@
 import { getAuthUser, getProfile, createServiceClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { DigestToggle } from '@/components/settings/digest-toggle'
+import { OrgNameEdit } from '@/components/settings/org-name-edit'
 
 export default async function SettingsPage() {
   const [user, profile] = await Promise.all([getAuthUser(), getProfile()])
@@ -31,19 +32,14 @@ export default async function SettingsPage() {
       <section className="mb-8">
         <p className="text-xs font-semibold tracking-[0.07em] uppercase text-[#71717a] mb-4">Organization</p>
         <div className="bg-surface border border-white/[0.07] rounded-xl divide-y divide-white/[0.05]">
-          <div className="px-5 py-4 flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium">Organization name</p>
-              <p className="text-xs text-[#71717a] mt-0.5">{org?.name ?? '—'}</p>
-            </div>
-            <button className="text-xs border border-white/10 text-[#a1a1aa] hover:text-white px-3 py-1.5 rounded-md transition-colors">Edit</button>
+          <div className="px-5 py-4">
+            <OrgNameEdit initialName={org?.name ?? ''} />
           </div>
           <div className="px-5 py-4 flex items-center justify-between">
             <div>
               <p className="text-sm font-medium">Workspace URL</p>
               <p className="text-xs text-[#71717a] mt-0.5">wintheweek.co/{org?.slug ?? '—'}</p>
             </div>
-            <button className="text-xs border border-white/10 text-[#a1a1aa] hover:text-white px-3 py-1.5 rounded-md transition-colors">Edit</button>
           </div>
         </div>
       </section>
@@ -91,19 +87,6 @@ export default async function SettingsPage() {
         </div>
       </section>
 
-      {/* Danger zone */}
-      <section>
-        <p className="text-xs font-semibold tracking-[0.07em] uppercase text-red-500/70 mb-4">Danger zone</p>
-        <div className="bg-surface border border-red-500/20 rounded-xl px-5 py-4 flex items-center justify-between">
-          <div>
-            <p className="text-sm font-medium">Delete organization</p>
-            <p className="text-xs text-[#71717a] mt-0.5">Permanently deletes all data. This cannot be undone.</p>
-          </div>
-          <button className="text-xs font-medium text-red-400 border border-red-500/30 hover:bg-red-500/10 px-3 py-1.5 rounded-md transition-colors">
-            Delete
-          </button>
-        </div>
-      </section>
     </div>
   )
 }

@@ -45,11 +45,8 @@ export function createServiceClient() {
 
 export const getAuthUser = cache(async () => {
   const supabase = await createClient()
-  // getSession() reads the JWT from the cookie — no network call to Supabase auth.
-  // This saves ~150ms per request. The middleware already redirects unauthenticated
-  // users, and Supabase RLS protects all DB queries independently.
-  const { data: { session } } = await supabase.auth.getSession()
-  return session?.user ?? null
+  const { data: { user } } = await supabase.auth.getUser()
+  return user ?? null
 })
 
 export const getProfile = cache(async () => {
