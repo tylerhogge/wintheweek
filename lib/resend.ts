@@ -129,6 +129,102 @@ export function buildDigestEmail({
   return { subject, html, text }
 }
 
+/**
+ * Email sent to the admin (Sterling) the moment an employee submits their reply.
+ * Reply-To is set to a tagged address so Sterling's reply is routed back through us.
+ */
+export function buildReplyNotification({
+  adminName,
+  employeeName,
+  employeeTeam,
+  replyBody,
+  replyToAddress,
+  dashboardUrl,
+}: {
+  adminName: string
+  employeeName: string
+  employeeTeam: string | null
+  replyBody: string
+  replyToAddress: string
+  dashboardUrl: string
+}): { subject: string; html: string; text: string } {
+  const subject = `${employeeName} submitted their weekly update`
+  const teamLabel = employeeTeam ? ` · ${employeeTeam}` : ''
+
+  const html = `<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"/><style>
+  body { background:#ffffff; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif; margin:0; padding:0; color:#111; }
+  .wrap { max-width:520px; margin:0 auto; padding:40px 24px; }
+  .label { font-size:11px; font-weight:600; letter-spacing:0.07em; text-transform:uppercase; color:#71717a; margin:0 0 6px; }
+  .name { font-size:17px; font-weight:700; color:#111; margin:0 0 2px; }
+  .team { font-size:13px; color:#71717a; margin:0 0 24px; }
+  .reply-box { background:#f9f9f9; border-left:3px solid #22c55e; padding:16px 20px; border-radius:4px; margin-bottom:28px; }
+  .reply-box p { font-size:15px; color:#111; line-height:1.65; margin:0; white-space:pre-wrap; }
+  .cta { font-size:14px; color:#52525b; }
+  .cta a { color:#22c55e; font-weight:600; text-decoration:none; }
+  .footer { margin-top:40px; padding-top:20px; border-top:1px solid #e5e5e5; font-size:12px; color:#a1a1aa; }
+</style></head>
+<body>
+  <div class="wrap">
+    <p class="label">Weekly Check-in</p>
+    <p class="name">${employeeName}</p>
+    <p class="team">${teamLabel.trim() || 'No team'}</p>
+
+    <div class="reply-box">
+      <p>${replyBody.replace(/\n/g, '<br/>')}</p>
+    </div>
+
+    <p class="cta">Hit <strong>Reply</strong> to respond directly to ${employeeName.split(' ')[0]}. Your reply will be delivered on your behalf and captured in the dashboard.</p>
+    <p class="cta" style="margin-top:12px;"><a href="${dashboardUrl}">View all responses →</a></p>
+
+    <div class="footer">Sent via <a href="https://wintheweek.co" style="color:#a1a1aa;">Win the Week</a></div>
+  </div>
+</body>
+</html>`
+
+  const text = `${employeeName}${teamLabel} submitted their weekly update:\n\n${replyBody}\n\n---\nReply to this email to respond directly to ${employeeName.split(' ')[0]}.\nView dashboard: ${dashboardUrl}`
+
+  return { subject, html, text }
+}
+
+/**
+ * Email sent to the employee when the admin replies.
+ * Looks like it comes directly from the admin — their name is in the From display.
+ * Reply-To is set back to updates@wintheweek.co so further replies are captured.
+ */
+export function buildManagerReplyEmail({
+  employeeFirstName,
+  managerReplyBody,
+}: {
+  employeeFirstName: string
+  managerReplyBody: string
+}): { subject: string; html: string; text: string } {
+  const subject = `Re: Your weekly update`
+
+  const html = `<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"/><style>
+  body { background:#ffffff; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif; margin:0; padding:0; }
+  .wrap { max-width:520px; margin:0 auto; padding:40px 24px; }
+  p { font-size:15px; color:#111111; line-height:1.65; margin:0 0 16px; white-space:pre-wrap; }
+</style></head>
+<body>
+  <div class="wrap">
+    ${managerReplyBody
+      .split('\n\n')
+      .filter(Boolean)
+      .map((para: string) => `<p>${para.replace(/\n/g, '<br/>')}</p>`)
+      .join('')}
+  </div>
+</body>
+</html>`
+
+  const text = managerReplyBody
+
+  return { subject, html, text }
+}
+
 export function buildWaitlistConfirmation(email: string): { subject: string; html: string } {
   return {
     subject: "You're on the list 🎉",

@@ -1,11 +1,13 @@
 /**
  * POST /api/inbound/email
  *
- * Webhook endpoint called by Resend Inbound when an employee replies to their check-in email.
+ * Webhook endpoint called by Resend Inbound for two scenarios:
+ *  1. Employee reply  — to: updates@wintheweek.co
+ *  2. Manager reply   — to: reply+{response_id}@inbound.wintheweek.co
  */
 
 import { NextResponse } from 'next/server'
-import { getResend, buildDigestEmail } from '@/lib/resend'
+import { getResend, buildDigestEmail, buildReplyNotification, buildManagerReplyEmail } from '@/lib/resend'
 import { createServiceClient } from '@/lib/supabase/server'
 import { cleanEmailBody, formatWeekRange } from '@/lib/utils'
 import { generateWeeklyInsight } from '@/lib/anthropic'
@@ -25,6 +27,15 @@ type ResendInboundPayload = {
 function parseEmail(raw: string): string {
   const match = raw.match(/<([^>]+)>/)
   return match ? match[1].trim().toLowerCase() : raw.trim().toLowerCase()
+}
+
+/** Extract response ID from a tagged reply address: reply+{id}@* → id */
+function extractResponseId(toAddresses: string[]): string | null {
+  for (const addr of toAddresses) {
+    const match = addr.match(/reply\+([a-f0-9-]+)@/i)
+    if (match) return match[1]
+  }
+  return null
 }
 
 /** Generate AI insight and store it. Called directly — no HTTP round-trip. */
@@ -153,6 +164,119 @@ async function maybeFireDigest(orgId: string, weekStart: string) {
     .eq('week_start', weekStart)
 }
 
+/**
+ * Notify the admin that an employee replied.
+ * Reply-To is a tagged address so their reply routes back through us.
+ */
+async function notifyAdmin({
+  orgId,
+  responseId,
+  employeeName,
+  employeeTeam,
+  replyBody,
+  weekStart,
+}: {
+  orgId: string
+  responseId: string
+  employeeName: string
+  employeeTeam: string | null
+  replyBody: string
+  weekStart: string
+}) {
+  const supabase = createServiceClient()
+
+  const { data: adminProfile } = await supabase
+    .from('profiles')
+    .select('email, name')
+    .eq('org_id', orgId)
+    .limit(1)
+    .single()
+
+  if (!adminProfile?.email) return
+
+  const inboundDomain = process.env.INBOUND_DOMAIN ?? 'inbound.wintheweek.co'
+  const taggedReplyTo = `reply+${responseId}@${inboundDomain}`
+  const appUrl = 'https://www.wintheweek.co'
+
+  const emailContent = buildReplyNotification({
+    adminName: adminProfile.name ?? adminProfile.email.split('@')[0],
+    employeeName,
+    employeeTeam,
+    replyBody,
+    replyToAddress: taggedReplyTo,
+    dashboardUrl: `${appUrl}/dashboard?week=${weekStart}`,
+  })
+
+  const resend = getResend()
+  await resend.emails.send({
+    from: `Win the Week <${process.env.FROM_EMAIL ?? 'hello@wintheweek.co'}>`,
+    to: adminProfile.email,
+    replyTo: taggedReplyTo,
+    subject: emailContent.subject,
+    html: emailContent.html,
+    text: emailContent.text,
+  })
+}
+
+/**
+ * Handle a manager reply: save it and forward to the employee.
+ */
+async function handleManagerReply(responseId: string, rawBody: string) {
+  const supabase = createServiceClient()
+
+  const { data: response } = await supabase
+    .from('responses')
+    .select('id, submission_id, submissions(employee_id, week_start, employees(name, email, org_id, team))')
+    .eq('id', responseId)
+    .single()
+
+  if (!response) {
+    console.error('Manager reply: response not found', responseId)
+    return
+  }
+
+  const submission = (response as any).submissions
+  const employee = submission?.employees
+
+  if (!employee?.email || !employee?.org_id) {
+    console.error('Manager reply: employee not found for response', responseId)
+    return
+  }
+
+  const cleanBody = cleanEmailBody(rawBody)
+
+  await supabase.from('manager_replies').insert({
+    response_id: responseId,
+    body_clean: cleanBody,
+  })
+
+  const { data: adminProfile } = await supabase
+    .from('profiles')
+    .select('name, email')
+    .eq('org_id', employee.org_id)
+    .limit(1)
+    .single()
+
+  const adminDisplayName = adminProfile?.name ?? 'Your manager'
+  const fromAddress = process.env.FROM_EMAIL ?? 'hello@wintheweek.co'
+  const replyToAddress = process.env.REPLY_TO_EMAIL ?? 'updates@wintheweek.co'
+
+  const emailContent = buildManagerReplyEmail({
+    employeeFirstName: employee.name?.split(' ')[0] ?? 'there',
+    managerReplyBody: cleanBody,
+  })
+
+  const resend = getResend()
+  await resend.emails.send({
+    from: `${adminDisplayName} <${fromAddress}>`,
+    to: employee.email,
+    replyTo: replyToAddress,
+    subject: emailContent.subject,
+    html: emailContent.html,
+    text: emailContent.text,
+  })
+}
+
 export async function POST(req: Request) {
   let payload: ResendInboundPayload
   try {
@@ -165,7 +289,27 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true, note: 'Ignored event type' })
   }
 
+  const toAddresses = payload.data?.to ?? []
   const senderEmail = parseEmail(payload.data?.from ?? '')
+
+  // ── Branch 1: Manager reply (tagged address) ──────────────────────────────
+  const responseId = extractResponseId(toAddresses)
+  if (responseId) {
+    const resend = getResend()
+    const { data: receivedEmail, error: fetchErr } = await resend.emails.receiving.get(
+      payload.data.email_id,
+    )
+    if (fetchErr || !receivedEmail) {
+      console.error('Manager reply: failed to fetch email body', fetchErr)
+      return NextResponse.json({ error: 'Could not retrieve email body' }, { status: 500 })
+    }
+
+    const rawBody = receivedEmail.text ?? ''
+    await handleManagerReply(responseId, rawBody).catch(console.error)
+    return NextResponse.json({ ok: true, note: 'Manager reply processed' })
+  }
+
+  // ── Branch 2: Employee reply ──────────────────────────────────────────────
   if (!senderEmail) {
     return NextResponse.json({ error: 'No sender found' }, { status: 400 })
   }
@@ -174,7 +318,7 @@ export async function POST(req: Request) {
 
   const { data: employee, error: empErr } = await supabase
     .from('employees')
-    .select('id, org_id, name')
+    .select('id, org_id, name, team')
     .eq('email', senderEmail)
     .eq('active', true)
     .single()
@@ -222,15 +366,19 @@ export async function POST(req: Request) {
   const rawBody = receivedEmail.text ?? ''
   const cleanBody = cleanEmailBody(rawBody)
 
-  const { error: insertErr } = await supabase.from('responses').insert({
-    submission_id: submission.id,
-    body_raw: rawBody,
-    body_clean: cleanBody,
-  })
+  const { data: savedResponse, error: insertErr } = await supabase
+    .from('responses')
+    .insert({
+      submission_id: submission.id,
+      body_raw: rawBody,
+      body_clean: cleanBody,
+    })
+    .select('id')
+    .single()
 
-  if (insertErr) {
+  if (insertErr || !savedResponse) {
     console.error('Failed to store response', insertErr)
-    return NextResponse.json({ error: insertErr.message }, { status: 500 })
+    return NextResponse.json({ error: insertErr?.message ?? 'Insert failed' }, { status: 500 })
   }
 
   await supabase
@@ -242,10 +390,17 @@ export async function POST(req: Request) {
   const weekStart = submission.week_start
 
   if (orgId && weekStart) {
-    // Generate insight and check digest in the background
     Promise.all([
       generateAndStoreInsight(orgId, weekStart),
       maybeFireDigest(orgId, weekStart),
+      notifyAdmin({
+        orgId,
+        responseId: savedResponse.id,
+        employeeName: employee.name,
+        employeeTeam: (employee as any).team ?? null,
+        replyBody: cleanBody,
+        weekStart,
+      }),
     ]).catch(console.error)
   }
 

@@ -51,6 +51,13 @@ export type Submission = {
   created_at: string
 }
 
+export type ManagerReply = {
+  id: string
+  response_id: string
+  body_clean: string
+  created_at: string
+}
+
 export type Response = {
   id: string
   submission_id: string
@@ -58,6 +65,7 @@ export type Response = {
   body_clean: string | null
   liked_at: string | null
   created_at: string
+  manager_replies?: ManagerReply[]
 }
 
 export type Insight = {

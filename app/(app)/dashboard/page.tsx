@@ -32,7 +32,7 @@ async function DashboardContent({
 
   let submissionsQuery = supabase
     .from('submissions')
-    .select(`*, employee:employees(*), response:responses(*)`)
+    .select(`*, employee:employees(*), response:responses(*, manager_replies(*))`)
     .eq('week_start', weekStart)
     .eq('employees.org_id', orgId)
     .order('replied_at', { ascending: false, nullsFirst: false })
