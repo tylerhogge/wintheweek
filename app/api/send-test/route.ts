@@ -58,23 +58,13 @@ export async function POST(req: Request) {
     .single()
 
   if (employee) {
-    // Check if a submission already exists for this week (avoid duplicates)
-    const { data: existing } = await serviceSupabase
-      .from('submissions')
-      .select('id')
-      .eq('campaign_id', campaign_id)
-      .eq('employee_id', employee.id)
-      .eq('week_start', weekStart)
-      .single()
-
-    if (!existing) {
-      await serviceSupabase.from('submissions').insert({
-        campaign_id,
-        employee_id: employee.id,
-        week_start: weekStart,
-        sent_at: new Date().toISOString(),
-      })
-    }
+    // Always create a fresh submission for each test send so replies stack up on the dashboard
+    await serviceSupabase.from('submissions').insert({
+      campaign_id,
+      employee_id: employee.id,
+      week_start: weekStart,
+      sent_at: new Date().toISOString(),
+    })
   }
 
   const { subject, html, text } = buildCampaignEmail({
