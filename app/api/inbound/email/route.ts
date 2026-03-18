@@ -389,18 +389,22 @@ export async function POST(req: Request) {
   const orgId = employee.org_id
   const weekStart = submission.week_start
 
+  // Await notification so it completes before the function returns —
+  // Vercel can kill un-awaited background promises after the response is sent.
   if (orgId && weekStart) {
+    await notifyAdmin({
+      orgId,
+      responseId: savedResponse.id,
+      employeeName: employee.name,
+      employeeTeam: (employee as any).team ?? null,
+      replyBody: cleanBody,
+      weekStart,
+    }).catch((err) => console.error('[notifyAdmin]', err))
+
+    // These are slower and optional — keep them as background work
     Promise.all([
       generateAndStoreInsight(orgId, weekStart),
       maybeFireDigest(orgId, weekStart),
-      notifyAdmin({
-        orgId,
-        responseId: savedResponse.id,
-        employeeName: employee.name,
-        employeeTeam: (employee as any).team ?? null,
-        replyBody: cleanBody,
-        weekStart,
-      }),
     ]).catch(console.error)
   }
 
