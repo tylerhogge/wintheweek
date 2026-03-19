@@ -174,8 +174,8 @@ export default function LandingPage() {
             Win the Week
           </Link>
           <div className="flex gap-5">
-            {['Privacy', 'Terms', 'Contact'].map((l: string) => (
-              <Link key={l} href="#" className="text-sm text-[#71717a] hover:text-[#a1a1aa] transition-colors">{l}</Link>
+            {[['Privacy', '/privacy'], ['Terms', '/terms'], ['Contact', '/contact']].map(([label, href]: string[]) => (
+              <Link key={href} href={href} className="text-sm text-[#71717a] hover:text-[#a1a1aa] transition-colors">{label}</Link>
             ))}
           </div>
           <p className="text-xs text-[#52525b]">© 2026 Win the Week</p>
