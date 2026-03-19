@@ -46,7 +46,7 @@ export default function TermsPage() {
             </Section>
 
             <Section title="Your account">
-              <p>You are responsible for keeping your account credentials secure. You are responsible for all activity that occurs under your account. If you believe your account has been compromised, contact us immediately at <a href="mailto:hello@wintheweek.co" className="text-accent hover:underline">hello@wintheweek.co</a>.</p>
+              <p>You are responsible for keeping your account credentials secure. You are responsible for all activity that occurs under your account. If you believe your account has been compromised, contact us immediately at <a href="mailto:tyler@wintheweek.co" className="text-accent hover:underline">tyler@wintheweek.co</a>.</p>
             </Section>
 
             <Section title="Your team members">
@@ -78,7 +78,7 @@ export default function TermsPage() {
             </Section>
 
             <Section title="Contact">
-              <p>Questions about these terms? Email <a href="mailto:hello@wintheweek.co" className="text-accent hover:underline">hello@wintheweek.co</a>.</p>
+              <p>Questions about these terms? Email <a href="mailto:tyler@wintheweek.co" className="text-accent hover:underline">tyler@wintheweek.co</a>.</p>
             </Section>
 
           </div>

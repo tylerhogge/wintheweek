@@ -63,7 +63,7 @@ export default function PrivacyPage() {
             </Section>
 
             <Section title="Your rights">
-              <p>You can request access to, correction of, or deletion of your personal data at any time. Just email us at <a href="mailto:hello@wintheweek.co" className="text-accent hover:underline">hello@wintheweek.co</a>.</p>
+              <p>You can request access to, correction of, or deletion of your personal data at any time. Just email us at <a href="mailto:tyler@wintheweek.co" className="text-accent hover:underline">tyler@wintheweek.co</a>.</p>
             </Section>
 
             <Section title="Changes">
@@ -71,7 +71,7 @@ export default function PrivacyPage() {
             </Section>
 
             <Section title="Contact">
-              <p>Questions? Email <a href="mailto:hello@wintheweek.co" className="text-accent hover:underline">hello@wintheweek.co</a>.</p>
+              <p>Questions? Email <a href="mailto:tyler@wintheweek.co" className="text-accent hover:underline">tyler@wintheweek.co</a>.</p>
             </Section>
 
           </div>

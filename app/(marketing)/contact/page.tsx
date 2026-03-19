@@ -37,7 +37,7 @@ export default function ContactPage() {
 
           {/* Email CTA */}
           <a
-            href="mailto:hello@wintheweek.co"
+            href="mailto:tyler@wintheweek.co"
             className="inline-flex items-center gap-3 bg-surface border border-white/[0.09] hover:border-white/20 rounded-xl px-6 py-4 transition-colors group"
           >
             <span className="w-9 h-9 bg-accent/10 border border-accent/20 rounded-lg flex items-center justify-center shrink-0">
@@ -47,7 +47,7 @@ export default function ContactPage() {
               </svg>
             </span>
             <div>
-              <p className="text-sm font-semibold group-hover:text-white transition-colors">hello@wintheweek.co</p>
+              <p className="text-sm font-semibold group-hover:text-white transition-colors">tyler@wintheweek.co</p>
               <p className="text-xs text-[#71717a]">We usually reply within a day</p>
             </div>
           </a>
