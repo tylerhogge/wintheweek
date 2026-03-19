@@ -239,7 +239,7 @@ async function handleManagerReply(responseId: string, rawBody: string) {
 
   const { data: response } = await supabase
     .from('responses')
-    .select('id, submission_id, submissions(employee_id, week_start, employees(name, email, org_id, team))')
+    .select('id, submission_id, submissions(id, employee_id, week_start, employees(name, email, org_id, team), campaigns(subject))')
     .eq('id', responseId)
     .single()
 
@@ -274,6 +274,12 @@ async function handleManagerReply(responseId: string, rawBody: string) {
   const fromAddress = process.env.FROM_EMAIL ?? 'hello@wintheweek.co'
   const replyToAddress = process.env.REPLY_TO_EMAIL ?? 'updates@wintheweek.co'
 
+  // Thread the reply back into the original check-in email chain
+  const submissionId = (response as any).submissions?.id
+  const campaignSubject = (response as any).submissions?.campaigns?.subject
+  const threadSubject = campaignSubject ? `Re: ${campaignSubject}` : 'Re: Your weekly update'
+  const checkinMessageId = submissionId ? `<checkin-${submissionId}@wintheweek.co>` : null
+
   const emailContent = buildManagerReplyEmail({
     employeeFirstName: employee.name?.split(' ')[0] ?? 'there',
     managerReplyBody: cleanBody,
@@ -284,9 +290,15 @@ async function handleManagerReply(responseId: string, rawBody: string) {
     from: `${adminDisplayName} <${fromAddress}>`,
     to: employee.email,
     replyTo: replyToAddress,
-    subject: emailContent.subject,
+    subject: threadSubject,
     html: emailContent.html,
     text: emailContent.text,
+    ...(checkinMessageId && {
+      headers: {
+        'In-Reply-To': checkinMessageId,
+        'References': checkinMessageId,
+      },
+    }),
   })
 }
 

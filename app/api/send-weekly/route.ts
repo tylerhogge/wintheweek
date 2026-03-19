@@ -112,14 +112,30 @@ export async function POST(req: Request) {
           sendError = null
           const replyTo = process.env.REPLY_TO_EMAIL ?? 'updates@wintheweek.co'
           const { subject, html, text } = buildCampaignEmail({ employeeName: employee.name, subject: campaign.subject, body: campaign.body, replyToAddress: replyTo })
-          const { error: emailErr } = await getResend().emails.send({ from: `${process.env.FROM_NAME ?? 'Win the Week'} <${process.env.FROM_EMAIL ?? 'updates@wintheweek.co'}>`, to: employee.email, replyTo, subject, html, text })
+          const { error: emailErr } = await getResend().emails.send({
+            from: `${process.env.FROM_NAME ?? 'Win the Week'} <${process.env.FROM_EMAIL ?? 'updates@wintheweek.co'}>`,
+            to: employee.email,
+            replyTo,
+            subject,
+            html,
+            text,
+            headers: { 'Message-ID': `<checkin-${submission.id}@wintheweek.co>` },
+          })
           if (emailErr) sendError = emailErr.message
         }
       } else {
         // ── Email delivery (default) ────────────────────────────────────────
         const replyTo = process.env.REPLY_TO_EMAIL ?? 'updates@wintheweek.co'
         const { subject, html, text } = buildCampaignEmail({ employeeName: employee.name, subject: campaign.subject, body: campaign.body, replyToAddress: replyTo })
-        const { error: emailErr } = await getResend().emails.send({ from: `${process.env.FROM_NAME ?? 'Win the Week'} <${process.env.FROM_EMAIL ?? 'updates@wintheweek.co'}>`, to: employee.email, replyTo, subject, html, text })
+        const { error: emailErr } = await getResend().emails.send({
+          from: `${process.env.FROM_NAME ?? 'Win the Week'} <${process.env.FROM_EMAIL ?? 'updates@wintheweek.co'}>`,
+          to: employee.email,
+          replyTo,
+          subject,
+          html,
+          text,
+          headers: { 'Message-ID': `<checkin-${submission.id}@wintheweek.co>` },
+        })
         if (emailErr) sendError = emailErr.message
       }
 
