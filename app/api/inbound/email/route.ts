@@ -20,6 +20,7 @@ type ResendInboundPayload = {
     from: string
     to: string[]
     subject: string
+    message_id: string   // Message-ID header of the incoming email
     created_at: string
   }
 }
@@ -239,7 +240,7 @@ async function handleManagerReply(responseId: string, rawBody: string) {
 
   const { data: response } = await supabase
     .from('responses')
-    .select('id, submission_id, submissions(id, employee_id, week_start, employees(name, email, org_id, team), campaigns(subject))')
+    .select('id, submission_id, thread_message_id, submissions(id, employee_id, week_start, employees(name, email, org_id, team), campaigns(subject))')
     .eq('id', responseId)
     .single()
 
@@ -274,11 +275,12 @@ async function handleManagerReply(responseId: string, rawBody: string) {
   const fromAddress = process.env.FROM_EMAIL ?? 'hello@wintheweek.co'
   const replyToAddress = process.env.REPLY_TO_EMAIL ?? 'updates@wintheweek.co'
 
-  // Thread the reply back into the original check-in email chain
-  const submissionId = (response as any).submissions?.id
+  // Thread the reply back into the employee's original email chain.
+  // thread_message_id is the Message-ID of the employee's inbound reply —
+  // setting In-Reply-To to it makes email clients slot this into the same thread.
+  const threadMessageId = (response as any).thread_message_id as string | null
   const campaignSubject = (response as any).submissions?.campaigns?.subject
   const threadSubject = campaignSubject ? `Re: ${campaignSubject}` : 'Re: Your weekly update'
-  const checkinMessageId = submissionId ? `<checkin-${submissionId}@wintheweek.co>` : null
 
   const emailContent = buildManagerReplyEmail({
     employeeFirstName: employee.name?.split(' ')[0] ?? 'there',
@@ -293,10 +295,10 @@ async function handleManagerReply(responseId: string, rawBody: string) {
     subject: threadSubject,
     html: emailContent.html,
     text: emailContent.text,
-    ...(checkinMessageId && {
+    ...(threadMessageId && {
       headers: {
-        'In-Reply-To': checkinMessageId,
-        'References': checkinMessageId,
+        'In-Reply-To': threadMessageId,
+        'References': threadMessageId,
       },
     }),
   })
@@ -448,6 +450,7 @@ export async function POST(req: Request) {
       submission_id: submission.id,
       body_raw: rawBody,
       body_clean: cleanBody,
+      thread_message_id: payload.data.message_id || null,
     })
     .select('id')
     .single()

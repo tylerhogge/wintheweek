@@ -119,7 +119,6 @@ export async function POST(req: Request) {
             subject,
             html,
             text,
-            headers: { 'Message-ID': `<checkin-${submission.id}@wintheweek.co>` },
           })
           if (emailErr) sendError = emailErr.message
         }
@@ -134,7 +133,6 @@ export async function POST(req: Request) {
           subject,
           html,
           text,
-          headers: { 'Message-ID': `<checkin-${submission.id}@wintheweek.co>` },
         })
         if (emailErr) sendError = emailErr.message
       }
