@@ -195,7 +195,7 @@ async function notifyAdmin({
   if (!adminProfile?.email) return
 
   const inboundDomain = process.env.INBOUND_DOMAIN ?? 'inbound.wintheweek.co'
-  const taggedReplyTo = `reply+${responseId}@${inboundDomain}`
+  const taggedReplyTo = `${employeeName} <reply+${responseId}@${inboundDomain}>`
   const appUrl = 'https://www.wintheweek.co'
 
   const emailContent = buildReplyNotification({
