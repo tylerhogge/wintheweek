@@ -2,6 +2,7 @@ import { getAuthUser, getProfile, createServiceClient } from '@/lib/supabase/ser
 import { redirect } from 'next/navigation'
 import { DigestToggle } from '@/components/settings/digest-toggle'
 import { OrgNameEdit } from '@/components/settings/org-name-edit'
+import { SlackConnect } from '@/components/settings/slack-connect'
 
 export default async function SettingsPage() {
   const [user, profile] = await Promise.all([getAuthUser(), getProfile()])
@@ -9,16 +10,23 @@ export default async function SettingsPage() {
 
   const org = (profile as any)?.organizations
 
-  // Fetch digest_notify preference
+  // Fetch org settings + Slack integration + employee match counts in parallel
   let digestNotify = false
+  let slackIntegration: { team_name: string } | null = null
+  let matchedCount = 0
+  let totalCount = 0
+
   if (profile?.org_id) {
     const service = createServiceClient()
-    const { data } = await service
-      .from('organizations')
-      .select('digest_notify')
-      .eq('id', profile.org_id)
-      .single()
-    digestNotify = data?.digest_notify ?? false
+    const [orgData, slackData, employeeData] = await Promise.all([
+      service.from('organizations').select('digest_notify').eq('id', profile.org_id).single(),
+      service.from('slack_integrations').select('team_name').eq('org_id', profile.org_id).single(),
+      service.from('employees').select('slack_user_id').eq('org_id', profile.org_id).eq('active', true),
+    ])
+    digestNotify = orgData.data?.digest_notify ?? false
+    slackIntegration = slackData.data ?? null
+    totalCount = employeeData.data?.length ?? 0
+    matchedCount = employeeData.data?.filter((e: any) => e.slack_user_id).length ?? 0
   }
 
   return (
@@ -40,6 +48,31 @@ export default async function SettingsPage() {
               <p className="text-sm font-medium">Workspace URL</p>
               <p className="text-xs text-[#71717a] mt-0.5">wintheweek.co/{org?.slug ?? '—'}</p>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Integrations */}
+      <section className="mb-8">
+        <p className="text-xs font-semibold tracking-[0.07em] uppercase text-[#71717a] mb-4">Integrations</p>
+        <div className="bg-surface border border-white/[0.07] rounded-xl divide-y divide-white/[0.05]">
+          <div className="px-5 py-4">
+            <div className="flex items-start justify-between mb-3">
+              <div>
+                <p className="text-sm font-medium">Slack</p>
+                <p className="text-xs text-[#71717a] mt-0.5 max-w-[360px]">
+                  Send check-ins and nudges via Slack DM instead of email.
+                  Employees matched by email address — unmatched members still receive email.
+                </p>
+              </div>
+            </div>
+            <SlackConnect
+              isConnected={!!slackIntegration}
+              teamName={slackIntegration?.team_name}
+              matchedCount={matchedCount}
+              totalCount={totalCount}
+              orgId={profile?.org_id ?? ''}
+            />
           </div>
         </div>
       </section>

@@ -1,13 +1,14 @@
 /**
  * POST /api/submissions/[id]/nudge
  *
- * Sends a reminder email to an employee who hasn't replied yet.
- * Only works if the submission has no reply.
+ * Sends a reminder to an employee who hasn't replied yet.
+ * Routes to Slack DM if the employee is matched, otherwise email.
  */
 
 import { NextResponse } from 'next/server'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { getResend, buildNudgeEmail } from '@/lib/resend'
+import { sendSlackDM, buildNudgeBlocks } from '@/lib/slack'
 
 export async function POST(
   _req: Request,
@@ -29,10 +30,10 @@ export async function POST(
 
   const serviceSupabase = createServiceClient()
 
-  // Fetch submission + employee, verify it belongs to this org and hasn't been replied to
+  // Fetch submission + employee — verify belongs to this org and unreplied
   const { data: submission } = await serviceSupabase
     .from('submissions')
-    .select('id, replied_at, employee_id, week_start, campaigns!inner(org_id), employees(name, email)')
+    .select('id, replied_at, employee_id, week_start, campaigns!inner(org_id), employees(name, email, slack_user_id)')
     .eq('id', submissionId)
     .eq('campaigns.org_id', profile.org_id)
     .is('replied_at', null)
@@ -48,16 +49,28 @@ export async function POST(
   }
 
   const senderName = profile.name ?? profile.email.split('@')[0]
+
+  // -- Route to Slack if matched ----------------------------------------------
+  if (employee.slack_user_id) {
+    const { data: integration } = await serviceSupabase
+      .from('slack_integrations')
+      .select('access_token')
+      .eq('org_id', profile.org_id)
+      .single()
+
+    if (integration?.access_token) {
+      const { blocks, fallbackText } = buildNudgeBlocks(employee.name, senderName)
+      const result = await sendSlackDM(integration.access_token, employee.slack_user_id, blocks, fallbackText)
+      if (result.ok) return NextResponse.json({ ok: true, via: 'slack' })
+      console.warn('[nudge] Slack DM failed, falling back to email:', result.error)
+    }
+  }
+
+  // -- Email fallback ---------------------------------------------------------
   const replyTo = process.env.REPLY_TO_EMAIL ?? 'updates@wintheweek.co'
+  const emailContent = buildNudgeEmail({ employeeName: employee.name, senderName, replyToAddress: replyTo })
 
-  const emailContent = buildNudgeEmail({
-    employeeName: employee.name,
-    senderName,
-    replyToAddress: replyTo,
-  })
-
-  const resend = getResend()
-  const { error } = await resend.emails.send({
+  const { error } = await getResend().emails.send({
     from: `${senderName} <${process.env.FROM_EMAIL ?? 'hello@wintheweek.co'}>`,
     to: employee.email,
     replyTo,
@@ -67,9 +80,9 @@ export async function POST(
   })
 
   if (error) {
-    console.error('[nudge] Failed to send', error)
+    console.error('[nudge] Failed to send email:', error)
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
-  return NextResponse.json({ ok: true })
+  return NextResponse.json({ ok: true, via: 'email' })
 }

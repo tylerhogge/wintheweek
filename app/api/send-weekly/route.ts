@@ -11,6 +11,7 @@
 import { NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { getResend, buildCampaignEmail } from '@/lib/resend'
+import { sendSlackDM, buildCheckinBlocks } from '@/lib/slack'
 import { getWeekStart } from '@/lib/utils'
 import { format } from 'date-fns'
 
@@ -85,35 +86,51 @@ export async function POST(req: Request) {
         continue
       }
 
-      const replyTo = process.env.REPLY_TO_EMAIL ?? 'updates@wintheweek.co'
+      let sendError: string | null = null
 
-      const { subject, html, text } = buildCampaignEmail({
-        employeeName: employee.name,
-        subject: campaign.subject,
-        body: campaign.body,
-        replyToAddress: replyTo,
-      })
+      if (employee.slack_user_id) {
+        // ── Slack delivery ──────────────────────────────────────────────────
+        const { data: integration } = await supabase
+          .from('slack_integrations')
+          .select('access_token')
+          .eq('org_id', campaign.org_id)
+          .single()
 
-      // Send via Resend
-      const { error: sendErr } = await getResend().emails.send({
-        from: `${process.env.FROM_NAME ?? 'Win the Week'} <${process.env.FROM_EMAIL ?? 'updates@wintheweek.co'}>`,
-        to: employee.email,
-        replyTo: replyTo,
-        subject,
-        html,
-        text,
-      })
+        if (integration?.access_token) {
+          const { blocks, fallbackText } = buildCheckinBlocks(employee.name, campaign.body)
+          const slackResult = await sendSlackDM(integration.access_token, employee.slack_user_id, blocks, fallbackText)
+          if (!slackResult.ok) {
+            console.error(`[send-weekly] Slack DM failed for ${employee.email}:`, slackResult.error)
+            sendError = slackResult.error
+          }
+        } else {
+          sendError = 'No Slack token found — falling back to email'
+        }
 
-      if (sendErr) {
-        console.error(`Failed to send to ${employee.email}`, sendErr)
+        // Fallback to email if Slack failed
+        if (sendError) {
+          sendError = null
+          const replyTo = process.env.REPLY_TO_EMAIL ?? 'updates@wintheweek.co'
+          const { subject, html, text } = buildCampaignEmail({ employeeName: employee.name, subject: campaign.subject, body: campaign.body, replyToAddress: replyTo })
+          const { error: emailErr } = await getResend().emails.send({ from: `${process.env.FROM_NAME ?? 'Win the Week'} <${process.env.FROM_EMAIL ?? 'updates@wintheweek.co'}>`, to: employee.email, replyTo, subject, html, text })
+          if (emailErr) sendError = emailErr.message
+        }
+      } else {
+        // ── Email delivery (default) ────────────────────────────────────────
+        const replyTo = process.env.REPLY_TO_EMAIL ?? 'updates@wintheweek.co'
+        const { subject, html, text } = buildCampaignEmail({ employeeName: employee.name, subject: campaign.subject, body: campaign.body, replyToAddress: replyTo })
+        const { error: emailErr } = await getResend().emails.send({ from: `${process.env.FROM_NAME ?? 'Win the Week'} <${process.env.FROM_EMAIL ?? 'updates@wintheweek.co'}>`, to: employee.email, replyTo, subject, html, text })
+        if (emailErr) sendError = emailErr.message
+      }
+
+      if (sendError) {
+        console.error(`[send-weekly] Failed to send to ${employee.email}:`, sendError)
         results.failed++
       } else {
-        // Mark as sent
         await supabase
           .from('submissions')
           .update({ sent_at: new Date().toISOString() })
           .eq('id', submission.id)
-
         results.sent++
       }
     }

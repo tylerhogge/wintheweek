@@ -24,6 +24,16 @@ export type Employee = {
   team: string | null
   function: string | null
   active: boolean
+  slack_user_id: string | null
+  created_at: string
+}
+
+export type SlackIntegration = {
+  id: string
+  org_id: string
+  team_id: string
+  team_name: string
+  bot_user_id: string
   created_at: string
 }
 
