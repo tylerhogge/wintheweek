@@ -445,9 +445,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Could not retrieve email body', detail: fetchErr }, { status: 500 })
   }
 
-  // Temporary: log full receivedEmail to find threading headers
-  console.log('[inbound] receivedEmail keys:', Object.keys(receivedEmail ?? {}))
-  console.log('[inbound] receivedEmail:', JSON.stringify(receivedEmail, null, 2).slice(0, 1000))
+  // Temporary: log headers field to find In-Reply-To
+  console.log('[inbound] receivedEmail.headers:', JSON.stringify((receivedEmail as any).headers, null, 2))
 
   const rawBody = receivedEmail.text ?? ''
   const cleanBody = cleanEmailBody(rawBody)
