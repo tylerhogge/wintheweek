@@ -240,7 +240,7 @@ async function handleManagerReply(responseId: string, rawBody: string) {
 
   const { data: response } = await supabase
     .from('responses')
-    .select('id, submission_id, thread_message_id, submissions(id, employee_id, week_start, employees(name, email, org_id, team), campaigns(subject))')
+    .select('id, submission_id, thread_message_id, thread_headers, submissions(id, employee_id, week_start, employees(name, email, org_id, team), campaigns(subject))')
     .eq('id', responseId)
     .single()
 
@@ -275,12 +275,23 @@ async function handleManagerReply(responseId: string, rawBody: string) {
   const fromAddress = process.env.FROM_EMAIL ?? 'hello@wintheweek.co'
   const replyToAddress = process.env.REPLY_TO_EMAIL ?? 'updates@wintheweek.co'
 
-  // Thread the reply back into the employee's original email chain.
-  // thread_message_id is the Message-ID of the employee's inbound reply —
-  // setting In-Reply-To to it makes email clients slot this into the same thread.
+  // Thread the reply back into the employee's original check-in conversation.
+  // thread_message_id = the original check-in's Message-ID (extracted from the
+  //   employee's In-Reply-To header) — this email lives in the Outlook inbox.
+  // thread_headers = Thread-Topic + Thread-Index from the employee's reply,
+  //   which Outlook Exchange uses for conversation grouping.
   const threadMessageId = (response as any).thread_message_id as string | null
+  const storedThreadHeaders = ((response as any).thread_headers ?? {}) as Record<string, string>
   const campaignSubject = (response as any).submissions?.campaigns?.subject
   const threadSubject = campaignSubject ? `Re: ${campaignSubject}` : 'Re: Your weekly update'
+
+  const outboundHeaders: Record<string, string> = {}
+  if (threadMessageId) {
+    outboundHeaders['In-Reply-To'] = threadMessageId
+    outboundHeaders['References'] = threadMessageId
+  }
+  if (storedThreadHeaders['thread-topic']) outboundHeaders['Thread-Topic'] = storedThreadHeaders['thread-topic']
+  if (storedThreadHeaders['thread-index']) outboundHeaders['Thread-Index'] = storedThreadHeaders['thread-index']
 
   const emailContent = buildManagerReplyEmail({
     employeeFirstName: employee.name?.split(' ')[0] ?? 'there',
@@ -295,12 +306,7 @@ async function handleManagerReply(responseId: string, rawBody: string) {
     subject: threadSubject,
     html: emailContent.html,
     text: emailContent.text,
-    ...(threadMessageId && {
-      headers: {
-        'In-Reply-To': threadMessageId,
-        'References': threadMessageId,
-      },
-    }),
+    ...(Object.keys(outboundHeaders).length > 0 && { headers: outboundHeaders }),
   })
 }
 
@@ -315,10 +321,6 @@ export async function POST(req: Request) {
   if (payload.type !== 'email.received') {
     return NextResponse.json({ ok: true, note: 'Ignored event type' })
   }
-
-  // Temporary: log full payload to diagnose threading fields
-  console.log('[inbound] payload.data keys:', Object.keys(payload.data ?? {}))
-  console.log('[inbound] message_id:', (payload.data as any).message_id)
 
   const toAddresses = payload.data?.to ?? []
   const senderEmail = parseEmail(payload.data?.from ?? '')
@@ -445,11 +447,17 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Could not retrieve email body', detail: fetchErr }, { status: 500 })
   }
 
-  // Temporary: log headers field to find In-Reply-To
-  console.log('[inbound] receivedEmail.headers:', JSON.stringify((receivedEmail as any).headers, null, 2))
-
   const rawBody = receivedEmail.text ?? ''
   const cleanBody = cleanEmailBody(rawBody)
+
+  // Extract threading headers from the employee's reply.
+  // thread_message_id = their In-Reply-To = the original check-in's Message-ID (lives in Outlook inbox).
+  // thread_headers = Outlook-specific Thread-Topic / Thread-Index for conversation grouping.
+  const h = (receivedEmail as any).headers ?? {}
+  const threadMessageId = h['in-reply-to'] || payload.data.message_id || null
+  const threadHeaders: Record<string, string> = {}
+  if (h['thread-topic']) threadHeaders['thread-topic'] = h['thread-topic']
+  if (h['thread-index']) threadHeaders['thread-index'] = h['thread-index']
 
   const { data: savedResponse, error: insertErr } = await supabase
     .from('responses')
@@ -457,7 +465,8 @@ export async function POST(req: Request) {
       submission_id: submission.id,
       body_raw: rawBody,
       body_clean: cleanBody,
-      thread_message_id: payload.data.message_id || null,
+      thread_message_id: threadMessageId,
+      thread_headers: Object.keys(threadHeaders).length > 0 ? threadHeaders : null,
     })
     .select('id')
     .single()
