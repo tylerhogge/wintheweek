@@ -140,6 +140,8 @@ export function buildReplyNotification({
   replyBody,
   replyToAddress,
   dashboardUrl,
+  weekReplied,
+  weekTotal,
 }: {
   adminName: string
   employeeName: string
@@ -147,9 +149,14 @@ export function buildReplyNotification({
   replyBody: string
   replyToAddress: string
   dashboardUrl: string
+  weekReplied: number
+  weekTotal: number
 }): { subject: string; html: string; text: string } {
   const subject = `${employeeName} submitted their weekly update`
   const teamLabel = employeeTeam ? ` · ${employeeTeam}` : ''
+  const weekProgress = weekTotal > 0
+    ? `${weekReplied} of ${weekTotal} replied this week`
+    : null
 
   const html = `<!DOCTYPE html>
 <html>
@@ -159,6 +166,9 @@ export function buildReplyNotification({
   .label { font-size:11px; font-weight:600; letter-spacing:0.07em; text-transform:uppercase; color:#71717a; margin:0 0 6px; }
   .name { font-size:17px; font-weight:700; color:#111; margin:0 0 2px; }
   .team { font-size:13px; color:#71717a; margin:0 0 24px; }
+  .week-bar { display:flex; align-items:center; gap:10px; background:#f5f5f5; border-radius:6px; padding:10px 14px; margin-bottom:24px; }
+  .week-bar span { font-size:12px; font-weight:600; color:#52525b; }
+  .week-bar .count { font-size:12px; color:#22c55e; font-weight:700; }
   .reply-box { background:#f9f9f9; border-left:3px solid #22c55e; padding:16px 20px; border-radius:4px; margin-bottom:28px; }
   .reply-box p { font-size:15px; color:#111; line-height:1.65; margin:0; white-space:pre-wrap; }
   .cta { font-size:14px; color:#52525b; }
@@ -170,6 +180,8 @@ export function buildReplyNotification({
     <p class="label">Weekly Check-in</p>
     <p class="name">${employeeName}</p>
     <p class="team">${teamLabel.trim() || 'No team'}</p>
+
+    ${weekProgress ? `<div class="week-bar"><span>This week:</span><span class="count">${weekProgress}</span></div>` : ''}
 
     <div class="reply-box">
       <p>${replyBody.replace(/\n/g, '<br/>')}</p>
@@ -183,7 +195,43 @@ export function buildReplyNotification({
 </body>
 </html>`
 
-  const text = `${employeeName}${teamLabel} submitted their weekly update:\n\n${replyBody}\n\n---\nReply to this email to respond directly to ${employeeName.split(' ')[0]}.\nView dashboard: ${dashboardUrl}`
+  const text = `${weekProgress ? `[${weekProgress}]\n\n` : ''}${employeeName}${teamLabel} submitted their weekly update:\n\n${replyBody}\n\n---\nReply to this email to respond directly to ${employeeName.split(' ')[0]}.\nView dashboard: ${dashboardUrl}`
+
+  return { subject, html, text }
+}
+
+export function buildNudgeEmail({
+  employeeName,
+  senderName,
+  replyToAddress,
+}: {
+  employeeName: string
+  senderName: string
+  replyToAddress: string
+}): { subject: string; html: string; text: string } {
+  const firstName = employeeName.split(' ')[0]
+  const subject = `Quick reminder — what did you win this week?`
+
+  const html = `<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"/><style>
+  body { background:#ffffff; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif; margin:0; padding:0; }
+  .wrap { max-width:520px; margin:0 auto; padding:40px 24px; }
+  p { font-size:15px; color:#111111; line-height:1.65; margin:0 0 16px; }
+  .footer { margin-top:40px; padding-top:20px; border-top:1px solid #e5e5e5; font-size:12px; color:#a1a1aa; }
+</style></head>
+<body>
+  <div class="wrap">
+    <p>Hey ${firstName},</p>
+    <p>Just a quick nudge — haven't heard from you yet this week. What did you get done?</p>
+    <p>Hit reply and share whatever comes to mind — big wins, small progress, blockers. Takes 30 seconds.</p>
+    <p style="color:#52525b; font-size:14px;">— ${senderName}</p>
+    <div class="footer">Sent via <a href="https://wintheweek.co" style="color:#a1a1aa;">Win the Week</a></div>
+  </div>
+</body>
+</html>`
+
+  const text = `Hey ${firstName},\n\nJust a quick nudge — haven't heard from you yet this week. What did you get done?\n\nHit reply and share whatever comes to mind — big wins, small progress, blockers. Takes 30 seconds.\n\n— ${senderName}`
 
   return { subject, html, text }
 }

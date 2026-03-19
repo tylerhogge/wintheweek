@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Heart } from 'lucide-react'
+import { Heart, Bell } from 'lucide-react'
 import { getInitials, avatarGradient } from '@/lib/utils'
 import type { SubmissionWithDetails, ManagerReply } from '@/types'
 
@@ -14,6 +14,21 @@ export function ReplyCard({ submission }: Props) {
 
   const [liked, setLiked] = useState(!!(response as any)?.liked_at)
   const [loading, setLoading] = useState(false)
+  const [nudgeSent, setNudgeSent] = useState(false)
+  const [nudging, setNudging] = useState(false)
+
+  async function sendNudge() {
+    if (nudging || nudgeSent) return
+    setNudging(true)
+    try {
+      await fetch(`/api/submissions/${submission.id}/nudge`, { method: 'POST' })
+      setNudgeSent(true)
+    } catch {
+      // silent
+    } finally {
+      setNudging(false)
+    }
+  }
 
   async function toggleLike() {
     if (!response || loading) return
@@ -51,9 +66,24 @@ export function ReplyCard({ submission }: Props) {
               </span>
             )}
             {!hasReplied && (
-              <span className="text-[10px] font-medium text-[#52525b] border border-white/[0.06] px-2 py-0.5 rounded-full ml-auto">
-                No reply yet
-              </span>
+              <div className="ml-auto flex items-center gap-2">
+                <span className="text-[10px] font-medium text-[#52525b] border border-white/[0.06] px-2 py-0.5 rounded-full">
+                  No reply yet
+                </span>
+                <button
+                  onClick={sendNudge}
+                  disabled={nudging || nudgeSent}
+                  aria-label="Send nudge reminder"
+                  className={`flex items-center gap-1 text-[11px] font-medium px-2.5 py-1 rounded-full border transition-all ${
+                    nudgeSent
+                      ? 'text-[#22c55e] border-[#22c55e]/30 bg-[#22c55e]/[0.06]'
+                      : 'text-[#71717a] border-white/[0.08] hover:text-white hover:border-white/20'
+                  }`}
+                >
+                  <Bell className="w-3 h-3" />
+                  {nudgeSent ? 'Nudged ✓' : nudging ? '...' : 'Nudge'}
+                </button>
+              </div>
             )}
             {hasReplied && submission.replied_at && (
               <span className="text-[11px] text-[#52525b] ml-auto">

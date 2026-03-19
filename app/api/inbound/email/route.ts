@@ -7,7 +7,7 @@
  */
 
 import { NextResponse } from 'next/server'
-import { getResend, buildDigestEmail, buildReplyNotification, buildManagerReplyEmail } from '@/lib/resend'
+import { getResend, buildDigestEmail, buildReplyNotification, buildManagerReplyEmail, buildNudgeEmail } from '@/lib/resend'
 import { createServiceClient } from '@/lib/supabase/server'
 import { cleanEmailBody, formatWeekRange } from '@/lib/utils'
 import { generateWeeklyInsight } from '@/lib/anthropic'
@@ -194,6 +194,17 @@ async function notifyAdmin({
 
   if (!adminProfile?.email) return
 
+  // Fetch week reply counts for context line in notification email
+  const { data: weekSubs } = await supabase
+    .from('submissions')
+    .select('replied_at, campaigns!inner(org_id)')
+    .eq('week_start', weekStart)
+    .eq('campaigns.org_id', orgId)
+    .not('sent_at', 'is', null)
+
+  const weekTotal = weekSubs?.length ?? 0
+  const weekReplied = weekSubs?.filter((s: any) => s.replied_at !== null).length ?? 0
+
   const inboundDomain = process.env.INBOUND_DOMAIN ?? 'inbound.wintheweek.co'
   const taggedReplyTo = `${employeeName} <reply+${responseId}@${inboundDomain}>`
   const appUrl = 'https://www.wintheweek.co'
@@ -205,6 +216,8 @@ async function notifyAdmin({
     replyBody,
     replyToAddress: taggedReplyTo,
     dashboardUrl: `${appUrl}/dashboard?week=${weekStart}`,
+    weekReplied,
+    weekTotal,
   })
 
   const resend = getResend()
