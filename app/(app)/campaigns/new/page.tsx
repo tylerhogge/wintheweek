@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
@@ -20,6 +20,8 @@ export default function NewCampaignPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [availableTeams, setAvailableTeams] = useState<string[]>([])
+  const [selectedTeams, setSelectedTeams] = useState<string[]>([]) // empty = all teams
 
   const [form, setForm] = useState({
     name: 'Weekly Check-in',
@@ -31,8 +33,32 @@ export default function NewCampaignPage() {
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
   })
 
+  // Load distinct teams from employees
+  useEffect(() => {
+    async function loadTeams() {
+      const supabase = createClient()
+      const { data } = await supabase
+        .from('employees')
+        .select('team')
+        .eq('active', true)
+        .not('team', 'is', null)
+
+      if (data) {
+        const unique = [...new Set(data.map((e: { team: string | null }) => e.team).filter(Boolean) as string[])].sort()
+        setAvailableTeams(unique)
+      }
+    }
+    loadTeams()
+  }, [])
+
   function update(field: string, value: string | number) {
     setForm((prev) => ({ ...prev, [field]: value }))
+  }
+
+  function toggleTeam(team: string) {
+    setSelectedTeams((prev) =>
+      prev.includes(team) ? prev.filter((t) => t !== team) : [...prev, team]
+    )
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -50,6 +76,7 @@ export default function NewCampaignPage() {
       ...form,
       org_id: profile?.org_id,
       active: true,
+      target_teams: selectedTeams.length > 0 ? selectedTeams : null,
     })
 
     if (error) {
@@ -92,6 +119,45 @@ export default function NewCampaignPage() {
             className={`${inputCls} resize-y`}
           />
         </Field>
+
+        {/* Team targeting */}
+        {availableTeams.length > 0 && (
+          <div className="bg-surface border border-white/[0.07] rounded-xl p-5 space-y-3">
+            <div>
+              <p className="text-sm font-semibold tracking-tight">Recipients</p>
+              <p className="text-xs text-[#52525b] mt-0.5">
+                {selectedTeams.length === 0
+                  ? 'Sending to all active team members'
+                  : `Sending to ${selectedTeams.length} team${selectedTeams.length > 1 ? 's' : ''}: ${selectedTeams.join(', ')}`}
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {availableTeams.map((team) => (
+                <button
+                  key={team}
+                  type="button"
+                  onClick={() => toggleTeam(team)}
+                  className={`text-xs font-medium px-3 py-1.5 rounded-full border transition-colors ${
+                    selectedTeams.includes(team)
+                      ? 'bg-accent/10 border-accent/30 text-accent'
+                      : 'bg-white/[0.04] border-white/10 text-[#71717a] hover:border-white/20 hover:text-white'
+                  }`}
+                >
+                  {selectedTeams.includes(team) ? '✓ ' : ''}{team}
+                </button>
+              ))}
+              {selectedTeams.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setSelectedTeams([])}
+                  className="text-xs text-[#52525b] hover:text-white transition-colors px-1"
+                >
+                  Clear (send to all)
+                </button>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Schedule */}
         <div className="bg-surface border border-white/[0.07] rounded-xl p-5 space-y-4">

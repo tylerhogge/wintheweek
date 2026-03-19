@@ -40,12 +40,18 @@ export async function POST(req: Request) {
   const results = { sent: 0, failed: 0, skipped: 0 }
 
   for (const campaign of campaigns ?? []) {
-    // Fetch all active employees in this org
-    const { data: employees } = await supabase
+    // Fetch active employees — filtered by target_teams if set, otherwise all
+    const employeeQuery = supabase
       .from('employees')
       .select('*')
       .eq('org_id', campaign.org_id)
       .eq('active', true)
+
+    if (campaign.target_teams && campaign.target_teams.length > 0) {
+      employeeQuery.in('team', campaign.target_teams)
+    }
+
+    const { data: employees } = await employeeQuery
 
     for (const employee of employees ?? []) {
       // Check if already sent this week (idempotency)

@@ -17,19 +17,46 @@ export default function EditCampaignPage() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [form, setForm] = useState<Partial<Campaign> | null>(null)
+  const [availableTeams, setAvailableTeams] = useState<string[]>([])
+  const [selectedTeams, setSelectedTeams] = useState<string[]>([])
 
   useEffect(() => {
     async function load() {
       const supabase = createClient()
-      const { data, error } = await supabase.from('campaigns').select('*').eq('id', id).single()
-      if (error || !data) { router.push('/campaigns'); return }
-      setForm(data)
+
+      // Load campaign and available teams in parallel
+      const [campaignRes, teamsRes] = await Promise.all([
+        supabase.from('campaigns').select('*').eq('id', id).single(),
+        supabase.from('employees').select('team').eq('active', true).not('team', 'is', null),
+      ])
+
+      if (campaignRes.error || !campaignRes.data) { router.push('/campaigns'); return }
+
+      setForm(campaignRes.data)
+      setSelectedTeams(campaignRes.data.target_teams ?? [])
+
+      if (teamsRes.data) {
+        const unique = [
+          ...new Set(
+            teamsRes.data
+              .map((e: { team: string | null }) => e.team)
+              .filter(Boolean) as string[]
+          ),
+        ].sort()
+        setAvailableTeams(unique)
+      }
     }
     load()
   }, [id, router])
 
   function update(field: string, value: string | number | boolean) {
     setForm((prev) => prev ? ({ ...prev, [field]: value }) : prev)
+  }
+
+  function toggleTeam(team: string) {
+    setSelectedTeams((prev) =>
+      prev.includes(team) ? prev.filter((t) => t !== team) : [...prev, team]
+    )
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -50,6 +77,7 @@ export default function EditCampaignPage() {
         send_time: form.send_time,
         timezone: form.timezone,
         active: form.active,
+        target_teams: selectedTeams.length > 0 ? selectedTeams : null,
       })
       .eq('id', id)
 
@@ -119,6 +147,45 @@ export default function EditCampaignPage() {
             className={`${inputCls} resize-y`}
           />
         </Field>
+
+        {/* Team targeting */}
+        {availableTeams.length > 0 && (
+          <div className="bg-surface border border-white/[0.07] rounded-xl p-5 space-y-3">
+            <div>
+              <p className="text-sm font-semibold tracking-tight">Recipients</p>
+              <p className="text-xs text-[#52525b] mt-0.5">
+                {selectedTeams.length === 0
+                  ? 'Sending to all active team members'
+                  : `Sending to ${selectedTeams.length} team${selectedTeams.length > 1 ? 's' : ''}: ${selectedTeams.join(', ')}`}
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {availableTeams.map((team) => (
+                <button
+                  key={team}
+                  type="button"
+                  onClick={() => toggleTeam(team)}
+                  className={`text-xs font-medium px-3 py-1.5 rounded-full border transition-colors ${
+                    selectedTeams.includes(team)
+                      ? 'bg-accent/10 border-accent/30 text-accent'
+                      : 'bg-white/[0.04] border-white/10 text-[#71717a] hover:border-white/20 hover:text-white'
+                  }`}
+                >
+                  {selectedTeams.includes(team) ? '✓ ' : ''}{team}
+                </button>
+              ))}
+              {selectedTeams.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setSelectedTeams([])}
+                  className="text-xs text-[#52525b] hover:text-white transition-colors px-1"
+                >
+                  Clear (send to all)
+                </button>
+              )}
+            </div>
+          </div>
+        )}
 
         <div className="bg-surface border border-white/[0.07] rounded-xl p-5 space-y-4">
           <p className="text-sm font-semibold tracking-tight">Schedule</p>

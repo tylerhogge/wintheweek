@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
+import { getResend, buildWelcomeEmail } from '@/lib/resend'
 
 export async function POST(req: Request) {
   const { name, email, team, function: fn } = await req.json()
@@ -15,13 +16,20 @@ export async function POST(req: Request) {
 
   const { data: profile } = await userClient
     .from('profiles')
-    .select('org_id')
+    .select('org_id, name')
     .eq('id', user.id)
     .single()
 
   if (!profile?.org_id) {
     return NextResponse.json({ error: 'No organization found' }, { status: 400 })
   }
+
+  // Fetch org name for the welcome email
+  const { data: org } = await userClient
+    .from('organizations')
+    .select('name')
+    .eq('id', profile.org_id)
+    .single()
 
   // Use service role to insert (bypasses RLS for INSERT)
   const supabase = createServiceClient()
@@ -39,6 +47,25 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'This email is already on your team' }, { status: 409 })
     }
     return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+
+  // Send welcome email (non-blocking — don't fail the request if email fails)
+  try {
+    const { subject, html, text } = buildWelcomeEmail({
+      employeeName: name.trim(),
+      adminName: profile.name ?? null,
+      orgName: org?.name ?? 'Your team',
+    })
+
+    await getResend().emails.send({
+      from: `${process.env.FROM_NAME ?? 'Win the Week'} <${process.env.FROM_EMAIL ?? 'updates@wintheweek.co'}>`,
+      to: email.trim().toLowerCase(),
+      subject,
+      html,
+      text,
+    })
+  } catch (emailErr) {
+    console.error('Welcome email failed (non-fatal):', emailErr)
   }
 
   return NextResponse.json({ ok: true })

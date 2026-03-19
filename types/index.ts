@@ -38,6 +38,7 @@ export type Campaign = {
   send_time: string  // HH:MM
   timezone: string
   active: boolean
+  target_teams: string[] | null  // null = all teams; array = specific teams only
   created_at: string
 }
 
