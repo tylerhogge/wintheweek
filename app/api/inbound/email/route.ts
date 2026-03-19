@@ -316,6 +316,10 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true, note: 'Ignored event type' })
   }
 
+  // Temporary: log full payload to diagnose threading fields
+  console.log('[inbound] payload.data keys:', Object.keys(payload.data ?? {}))
+  console.log('[inbound] message_id:', (payload.data as any).message_id)
+
   const toAddresses = payload.data?.to ?? []
   const senderEmail = parseEmail(payload.data?.from ?? '')
 
