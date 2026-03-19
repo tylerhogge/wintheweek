@@ -205,7 +205,7 @@ async function notifyAdmin({
   const weekTotal = weekSubs?.length ?? 0
   const weekReplied = weekSubs?.filter((s: any) => s.replied_at !== null).length ?? 0
 
-  const inboundDomain = process.env.INBOUND_DOMAIN ?? 'inbound.wintheweek.co'
+  const inboundDomain = process.env.INBOUND_DOMAIN ?? 'wintheweek.co'
   const taggedReplyTo = `${employeeName} <reply+${responseId}@${inboundDomain}>`
   const appUrl = 'https://www.wintheweek.co'
 
@@ -352,10 +352,61 @@ export async function POST(req: Request) {
     .single()
 
   if (subErr || !submission) {
-    console.log('No open submission for sender:', senderEmail)
-    return NextResponse.json({ ok: true, note: 'No open submission' })
+    // No unreplied submission — could be a thread continuation after admin replied back.
+    // Look for the most recent submission that already has a response.
+    const { data: priorSubmission } = await supabase
+      .from('submissions')
+      .select('id, week_start, campaigns(org_id)')
+      .eq('employee_id', employee.id)
+      .not('replied_at', 'is', null)
+      .not('sent_at', 'is', null)
+      .order('week_start', { ascending: false })
+      .limit(1)
+      .single()
+
+    if (!priorSubmission) {
+      console.log('No submission found for sender:', senderEmail)
+      return NextResponse.json({ ok: true, note: 'No submission found' })
+    }
+
+    const { data: priorResponse } = await supabase
+      .from('responses')
+      .select('id')
+      .eq('submission_id', priorSubmission.id)
+      .single()
+
+    if (!priorResponse) {
+      return NextResponse.json({ ok: true, note: 'No prior response to thread onto' })
+    }
+
+    // Fetch and forward this follow-up to the admin using the existing response ID
+    const resendClient = getResend()
+    const { data: followUpEmail, error: followUpErr } = await resendClient.emails.receiving.get(
+      payload.data.email_id,
+    )
+    if (followUpErr || !followUpEmail) {
+      return NextResponse.json({ error: 'Could not retrieve email body' }, { status: 500 })
+    }
+
+    const followUpBody = cleanEmailBody(followUpEmail.text ?? '')
+    const orgId = employee.org_id
+    const weekStart = (priorSubmission as any).week_start
+
+    if (orgId && weekStart) {
+      await notifyAdmin({
+        orgId,
+        responseId: priorResponse.id,
+        employeeName: employee.name,
+        employeeTeam: (employee as any).team ?? null,
+        replyBody: followUpBody,
+        weekStart,
+      }).catch((err) => console.error('[notifyAdmin thread]', err))
+    }
+
+    return NextResponse.json({ ok: true, note: 'Thread continuation forwarded to admin' })
   }
 
+  // Check for duplicate — same submission already has a response saved
   const { data: existingResponse } = await supabase
     .from('responses')
     .select('id')
