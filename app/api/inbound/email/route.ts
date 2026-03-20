@@ -310,7 +310,13 @@ async function handleManagerReply(responseId: string, rawBody: string) {
   const threadMessageId = (response as any).thread_message_id as string | null
   const storedThreadHeaders = ((response as any).thread_headers ?? {}) as Record<string, string>
   const campaignSubject = (response as any).submissions?.campaigns?.subject
-  const threadSubject = campaignSubject ? `Re: ${campaignSubject}` : 'Re: Your weekly update'
+  // Prefer the stored thread-topic (already [BULK]-stripped, matches what Exchange
+  // recorded as ConversationTopic from the original check-in) so the manager reply
+  // lands in the same conversation. Fall back to campaign subject or a generic string.
+  const storedThreadTopic = storedThreadHeaders['thread-topic']
+  const threadSubject = storedThreadTopic
+    ? `Re: ${storedThreadTopic}`
+    : (campaignSubject ? `Re: ${campaignSubject}` : 'Re: Your weekly update')
 
   const outboundHeaders: Record<string, string> = {}
   if (threadMessageId) {
