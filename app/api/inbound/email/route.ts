@@ -310,12 +310,20 @@ async function handleManagerReply(responseId: string, rawBody: string) {
   const threadMessageId = (response as any).thread_message_id as string | null
   const storedThreadHeaders = ((response as any).thread_headers ?? {}) as Record<string, string>
   const campaignSubject = (response as any).submissions?.campaigns?.subject
-  // Prefer the stored thread-topic (already [BULK]-stripped, matches what Exchange
-  // recorded as ConversationTopic from the original check-in) so the manager reply
-  // lands in the same conversation. Fall back to campaign subject or a generic string.
+  // Sophos (and similar gateways) prepend [BULK] to ALL inbound external email subjects.
+  // Exchange computes ConversationTopic by stripping Re:/FW: from the START of the subject.
+  // But Sophos puts [BULK] before Re:, so "Re:" never gets stripped from manager replies,
+  // giving them a different ConversationTopic than the original check-in.
+  //
+  // Fix: omit "Re:" entirely. Both the original check-in and the manager reply will have
+  // [BULK] prepended by Sophos, so Exchange will compute matching ConversationTopics and
+  // group them in the same conversation.
+  //
+  // The stored thread-topic already has [BULK] stripped (so we don't double-up), and it
+  // exactly matches the base ConversationTopic Exchange stored for the original check-in.
   const storedThreadTopic = storedThreadHeaders['thread-topic']
   const threadSubject = storedThreadTopic
-    ? `Re: ${storedThreadTopic}`
+    ? storedThreadTopic
     : (campaignSubject ? `Re: ${campaignSubject}` : 'Re: Your weekly update')
 
   const outboundHeaders: Record<string, string> = {}
