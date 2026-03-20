@@ -30,6 +30,33 @@ function parseEmail(raw: string): string {
   return match ? match[1].trim().toLowerCase() : raw.trim().toLowerCase()
 }
 
+/**
+ * Strip Exchange-added subject prefixes ([BULK], [EXTERNAL], [EXT], etc.)
+ * so Thread-Topic matches the original outbound email's Thread-Topic.
+ */
+function stripExchangePrefixes(topic: string): string {
+  return topic.replace(/^(\[(BULK|EXTERNAL|EXT|SPAM)\]\s*)+/gi, '').trim()
+}
+
+/**
+ * Extend a Thread-Index value by appending 5 new bytes.
+ * Exchange requires every message in a thread to have a unique Thread-Index
+ * built by extending the parent's value — reusing the same value causes
+ * Outlook to treat the message as a duplicate or separate conversation.
+ */
+function extendThreadIndex(base64Index: string): string {
+  try {
+    const buf = Buffer.from(base64Index, 'base64')
+    const ext = Buffer.allocUnsafe(5)
+    // 4-byte timestamp (centiseconds) + 1 random byte for uniqueness
+    ext.writeUInt32BE(Math.floor(Date.now() / 10) & 0xffffffff, 0)
+    ext[4] = Math.floor(Math.random() * 256)
+    return Buffer.concat([buf, ext]).toString('base64')
+  } catch {
+    return base64Index
+  }
+}
+
 /** Extract response ID from a tagged reply address: reply+{id}@* → id */
 function extractResponseId(toAddresses: string[]): string | null {
   for (const addr of toAddresses) {
@@ -291,7 +318,7 @@ async function handleManagerReply(responseId: string, rawBody: string) {
     outboundHeaders['References'] = threadMessageId
   }
   if (storedThreadHeaders['thread-topic']) outboundHeaders['Thread-Topic'] = storedThreadHeaders['thread-topic']
-  if (storedThreadHeaders['thread-index']) outboundHeaders['Thread-Index'] = storedThreadHeaders['thread-index']
+  if (storedThreadHeaders['thread-index']) outboundHeaders['Thread-Index'] = extendThreadIndex(storedThreadHeaders['thread-index'])
   console.log('[manager reply] thread_message_id from DB:', threadMessageId ?? '(null)')
   console.log('[manager reply] outbound headers keys:', Object.keys(outboundHeaders))
 
@@ -463,7 +490,7 @@ export async function POST(req: Request) {
   const threadMessageId = h['in-reply-to'] || payload.data.message_id || null
   console.log('[threading] storing thread_message_id:', threadMessageId)
   const threadHeaders: Record<string, string> = {}
-  if (h['thread-topic']) threadHeaders['thread-topic'] = h['thread-topic']
+  if (h['thread-topic']) threadHeaders['thread-topic'] = stripExchangePrefixes(h['thread-topic'])
   if (h['thread-index']) threadHeaders['thread-index'] = h['thread-index']
 
   const { data: savedResponse, error: insertErr } = await supabase
