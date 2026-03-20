@@ -132,3 +132,23 @@ export function parseSubmissionId(address: string): string | null {
   const match = address.match(/reply\+([^@]+)@/)
   return match ? match[1] : null
 }
+
+/**
+ * Generate a fresh 22-byte Thread-Index for a new email conversation.
+ * Format: 0x01 (version) | 4-byte FILETIME high word | 16 random bytes
+ *
+ * When Outlook replies it appends 5 bytes, creating a child Thread-Index
+ * that shares the same 22-byte base — which is how Exchange groups all
+ * messages in the same conversation.  Each subsequent reply adds 5 more
+ * bytes, so the full chain is: base(22) + reply1(5) + reply2(5) + ...
+ */
+export function createInitialThreadIndex(): string {
+  const buf = Buffer.allocUnsafe(22)
+  buf[0] = 0x01 // version byte required by Exchange
+  // 4-byte high word of FILETIME (100ns intervals since 1601-01-01)
+  const filetimeSecs = Math.floor(Date.now() / 1000) + 11644473600
+  buf.writeUInt32BE(filetimeSecs & 0xffffffff, 1)
+  // 16-byte random conversation GUID
+  for (let i = 5; i < 22; i++) buf[i] = Math.floor(Math.random() * 256)
+  return buf.toString('base64')
+}

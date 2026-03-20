@@ -12,7 +12,7 @@ import { NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { getResend, buildCampaignEmail } from '@/lib/resend'
 import { sendSlackDM, buildCheckinBlocks } from '@/lib/slack'
-import { getWeekStart } from '@/lib/utils'
+import { getWeekStart, createInitialThreadIndex } from '@/lib/utils'
 import { format } from 'date-fns'
 
 export async function POST(req: Request) {
@@ -119,6 +119,10 @@ export async function POST(req: Request) {
             subject,
             html,
             text,
+            headers: {
+              'Thread-Index': createInitialThreadIndex(),
+              'Thread-Topic': campaign.subject,
+            },
           })
           if (emailErr) sendError = emailErr.message
         }
@@ -133,6 +137,10 @@ export async function POST(req: Request) {
           subject,
           html,
           text,
+          headers: {
+            'Thread-Index': createInitialThreadIndex(),
+            'Thread-Topic': campaign.subject,
+          },
         })
         if (emailErr) sendError = emailErr.message
       }
