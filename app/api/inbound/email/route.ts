@@ -292,6 +292,8 @@ async function handleManagerReply(responseId: string, rawBody: string) {
   }
   if (storedThreadHeaders['thread-topic']) outboundHeaders['Thread-Topic'] = storedThreadHeaders['thread-topic']
   if (storedThreadHeaders['thread-index']) outboundHeaders['Thread-Index'] = storedThreadHeaders['thread-index']
+  console.log('[manager reply] thread_message_id from DB:', threadMessageId ?? '(null)')
+  console.log('[manager reply] outbound headers keys:', Object.keys(outboundHeaders))
 
   const emailContent = buildManagerReplyEmail({
     employeeFirstName: employee.name?.split(' ')[0] ?? 'there',
@@ -454,7 +456,12 @@ export async function POST(req: Request) {
   // thread_message_id = their In-Reply-To = the original check-in's Message-ID (lives in Outlook inbox).
   // thread_headers = Outlook-specific Thread-Topic / Thread-Index for conversation grouping.
   const h = (receivedEmail as any).headers ?? {}
+  console.log('[threading] raw headers keys:', Object.keys(h))
+  console.log('[threading] in-reply-to:', h['in-reply-to'])
+  console.log('[threading] thread-topic:', h['thread-topic'])
+  console.log('[threading] thread-index:', h['thread-index'] ? '(present)' : '(absent)')
   const threadMessageId = h['in-reply-to'] || payload.data.message_id || null
+  console.log('[threading] storing thread_message_id:', threadMessageId)
   const threadHeaders: Record<string, string> = {}
   if (h['thread-topic']) threadHeaders['thread-topic'] = h['thread-topic']
   if (h['thread-index']) threadHeaders['thread-index'] = h['thread-index']
