@@ -6,7 +6,7 @@ export async function PATCH(req: Request) {
   if (!profile?.org_id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const body = await req.json()
-  const { shame_enabled, shame_channel_id, shame_channel_name, shame_email_enabled } = body
+  const { shame_enabled, shame_channel_id, shame_channel_name, shame_email_enabled, auto_nudge } = body
 
   const supabase = createServiceClient()
   const { error } = await supabase
@@ -16,6 +16,7 @@ export async function PATCH(req: Request) {
       shame_channel_id: shame_channel_id ?? null,
       shame_channel_name: shame_channel_name ?? null,
       shame_email_enabled: shame_email_enabled ?? false,
+      auto_nudge: auto_nudge ?? false,
     })
     .eq('id', profile.org_id)
 

@@ -10,7 +10,7 @@ import { ShameSettings } from '@/components/settings/shame-settings'
 async function SettingsContent({ orgId, org }: { orgId: string; org: any }) {
   const service = createServiceClient()
   const [orgData, slackData, countData] = await Promise.all([
-    service.from('organizations').select('digest_notify, shame_enabled, shame_channel_id, shame_channel_name, shame_email_enabled').eq('id', orgId).single(),
+    service.from('organizations').select('digest_notify, shame_enabled, shame_channel_id, shame_channel_name, shame_email_enabled, auto_nudge').eq('id', orgId).single(),
     service.from('slack_integrations').select('team_name').eq('org_id', orgId).single(),
     service.from('employees').select('slack_user_id', { count: 'exact', head: false }).eq('org_id', orgId).eq('active', true),
   ])
@@ -20,6 +20,7 @@ async function SettingsContent({ orgId, org }: { orgId: string; org: any }) {
   const shameChannelId = orgData.data?.shame_channel_id ?? null
   const shameChannelName = orgData.data?.shame_channel_name ?? null
   const shameEmailEnabled = orgData.data?.shame_email_enabled ?? false
+  const autoNudge = orgData.data?.auto_nudge ?? false
   const slackIntegration = slackData.data ?? null
   const totalCount = countData.count ?? 0
   const matchedCount = countData.data?.filter((e: any) => e.slack_user_id).length ?? 0
@@ -67,6 +68,7 @@ async function SettingsContent({ orgId, org }: { orgId: string; org: any }) {
             initialChannelId={shameChannelId}
             initialChannelName={shameChannelName}
             initialEmailEnabled={shameEmailEnabled}
+            initialAutoNudge={autoNudge}
           />
         </div>
       </section>

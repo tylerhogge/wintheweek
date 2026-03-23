@@ -9,6 +9,7 @@ type Props = {
   initialChannelId: string | null
   initialChannelName: string | null
   initialEmailEnabled: boolean
+  initialAutoNudge: boolean
 }
 
 export function ShameSettings({
@@ -17,12 +18,14 @@ export function ShameSettings({
   initialChannelId,
   initialChannelName,
   initialEmailEnabled,
+  initialAutoNudge,
 }: Props) {
   const router = useRouter()
   const [slackEnabled, setSlackEnabled] = useState(initialSlackEnabled)
   const [channelId, setChannelId] = useState(initialChannelId ?? '')
   const [channelName, setChannelName] = useState(initialChannelName ?? '')
   const [emailEnabled, setEmailEnabled] = useState(initialEmailEnabled)
+  const [autoNudge, setAutoNudge] = useState(initialAutoNudge)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
 
@@ -37,6 +40,7 @@ export function ShameSettings({
         shame_channel_id: channelId.trim() || null,
         shame_channel_name: channelName.trim() || null,
         shame_email_enabled: emailEnabled,
+        auto_nudge: autoNudge,
       }),
     })
     setSaving(false)
@@ -128,6 +132,31 @@ export function ShameSettings({
             <span
               className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${
                 emailEnabled ? 'translate-x-5' : 'translate-x-0.5'
+              }`}
+            />
+          </button>
+        </div>
+
+        {/* Divider */}
+        <div className="border-t border-white/[0.05]" />
+
+        {/* Auto-nudge */}
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+          <div className="flex-1">
+            <p className="text-sm font-medium">Auto-nudge</p>
+            <p className="text-xs text-[#71717a] mt-0.5">
+              Automatically nudge non-respondents ~48 hours before the Wall of Shame fires. A friendly reminder to reply.
+            </p>
+          </div>
+          <button
+            onClick={() => setAutoNudge(!autoNudge)}
+            className={`relative w-10 h-5 rounded-full transition-colors flex-shrink-0 ${
+              autoNudge ? 'bg-accent' : 'bg-white/10'
+            }`}
+          >
+            <span
+              className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${
+                autoNudge ? 'translate-x-5' : 'translate-x-0.5'
               }`}
             />
           </button>

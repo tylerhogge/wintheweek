@@ -24,14 +24,14 @@ export async function POST(req: Request) {
   const supabase = createServiceClient()
   const weekStart = format(getWeekStart(), 'yyyy-MM-dd')
 
-  // Find orgs that have wall_of_shame enabled (they care about replies)
+  // Find orgs that have auto_nudge enabled
   const { data: orgs } = await supabase
     .from('organizations')
-    .select('id, name, wall_of_shame')
-    .eq('wall_of_shame', true)
+    .select('id, name, auto_nudge')
+    .eq('auto_nudge', true)
 
   if (!orgs || orgs.length === 0) {
-    return NextResponse.json({ ok: true, nudged: 0, note: 'No orgs with wall_of_shame enabled' })
+    return NextResponse.json({ ok: true, nudged: 0, note: 'No orgs with auto_nudge enabled' })
   }
 
   const resend = getResend()
