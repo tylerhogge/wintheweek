@@ -99,7 +99,7 @@ export function TeamClient({ active, inactive }: Props) {
         </div>
       )}
 
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-8">
         <div>
           <h1 className="text-[22px] font-bold tracking-[-0.03em] mb-0.5">Team</h1>
           <p className="text-sm text-[#71717a]">{active.length} active member{active.length !== 1 ? 's' : ''}</p>
@@ -131,10 +131,10 @@ export function TeamClient({ active, inactive }: Props) {
 
       {/* Active employees */}
       <div className="bg-surface border border-white/[0.07] rounded-xl overflow-hidden">
-        <div className="px-5 py-3 border-b border-white/[0.07] grid grid-cols-[2fr_1.5fr_1.5fr_100px] text-xs font-medium text-[#71717a] uppercase tracking-[0.06em]">
+        <div className="px-5 py-3 border-b border-white/[0.07] grid grid-cols-[1fr_80px] sm:grid-cols-[2fr_1.5fr_1.5fr_100px] text-xs font-medium text-[#71717a] uppercase tracking-[0.06em]">
           <span>Name</span>
-          <span>Team</span>
-          <span>Function</span>
+          <span className="hidden sm:block">Team</span>
+          <span className="hidden sm:block">Function</span>
           <span>Status</span>
         </div>
 
@@ -153,26 +153,26 @@ export function TeamClient({ active, inactive }: Props) {
           active.map((emp: Employee, i: number): React.ReactNode => (
             <div
               key={emp.id}
-              className={`px-5 py-3.5 grid grid-cols-[2fr_1.5fr_1.5fr_100px] items-center ${i < active.length - 1 ? 'border-b border-white/[0.05]' : ''} hover:bg-white/[0.02] transition-colors`}
+              className={`px-5 py-3.5 grid grid-cols-[1fr_80px] sm:grid-cols-[2fr_1.5fr_1.5fr_100px] items-center ${i < active.length - 1 ? 'border-b border-white/[0.05]' : ''} hover:bg-white/[0.02] transition-colors`}
             >
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 min-w-0">
                 <div className={`w-7 h-7 rounded-full bg-gradient-to-br ${avatarGradient(emp.email)} flex items-center justify-center text-[11px] font-bold text-white shrink-0`}>
                   {getInitials(emp.name)}
                 </div>
-                <div>
+                <div className="min-w-0">
                   <div className="flex items-center gap-1.5">
-                    <p className="text-[13.5px] font-medium">{emp.name}</p>
+                    <p className="text-[13.5px] font-medium truncate">{emp.name}</p>
                     {emp.slack_user_id && (
-                      <span title="Receives check-ins via Slack" className="text-[#a1a1aa]">
+                      <span title="Receives check-ins via Slack" className="text-[#a1a1aa] shrink-0">
                         <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523A2.528 2.528 0 0 1 0 15.165a2.527 2.527 0 0 1 2.522-2.52h2.52v2.52zM6.313 15.165a2.527 2.527 0 0 1 2.521-2.52 2.527 2.527 0 0 1 2.521 2.52v6.313A2.528 2.528 0 0 1 8.834 24a2.528 2.528 0 0 1-2.521-2.522v-6.313zM8.834 5.042a2.528 2.528 0 0 1-2.521-2.52A2.528 2.528 0 0 1 8.834 0a2.528 2.528 0 0 1 2.521 2.522v2.52H8.834zM8.834 6.313a2.528 2.528 0 0 1 2.521 2.521 2.528 2.528 0 0 1-2.521 2.521H2.522A2.528 2.528 0 0 1 0 8.834a2.528 2.528 0 0 1 2.522-2.521h6.312zM18.956 8.834a2.528 2.528 0 0 1 2.522-2.521A2.528 2.528 0 0 1 24 8.834a2.528 2.528 0 0 1-2.522 2.521h-2.522V8.834zM17.688 8.834a2.528 2.528 0 0 1-2.523 2.521 2.527 2.527 0 0 1-2.52-2.521V2.522A2.527 2.527 0 0 1 15.165 0a2.528 2.528 0 0 1 2.523 2.522v6.312zM15.165 18.956a2.528 2.528 0 0 1 2.523 2.522A2.528 2.528 0 0 1 15.165 24a2.527 2.527 0 0 1-2.52-2.522v-2.522h2.52zM15.165 17.688a2.527 2.527 0 0 1-2.52-2.523 2.526 2.526 0 0 1 2.52-2.52h6.313A2.527 2.527 0 0 1 24 15.165a2.528 2.528 0 0 1-2.522 2.523h-6.313z"/></svg>
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-[#71717a]">{emp.email}</p>
+                  <p className="text-xs text-[#71717a] truncate">{emp.email}</p>
                 </div>
               </div>
-              <span className="text-sm text-[#a1a1aa]">{emp.team ?? '—'}</span>
-              <span className="text-sm text-[#a1a1aa]">{emp.function ?? '—'}</span>
+              <span className="hidden sm:block text-sm text-[#a1a1aa] truncate">{emp.team ?? '—'}</span>
+              <span className="hidden sm:block text-sm text-[#a1a1aa] truncate">{emp.function ?? '—'}</span>
               <span className="text-xs font-medium text-accent bg-accent/10 border border-accent/20 px-2.5 py-0.5 rounded-full w-fit">
                 Active
               </span>
@@ -189,19 +189,19 @@ export function TeamClient({ active, inactive }: Props) {
             {inactive.map((emp: Employee, i: number): React.ReactNode => (
               <div
                 key={emp.id}
-                className={`px-5 py-3.5 grid grid-cols-[2fr_1.5fr_1.5fr_100px] items-center opacity-50 ${i < inactive.length - 1 ? 'border-b border-white/[0.05]' : ''}`}
+                className={`px-5 py-3.5 grid grid-cols-[1fr_80px] sm:grid-cols-[2fr_1.5fr_1.5fr_100px] items-center opacity-50 ${i < inactive.length - 1 ? 'border-b border-white/[0.05]' : ''}`}
               >
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 min-w-0">
                   <div className="w-7 h-7 rounded-full bg-surface2 border border-white/10 flex items-center justify-center text-[11px] font-bold text-[#52525b] shrink-0">
                     {getInitials(emp.name)}
                   </div>
-                  <div>
-                    <p className="text-[13.5px] font-medium">{emp.name}</p>
-                    <p className="text-xs text-[#71717a]">{emp.email}</p>
+                  <div className="min-w-0">
+                    <p className="text-[13.5px] font-medium truncate">{emp.name}</p>
+                    <p className="text-xs text-[#71717a] truncate">{emp.email}</p>
                   </div>
                 </div>
-                <span className="text-sm text-[#71717a]">{emp.team ?? '—'}</span>
-                <span className="text-sm text-[#71717a]">{emp.function ?? '—'}</span>
+                <span className="hidden sm:block text-sm text-[#71717a] truncate">{emp.team ?? '—'}</span>
+                <span className="hidden sm:block text-sm text-[#71717a] truncate">{emp.function ?? '—'}</span>
                 <span className="text-xs text-[#52525b]">Inactive</span>
               </div>
             ))}

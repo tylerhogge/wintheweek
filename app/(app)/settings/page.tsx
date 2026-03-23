@@ -43,7 +43,7 @@ export default async function SettingsPage() {
           <div className="px-5 py-4">
             <OrgNameEdit initialName={org?.name ?? ''} />
           </div>
-          <div className="px-5 py-4 flex items-center justify-between">
+          <div className="px-5 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
             <div>
               <p className="text-sm font-medium">Workspace URL</p>
               <p className="text-xs text-[#71717a] mt-0.5">wintheweek.co/{org?.slug ?? '—'}</p>
@@ -81,21 +81,21 @@ export default async function SettingsPage() {
       <section className="mb-8">
         <p className="text-xs font-semibold tracking-[0.07em] uppercase text-[#71717a] mb-4">Email</p>
         <div className="bg-surface border border-white/[0.07] rounded-xl divide-y divide-white/[0.05]">
-          <div className="px-5 py-4 flex items-center justify-between">
+          <div className="px-5 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
             <div>
               <p className="text-sm font-medium">Send from</p>
               <p className="text-xs text-[#71717a] mt-0.5">hello@wintheweek.co</p>
             </div>
-            <span className="text-xs text-[#52525b] border border-white/[0.07] px-3 py-1 rounded-md">Custom domain on Growth plan</span>
+            <span className="text-xs text-[#52525b] border border-white/[0.07] px-3 py-1 rounded-md w-fit">Custom domain on Growth plan</span>
           </div>
-          <div className="px-5 py-4 flex items-center justify-between">
+          <div className="px-5 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
             <div>
               <p className="text-sm font-medium">Reply-to address</p>
               <p className="text-xs text-[#71717a] mt-0.5">updates@wintheweek.co</p>
             </div>
-            <span className="text-xs bg-accent/10 text-accent border border-accent/20 px-2.5 py-1 rounded-full">Active</span>
+            <span className="text-xs bg-accent/10 text-accent border border-accent/20 px-2.5 py-1 rounded-full w-fit">Active</span>
           </div>
-          <div className="px-5 py-4 flex items-center justify-between">
+          <div className="px-5 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
               <p className="text-sm font-medium">Email me the weekly digest</p>
               <p className="text-xs text-[#71717a] mt-0.5">

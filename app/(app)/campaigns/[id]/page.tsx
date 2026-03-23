@@ -110,14 +110,14 @@ export default function EditCampaignPage() {
         <Link href="/campaigns" className="text-xs text-[#71717a] hover:text-white transition-colors mb-3 inline-flex items-center gap-1">
           ← Campaigns
         </Link>
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <h1 className="text-[22px] font-bold tracking-[-0.03em] mb-0.5">Edit campaign</h1>
             <p className="text-sm text-[#71717a]">Changes apply to future sends only</p>
           </div>
           <button
             onClick={toggleActive}
-            className={`text-xs font-medium px-3 py-1.5 rounded-full border transition-colors ${
+            className={`text-xs font-medium px-3 py-1.5 rounded-full border transition-colors w-fit ${
               form.active
                 ? 'bg-accent/10 border-accent/25 text-accent hover:bg-red-500/10 hover:border-red-500/20 hover:text-red-400'
                 : 'bg-white/[0.04] border-white/10 text-[#71717a] hover:bg-accent/10 hover:border-accent/25 hover:text-accent'

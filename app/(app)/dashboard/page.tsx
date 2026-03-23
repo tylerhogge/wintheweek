@@ -140,7 +140,7 @@ async function DashboardContent({
 function DashboardContentSkeleton() {
   return (
     <div className="animate-pulse">
-      <div className="grid grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[...Array(4)].map((_, i) => (
           <div key={i} className="bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-3.5">
             <div className="h-3 w-12 bg-white/[0.06] rounded mb-2" />

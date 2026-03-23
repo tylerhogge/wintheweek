@@ -62,7 +62,7 @@ export default async function CampaignsPage() {
           {campaigns?.map((c: Campaign): React.ReactNode => (
             <div
               key={c.id}
-              className="bg-surface border border-white/[0.07] rounded-xl px-6 py-5 flex items-center justify-between hover:border-white/[0.12] transition-colors"
+              className="bg-surface border border-white/[0.07] rounded-xl px-6 py-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 hover:border-white/[0.12] transition-colors"
             >
               <div className="flex items-center gap-4">
                 {/* Status dot */}
@@ -75,7 +75,7 @@ export default async function CampaignsPage() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 ml-6 sm:ml-0">
                 <span className={`text-xs font-medium px-2.5 py-1 rounded-full border ${c.active ? 'bg-accent/10 border-accent/25 text-accent' : 'bg-white/[0.04] border-white/10 text-[#71717a]'}`}>
                   {c.active ? 'Active' : 'Paused'}
                 </span>
