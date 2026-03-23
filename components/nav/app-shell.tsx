@@ -8,10 +8,10 @@ import { cn, getInitials } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
 
 const NAV = [
-  { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-  { href: '/team',      icon: Users,           label: 'Team'      },
-  { href: '/campaigns', icon: Mail,            label: 'Emails'    },
-  { href: '/settings',  icon: Settings,        label: 'Settings'  },
+  { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard', anim: 'group-hover:animate-icon-bounce'  },
+  { href: '/team',      icon: Users,           label: 'Team',      anim: 'group-hover:animate-icon-wiggle'  },
+  { href: '/campaigns', icon: Mail,            label: 'Emails',    anim: 'group-hover:animate-icon-tilt'    },
+  { href: '/settings',  icon: Settings,        label: 'Settings',  anim: 'group-hover:animate-icon-spin'    },
 ]
 
 type Profile = {
@@ -100,7 +100,7 @@ export function AppShell({ profile, children }: Props) {
         )}
 
         <nav className="flex-1 p-2 flex flex-col gap-0.5 overflow-y-auto">
-          {NAV.map(({ href, icon: Icon, label }) => {
+          {NAV.map(({ href, icon: Icon, label, anim }) => {
             const active = pathname.startsWith(href)
             return (
               <Link
@@ -109,12 +109,12 @@ export function AppShell({ profile, children }: Props) {
                 prefetch={true}
                 title={collapsed ? label : undefined}
                 className={cn(
-                  'flex items-center rounded-md text-[13.5px] font-medium transition-colors',
+                  'group flex items-center rounded-md text-[13.5px] font-medium transition-colors',
                   collapsed ? 'justify-center p-2.5' : 'gap-2.5 px-3 py-2',
                   active ? 'bg-white/[0.07] text-white' : 'text-[#71717a] hover:text-white hover:bg-white/[0.04]',
                 )}
               >
-                <Icon className={cn('w-4 h-4 shrink-0', active ? 'text-white' : 'text-[#52525b]')} />
+                <Icon className={cn('w-4 h-4 shrink-0', anim, active ? 'text-white' : 'text-[#52525b] group-hover:text-white')} />
                 {!collapsed && label}
               </Link>
             )
@@ -204,7 +204,7 @@ export function AppShell({ profile, children }: Props) {
 
         {/* Mobile bottom nav */}
         <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-bg border-t border-white/[0.07] z-30 flex items-center justify-around h-16">
-          {NAV.map(({ href, icon: Icon, label }) => {
+          {NAV.map(({ href, icon: Icon, label, anim }) => {
             const active = pathname.startsWith(href)
             return (
               <Link
@@ -212,11 +212,11 @@ export function AppShell({ profile, children }: Props) {
                 href={href}
                 prefetch={true}
                 className={cn(
-                  'flex flex-col items-center gap-1 px-5 py-2 rounded-lg transition-colors',
+                  'group flex flex-col items-center gap-1 px-5 py-2 rounded-lg transition-colors',
                   active ? 'text-white' : 'text-[#52525b]'
                 )}
               >
-                <Icon className="w-5 h-5" />
+                <Icon className={cn('w-5 h-5', anim)} />
                 <span className="text-[10px] font-medium">{label}</span>
               </Link>
             )
