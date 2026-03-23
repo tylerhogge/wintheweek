@@ -55,7 +55,32 @@ export function ShameSettings({
       {/* Sub-options indented under the Wall of Shame header */}
       <div className="space-y-3 pl-4 border-l-2 border-white/[0.08]">
 
-        {/* Slack channel post */}
+        {/* Auto-nudge — lightest weight, decide first */}
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+          <div className="flex-1">
+            <p className="text-sm font-medium">Auto-nudge</p>
+            <p className="text-xs text-[#71717a] mt-0.5">
+              Automatically nudge non-respondents ~48 hours before the Wall of Shame fires. A friendly reminder to reply.
+            </p>
+          </div>
+          <button
+            onClick={() => setAutoNudge(!autoNudge)}
+            className={`relative w-10 h-5 rounded-full transition-colors flex-shrink-0 ${
+              autoNudge ? 'bg-accent' : 'bg-white/10'
+            }`}
+          >
+            <span
+              className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${
+                autoNudge ? 'translate-x-5' : 'translate-x-0.5'
+              }`}
+            />
+          </button>
+        </div>
+
+        {/* Divider */}
+        <div className="border-t border-white/[0.05]" />
+
+        {/* Post to Slack channel */}
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
           <div className="flex-1">
             <p className="text-sm font-medium">Post to Slack channel</p>
@@ -112,7 +137,7 @@ export function ShameSettings({
           </div>
         )}
 
-        {/* Divider between sub-options */}
+        {/* Divider */}
         <div className="border-t border-white/[0.05]" />
 
         {/* Email report */}
@@ -132,31 +157,6 @@ export function ShameSettings({
             <span
               className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${
                 emailEnabled ? 'translate-x-5' : 'translate-x-0.5'
-              }`}
-            />
-          </button>
-        </div>
-
-        {/* Divider */}
-        <div className="border-t border-white/[0.05]" />
-
-        {/* Auto-nudge */}
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
-          <div className="flex-1">
-            <p className="text-sm font-medium">Auto-nudge</p>
-            <p className="text-xs text-[#71717a] mt-0.5">
-              Automatically nudge non-respondents ~48 hours before the Wall of Shame fires. A friendly reminder to reply.
-            </p>
-          </div>
-          <button
-            onClick={() => setAutoNudge(!autoNudge)}
-            className={`relative w-10 h-5 rounded-full transition-colors flex-shrink-0 ${
-              autoNudge ? 'bg-accent' : 'bg-white/10'
-            }`}
-          >
-            <span
-              className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${
-                autoNudge ? 'translate-x-5' : 'translate-x-0.5'
               }`}
             />
           </button>
