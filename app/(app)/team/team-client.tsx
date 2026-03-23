@@ -177,7 +177,7 @@ export function TeamClient({ active, inactive, allTeams }: Props) {
 
   return (
     <>
-      {showModal && <AddMemberModal onClose={() => setShowModal(false)} />}
+      {showModal && <AddMemberModal onClose={() => setShowModal(false)} allTeams={allTeams} />}
 
       {/* Hidden file input */}
       <input

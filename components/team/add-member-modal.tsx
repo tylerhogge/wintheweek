@@ -3,14 +3,21 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 
-type Props = { onClose: () => void }
+type Props = { onClose: () => void; allTeams?: string[] }
 
-export function AddMemberModal({ onClose }: Props) {
+export function AddMemberModal({ onClose, allTeams = [] }: Props) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [added, setAdded] = useState<{ name: string; email: string } | null>(null)
   const [form, setForm] = useState({ name: '', email: '', team: '', function: '' })
+  const [managerTeams, setManagerTeams] = useState<string[]>([])
+
+  function toggleManagerTeam(team: string) {
+    setManagerTeams((prev) =>
+      prev.includes(team) ? prev.filter((t) => t !== team) : [...prev, team]
+    )
+  }
 
   function update(field: string, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }))
@@ -19,6 +26,7 @@ export function AddMemberModal({ onClose }: Props) {
   function resetForAnother() {
     setAdded(null)
     setForm({ name: '', email: '', team: '', function: '' })
+    setManagerTeams([])
     setError(null)
   }
 
@@ -30,7 +38,10 @@ export function AddMemberModal({ onClose }: Props) {
     const res = await fetch('/api/team/add', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(form),
+      body: JSON.stringify({
+        ...form,
+        manager_of_teams: managerTeams.length > 0 ? managerTeams : null,
+      }),
     })
 
     if (res.ok) {
@@ -182,6 +193,39 @@ export function AddMemberModal({ onClose }: Props) {
               />
             </div>
           </div>
+
+          {/* Manager of teams (optional) */}
+          {allTeams.length > 0 && (
+            <div>
+              <label className="block text-xs font-medium text-[#a1a1aa] mb-1.5">
+                Manager of teams <span className="text-[#52525b] font-normal">(optional)</span>
+              </label>
+              <div className="flex flex-wrap gap-1.5">
+                {allTeams.map((team) => {
+                  const isSelected = managerTeams.includes(team)
+                  return (
+                    <button
+                      key={team}
+                      type="button"
+                      onClick={() => toggleManagerTeam(team)}
+                      className={`text-xs font-medium px-2.5 py-1.5 rounded-full border transition-colors ${
+                        isSelected
+                          ? 'bg-violet-500/15 border-violet-500/30 text-violet-300'
+                          : 'border-white/10 text-[#71717a] hover:text-white hover:border-white/20'
+                      }`}
+                    >
+                      {team}
+                    </button>
+                  )
+                })}
+              </div>
+              {managerTeams.length > 0 && (
+                <p className="text-[11px] text-[#52525b] mt-1.5">
+                  Will receive reply notifications for {managerTeams.join(', ')}
+                </p>
+              )}
+            </div>
+          )}
 
           {error && (
             <p className="text-xs text-red-400 bg-red-500/10 border border-red-500/20 px-3 py-2 rounded-md">

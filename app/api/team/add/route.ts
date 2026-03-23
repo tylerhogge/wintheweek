@@ -3,7 +3,7 @@ import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { getResend, buildWelcomeEmail } from '@/lib/resend'
 
 export async function POST(req: Request) {
-  const { name, email, team, function: fn } = await req.json()
+  const { name, email, team, function: fn, manager_of_teams } = await req.json()
 
   if (!name?.trim() || !email?.trim()) {
     return NextResponse.json({ error: 'Name and email are required' }, { status: 400 })
@@ -40,6 +40,7 @@ export async function POST(req: Request) {
     team: team?.trim() || null,
     function: fn?.trim() || null,
     active: true,
+    manager_of_teams: Array.isArray(manager_of_teams) && manager_of_teams.length > 0 ? manager_of_teams : null,
   })
 
   if (error) {
