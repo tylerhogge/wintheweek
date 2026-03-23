@@ -6,7 +6,7 @@
  */
 
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, getProfile } from '@/lib/supabase/server'
 
 export async function POST(
   _req: Request,
@@ -15,18 +15,29 @@ export async function POST(
   const { id } = await params
   const supabase = await createClient()
 
+  // Auth check
   const { data: { session } } = await supabase.auth.getSession()
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  // Fetch current liked_at
+  // Org ownership check — RLS covers this too, but explicit check gives a clear 404
+  const profile = await getProfile()
+  if (!profile?.org_id) return NextResponse.json({ error: 'No org' }, { status: 403 })
+
+  // Fetch response and verify it belongs to this org via submission → campaign chain
   const { data: response, error: fetchErr } = await supabase
     .from('responses')
-    .select('id, liked_at')
+    .select('id, liked_at, submission:submissions!inner(campaign:campaigns!inner(org_id))')
     .eq('id', id)
     .single()
 
   if (fetchErr || !response) {
     return NextResponse.json({ error: 'Response not found' }, { status: 404 })
+  }
+
+  // Explicit org check (belt + suspenders with RLS)
+  const orgId = (response as any).submission?.campaign?.org_id
+  if (orgId !== profile.org_id) {
+    return NextResponse.json({ error: 'Not found' }, { status: 404 })
   }
 
   const newLikedAt = response.liked_at ? null : new Date().toISOString()

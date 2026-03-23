@@ -13,14 +13,12 @@ import { createServiceClient } from '@/lib/supabase/server'
 import { getResend, buildCampaignEmail } from '@/lib/resend'
 import { sendSlackDM, buildCheckinBlocks } from '@/lib/slack'
 import { getWeekStart, createInitialThreadIndex } from '@/lib/utils'
+import { verifyCronSecret } from '@/lib/auth'
 import { format } from 'date-fns'
 
 export async function POST(req: Request) {
-  // Authenticate the cron call
-  const authHeader = req.headers.get('authorization')
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+  const authErr = verifyCronSecret(req)
+  if (authErr) return authErr
 
   const supabase = createServiceClient()
   const weekStart = format(getWeekStart(), 'yyyy-MM-dd')

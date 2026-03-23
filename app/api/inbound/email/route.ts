@@ -7,6 +7,7 @@
  */
 
 import { NextResponse } from 'next/server'
+import { Webhook } from 'svix'
 import { getResend, buildDigestEmail, buildReplyNotification, buildManagerReplyEmail, buildNudgeEmail } from '@/lib/resend'
 import { createServiceClient } from '@/lib/supabase/server'
 import { cleanEmailBody, formatWeekRange } from '@/lib/utils'
@@ -576,11 +577,33 @@ async function handleManagerQuery({
 }
 
 export async function POST(req: Request) {
+  // ── Verify Resend webhook signature (Svix) ────────────────────────────
+  const webhookSecret = process.env.RESEND_WEBHOOK_SECRET
+  if (!webhookSecret) {
+    console.error('RESEND_WEBHOOK_SECRET not configured')
+    return NextResponse.json({ error: 'Webhook secret not configured' }, { status: 500 })
+  }
+
+  const svixId = req.headers.get('svix-id')
+  const svixTimestamp = req.headers.get('svix-timestamp')
+  const svixSignature = req.headers.get('svix-signature')
+
+  if (!svixId || !svixTimestamp || !svixSignature) {
+    return NextResponse.json({ error: 'Missing webhook signature headers' }, { status: 401 })
+  }
+
   let payload: ResendInboundPayload
+  const body = await req.text()
   try {
-    payload = await req.json()
-  } catch {
-    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
+    const wh = new Webhook(webhookSecret)
+    payload = wh.verify(body, {
+      'svix-id': svixId,
+      'svix-timestamp': svixTimestamp,
+      'svix-signature': svixSignature,
+    }) as ResendInboundPayload
+  } catch (err) {
+    console.error('Webhook signature verification failed:', err)
+    return NextResponse.json({ error: 'Invalid webhook signature' }, { status: 401 })
   }
 
   if (payload.type !== 'email.received') {

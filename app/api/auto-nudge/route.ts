@@ -13,13 +13,12 @@ import { NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { getResend, buildNudgeEmail } from '@/lib/resend'
 import { getWeekStart } from '@/lib/utils'
+import { verifyCronSecret } from '@/lib/auth'
 import { format } from 'date-fns'
 
 export async function POST(req: Request) {
-  const authHeader = req.headers.get('authorization')
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+  const authErr = verifyCronSecret(req)
+  if (authErr) return authErr
 
   const supabase = createServiceClient()
   const weekStart = format(getWeekStart(), 'yyyy-MM-dd')

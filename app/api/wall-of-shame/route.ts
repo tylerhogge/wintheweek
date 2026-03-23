@@ -13,12 +13,11 @@ import { createServiceClient } from '@/lib/supabase/server'
 import { postToSlackChannel, buildWallOfShameBlocks } from '@/lib/slack'
 import { getResend } from '@/lib/resend'
 import { formatWeekRange } from '@/lib/utils'
+import { verifyCronSecret } from '@/lib/auth'
 
 export async function POST(req: Request) {
-  const authHeader = req.headers.get('authorization')
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+  const authErr = verifyCronSecret(req)
+  if (authErr) return authErr
 
   const supabase = createServiceClient()
   const results: { org: string; status: string }[] = []
