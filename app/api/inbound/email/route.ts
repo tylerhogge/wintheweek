@@ -300,6 +300,91 @@ async function notifyAdmin({
 }
 
 /**
+ * Notify any managers whose teams include this employee's team.
+ * Each manager gets the same reply-notification email the admin gets.
+ */
+async function notifyManagers({
+  orgId,
+  responseId,
+  employeeName,
+  employeeTeam,
+  replyBody,
+  weekStart,
+}: {
+  orgId: string
+  responseId: string
+  employeeName: string
+  employeeTeam: string | null
+  replyBody: string
+  weekStart: string
+}) {
+  if (!employeeTeam) return // No team → no manager to notify
+
+  const supabase = createServiceClient()
+
+  // Find managers whose manager_of_teams array contains this team
+  const { data: managers } = await supabase
+    .from('employees')
+    .select('email, name')
+    .eq('org_id', orgId)
+    .eq('active', true)
+    .not('manager_of_teams', 'is', null)
+    .contains('manager_of_teams', [employeeTeam])
+
+  if (!managers || managers.length === 0) return
+
+  // Get admin email to avoid double-notifying
+  const { data: adminProfile } = await supabase
+    .from('profiles')
+    .select('email')
+    .eq('org_id', orgId)
+    .limit(1)
+    .single()
+
+  // Week reply counts for context
+  const { data: weekSubs } = await supabase
+    .from('submissions')
+    .select('replied_at, campaigns!inner(org_id)')
+    .eq('week_start', weekStart)
+    .eq('campaigns.org_id', orgId)
+    .not('sent_at', 'is', null)
+
+  const weekTotal = weekSubs?.length ?? 0
+  const weekReplied = weekSubs?.filter((s: any) => s.replied_at !== null).length ?? 0
+
+  const inboundDomain = process.env.INBOUND_DOMAIN ?? 'wintheweek.co'
+  const taggedReplyTo = `${employeeName} <reply+${responseId}@${inboundDomain}>`
+  const appUrl = 'https://www.wintheweek.co'
+  const resend = getResend()
+  const fromAddress = `Win the Week <${process.env.FROM_EMAIL ?? 'hello@wintheweek.co'}>`
+
+  for (const manager of managers) {
+    // Skip if manager is the admin (they already got notified)
+    if (manager.email === adminProfile?.email) continue
+
+    const emailContent = buildReplyNotification({
+      adminName: manager.name?.split(' ')[0] ?? 'Manager',
+      employeeName,
+      employeeTeam,
+      replyBody,
+      replyToAddress: taggedReplyTo,
+      dashboardUrl: `${appUrl}/dashboard?week=${weekStart}`,
+      weekReplied,
+      weekTotal,
+    })
+
+    await resend.emails.send({
+      from: fromAddress,
+      to: manager.email,
+      replyTo: taggedReplyTo,
+      subject: emailContent.subject,
+      html: emailContent.html,
+      text: emailContent.text,
+    })
+  }
+}
+
+/**
  * Handle a manager reply: save it and forward to the employee.
  */
 async function handleManagerReply(responseId: string, rawBody: string) {
@@ -699,6 +784,16 @@ export async function POST(req: Request) {
       replyBody: cleanBody,
       weekStart,
     }).catch((err) => console.error('[notifyAdmin]', err))
+
+    // Notify managers of this employee's team
+    await notifyManagers({
+      orgId,
+      responseId: savedResponse.id,
+      employeeName: employee.name,
+      employeeTeam: (employee as any).team ?? null,
+      replyBody: cleanBody,
+      weekStart,
+    }).catch((err) => console.error('[notifyManagers]', err))
 
     // These are slower and optional — keep them as background work
     Promise.all([

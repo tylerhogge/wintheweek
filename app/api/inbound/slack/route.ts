@@ -131,6 +131,66 @@ async function notifyAdmin({ orgId, responseId, employeeName, employeeTeam, repl
   await getResend().emails.send({ from: `Win the Week <${process.env.FROM_EMAIL ?? 'hello@wintheweek.co'}>`, to: adminProfile.email, replyTo: taggedReplyTo, subject: emailContent.subject, html: emailContent.html, text: emailContent.text })
 }
 
+/**
+ * Notify any managers whose teams include this employee's team.
+ * Each manager gets the same reply-notification email the admin gets.
+ */
+async function notifyManagers({ orgId, responseId, employeeName, employeeTeam, replyBody, weekStart }: { orgId: string; responseId: string; employeeName: string; employeeTeam: string | null; replyBody: string; weekStart: string }) {
+  if (!employeeTeam) return
+
+  const supabase = createServiceClient()
+
+  const { data: managers } = await supabase
+    .from('employees')
+    .select('email, name')
+    .eq('org_id', orgId)
+    .eq('active', true)
+    .not('manager_of_teams', 'is', null)
+    .contains('manager_of_teams', [employeeTeam])
+
+  if (!managers || managers.length === 0) return
+
+  const { data: adminProfile } = await supabase.from('profiles').select('email').eq('org_id', orgId).limit(1).single()
+
+  const { data: weekSubs } = await supabase
+    .from('submissions')
+    .select('replied_at, campaigns!inner(org_id)')
+    .eq('week_start', weekStart)
+    .eq('campaigns.org_id', orgId)
+    .not('sent_at', 'is', null)
+
+  const weekTotal = weekSubs?.length ?? 0
+  const weekReplied = weekSubs?.filter((s: any) => s.replied_at !== null).length ?? 0
+
+  const inboundDomain = process.env.INBOUND_DOMAIN ?? 'inbound.wintheweek.co'
+  const taggedReplyTo = `${employeeName} <reply+${responseId}@${inboundDomain}>`
+  const appUrl = 'https://www.wintheweek.co'
+
+  for (const manager of managers) {
+    if (manager.email === adminProfile?.email) continue
+
+    const emailContent = buildReplyNotification({
+      adminName: manager.name?.split(' ')[0] ?? 'Manager',
+      employeeName,
+      employeeTeam,
+      replyBody,
+      replyToAddress: taggedReplyTo,
+      dashboardUrl: `${appUrl}/dashboard?week=${weekStart}`,
+      weekReplied,
+      weekTotal,
+    })
+
+    await getResend().emails.send({
+      from: `Win the Week <${process.env.FROM_EMAIL ?? 'hello@wintheweek.co'}>`,
+      to: manager.email,
+      replyTo: taggedReplyTo,
+      subject: emailContent.subject,
+      html: emailContent.html,
+      text: emailContent.text,
+    })
+  }
+}
+
 // ── Main handler ──────────────────────────────────────────────────────────────
 
 export async function POST(req: Request) {
@@ -263,7 +323,7 @@ export async function POST(req: Request) {
   const orgId = employee.org_id
   const weekStart = submission.week_start
 
-  // Notify admin + trigger insight/digest (same as email pipeline)
+  // Notify admin + managers + trigger insight/digest (same as email pipeline)
   await notifyAdmin({
     orgId,
     responseId: savedResponse.id,
@@ -272,6 +332,15 @@ export async function POST(req: Request) {
     replyBody: cleanBody,
     weekStart,
   }).catch((err) => console.error('[Slack inbound] notifyAdmin failed:', err))
+
+  await notifyManagers({
+    orgId,
+    responseId: savedResponse.id,
+    employeeName: employee.name,
+    employeeTeam: employee.team ?? null,
+    replyBody: cleanBody,
+    weekStart,
+  }).catch((err) => console.error('[Slack inbound] notifyManagers failed:', err))
 
   Promise.all([
     generateAndStoreInsight(orgId, weekStart),

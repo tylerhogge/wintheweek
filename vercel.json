@@ -5,6 +5,10 @@
       "schedule": "0 13 * * 5"
     },
     {
+      "path": "/api/auto-nudge",
+      "schedule": "0 14 * * 6"
+    },
+    {
       "path": "/api/wall-of-shame",
       "schedule": "0 14 * * 1"
     }

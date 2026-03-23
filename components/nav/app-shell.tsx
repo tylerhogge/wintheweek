@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { LayoutDashboard, Mail, Users, Settings, CheckSquare, ChevronLeft, ChevronRight, LogOut, User } from 'lucide-react'
+import { LayoutDashboard, Mail, Users, Settings, CheckSquare, ChevronLeft, ChevronRight, LogOut, User, BarChart3 } from 'lucide-react'
 import { cn, getInitials } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
 
@@ -11,6 +11,7 @@ const NAV = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard', anim: 'group-hover:animate-icon-bounce'  },
   { href: '/team',      icon: Users,           label: 'Team',      anim: 'group-hover:animate-icon-wiggle'  },
   { href: '/campaigns', icon: Mail,            label: 'Emails',    anim: 'group-hover:animate-icon-tilt'    },
+  { href: '/trends',    icon: BarChart3,       label: 'Trends',    anim: 'group-hover:animate-icon-bounce'  },
   { href: '/settings',  icon: Settings,        label: 'Settings',  anim: 'group-hover:animate-icon-spin'    },
 ]
 

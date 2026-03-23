@@ -2,7 +2,7 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 // Routes that require authentication
-const PROTECTED_PREFIXES = ['/dashboard', '/campaigns', '/team', '/settings']
+const PROTECTED_PREFIXES = ['/dashboard', '/campaigns', '/team', '/trends', '/settings']
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
