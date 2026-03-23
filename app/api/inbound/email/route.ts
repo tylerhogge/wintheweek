@@ -419,6 +419,7 @@ async function handleManagerQuery({
 
   const submissions = ((submissionRows ?? []) as any[]).map((s: any) => ({
     weekStart: s.week_start as string,
+    sentAt: s.sent_at ?? null,
     employeeName: s.employees?.name ?? 'Unknown',
     employeeTeam: s.employees?.team ?? null,
     responded: s.replied_at !== null,

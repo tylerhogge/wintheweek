@@ -14,6 +14,7 @@ export type QueryContext = {
   }>
   submissions: Array<{
     weekStart: string
+    sentAt: string | null      // ISO timestamp the check-in email was sent
     employeeName: string
     employeeTeam: string | null
     responded: boolean
@@ -45,13 +46,18 @@ export async function generateQueryResponse(
     const subs = byWeek.get(week)!
     const responded = subs.filter((s) => s.responded)
     const notResponded = subs.filter((s) => !s.responded).map((s) => s.employeeName)
-    const lines: string[] = [`Week of ${week} (${responded.length}/${subs.length} responded):`]
+    // Use actual send date if available, otherwise fall back to week label
+    const sentDates = subs.map((s) => s.sentAt).filter(Boolean)
+    const sentLabel = sentDates.length > 0
+      ? `sent ${new Date(sentDates[0]!).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}`
+      : `week of ${week}`
+    const lines: string[] = [`${sentLabel} (${responded.length}/${subs.length} replied):`]
     for (const s of responded) {
       const team = s.employeeTeam ? ` [${s.employeeTeam}]` : ''
       const body = s.body ? s.body.slice(0, 500) : '(no response body)'
       lines.push(`  ${s.employeeName}${team}: ${body}`)
     }
-    if (notResponded.length > 0) lines.push(`  Did not respond: ${notResponded.join(', ')}`)
+    if (notResponded.length > 0) lines.push(`  Have not replied: ${notResponded.join(', ')}`)
     weekSections.push(lines.join('\n'))
   }
 
