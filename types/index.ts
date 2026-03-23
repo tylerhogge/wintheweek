@@ -25,6 +25,7 @@ export type Employee = {
   function: string | null
   active: boolean
   slack_user_id: string | null
+  manager_of_teams: string[] | null
   created_at: string
 }
 

@@ -17,7 +17,10 @@ async function TeamContent({ orgId }: { orgId: string }) {
   const active = employees?.filter((e: Employee): boolean => e.active) ?? []
   const inactive = employees?.filter((e: Employee): boolean => !e.active) ?? []
 
-  return <TeamClient active={active} inactive={inactive} />
+  // Unique team names across all active employees (for manager assignment UI)
+  const allTeams = [...new Set(active.map((e) => e.team).filter(Boolean))] as string[]
+
+  return <TeamClient active={active} inactive={inactive} allTeams={allTeams} />
 }
 
 // ── Skeleton shown while TeamContent streams in ───────────────────────────

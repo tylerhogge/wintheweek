@@ -108,7 +108,7 @@ async function generateAndStoreInsight(orgId: string, weekStart: string) {
   )
 }
 
-/** After all submissions replied: send the digest email if digest_notify is on. */
+/** After all submissions replied: send the digest email to admin + manager digests. */
 async function maybeFireDigest(orgId: string, weekStart: string) {
   const supabase = createServiceClient()
 
@@ -156,7 +156,7 @@ async function maybeFireDigest(orgId: string, weekStart: string) {
     .eq('employees.org_id', orgId)
     .not('responses', 'is', null)
 
-  const replies = ((submissions ?? []) as any[])
+  const allReplies = ((submissions ?? []) as any[])
     .map((s: any) => ({
       name: s.employees?.name ?? 'Unknown',
       team: s.employees?.team ?? null,
@@ -166,24 +166,64 @@ async function maybeFireDigest(orgId: string, weekStart: string) {
 
   const appUrl = 'https://www.wintheweek.co'
   const weekLabel = formatWeekRange(weekStart)
+  const resend = getResend()
+  const fromAddress = `Win the Week <${process.env.FROM_EMAIL ?? 'hello@wintheweek.co'}>`
 
-  const emailContent = buildDigestEmail({
+  // ── Admin digest: all replies ───────────────────────────────────────────
+  const adminEmail = buildDigestEmail({
     orgName: org.name,
     weekLabel,
     summary: insight?.summary ?? null,
     highlights: (insight?.highlights as string[] | null) ?? null,
-    replies,
+    replies: allReplies,
     dashboardUrl: `${appUrl}/dashboard?week=${weekStart}`,
   })
 
-  const resend = getResend()
   await resend.emails.send({
-    from: `Win the Week <${process.env.FROM_EMAIL ?? 'hello@wintheweek.co'}>`,
+    from: fromAddress,
     to: adminProfile.email,
-    subject: emailContent.subject,
-    html: emailContent.html,
-    text: emailContent.text,
+    subject: adminEmail.subject,
+    html: adminEmail.html,
+    text: adminEmail.text,
   })
+
+  // ── Manager digests: filtered to their teams ────────────────────────────
+  const { data: managers } = await supabase
+    .from('employees')
+    .select('email, name, manager_of_teams')
+    .eq('org_id', orgId)
+    .eq('active', true)
+    .not('manager_of_teams', 'is', null)
+
+  if (managers && managers.length > 0) {
+    for (const manager of managers) {
+      const teams = (manager.manager_of_teams as string[]) ?? []
+      if (teams.length === 0) continue
+
+      // Don't double-send if the manager happens to also be the admin
+      if (manager.email === adminProfile.email) continue
+
+      const teamReplies = allReplies.filter((r) => r.team && teams.includes(r.team))
+      if (teamReplies.length === 0) continue
+
+      const managerEmail = buildDigestEmail({
+        orgName: org.name,
+        weekLabel,
+        summary: null,  // Managers get replies only, no AI summary (admin-only for now)
+        highlights: null,
+        replies: teamReplies,
+        dashboardUrl: `${appUrl}/dashboard?week=${weekStart}`,
+      })
+
+      await resend.emails.send({
+        from: fromAddress,
+        to: manager.email,
+        subject: `${org.name} — ${teams.join(', ')} Weekly Digest: ${weekLabel}`,
+        html: managerEmail.html,
+        text: managerEmail.text,
+      })
+    }
+  }
 
   await supabase
     .from('insights')

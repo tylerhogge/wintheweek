@@ -71,14 +71,41 @@ async function maybeFireDigest(orgId: string, weekStart: string) {
     .eq('employees.org_id', orgId)
     .not('responses', 'is', null)
 
-  const replies = ((submissions ?? []) as any[])
+  const allReplies = ((submissions ?? []) as any[])
     .map((s: any) => ({ name: s.employees?.name ?? 'Unknown', team: s.employees?.team ?? null, body: s.responses?.body_clean ?? '' }))
     .filter((r: any) => r.body.trim().length > 0)
 
   const appUrl = 'https://www.wintheweek.co'
   const weekLabel = formatWeekRange(weekStart)
-  const emailContent = buildDigestEmail({ orgName: org.name, weekLabel, summary: insight?.summary ?? null, highlights: (insight?.highlights as string[] | null) ?? null, replies, dashboardUrl: `${appUrl}/dashboard?week=${weekStart}` })
-  await getResend().emails.send({ from: `Win the Week <${process.env.FROM_EMAIL ?? 'hello@wintheweek.co'}>`, to: adminProfile.email, subject: emailContent.subject, html: emailContent.html, text: emailContent.text })
+  const resend = getResend()
+  const fromAddress = `Win the Week <${process.env.FROM_EMAIL ?? 'hello@wintheweek.co'}>`
+
+  // Admin digest: all replies
+  const adminEmail = buildDigestEmail({ orgName: org.name, weekLabel, summary: insight?.summary ?? null, highlights: (insight?.highlights as string[] | null) ?? null, replies: allReplies, dashboardUrl: `${appUrl}/dashboard?week=${weekStart}` })
+  await resend.emails.send({ from: fromAddress, to: adminProfile.email, subject: adminEmail.subject, html: adminEmail.html, text: adminEmail.text })
+
+  // Manager digests: filtered to their teams
+  const { data: managers } = await supabase
+    .from('employees')
+    .select('email, name, manager_of_teams')
+    .eq('org_id', orgId)
+    .eq('active', true)
+    .not('manager_of_teams', 'is', null)
+
+  if (managers && managers.length > 0) {
+    for (const manager of managers) {
+      const teams = (manager.manager_of_teams as string[]) ?? []
+      if (teams.length === 0) continue
+      if (manager.email === adminProfile.email) continue
+
+      const teamReplies = allReplies.filter((r) => r.team && teams.includes(r.team))
+      if (teamReplies.length === 0) continue
+
+      const managerEmail = buildDigestEmail({ orgName: org.name, weekLabel, summary: null, highlights: null, replies: teamReplies, dashboardUrl: `${appUrl}/dashboard?week=${weekStart}` })
+      await resend.emails.send({ from: fromAddress, to: manager.email, subject: `${org.name} — ${teams.join(', ')} Weekly Digest: ${weekLabel}`, html: managerEmail.html, text: managerEmail.text })
+    }
+  }
+
   await supabase.from('insights').update({ digest_sent_at: new Date().toISOString() }).eq('org_id', orgId).eq('week_start', weekStart)
 }
 
