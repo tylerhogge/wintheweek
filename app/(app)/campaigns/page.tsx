@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import { createClient, getAuthUser, getProfile } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
@@ -15,34 +16,26 @@ const DAY_LABEL: Record<number, string> = {
   4: 'Thursday', 5: 'Friday', 6: 'Saturday', 7: 'Sunday',
 }
 
-export default async function CampaignsPage() {
-  const [user, profile] = await Promise.all([getAuthUser(), getProfile()])
-  if (!user) redirect('/auth/login')
-  if (!profile?.org_id) redirect('/onboarding')
-
+// ── Streaming data component — fetches campaigns then renders ─────────────
+async function CampaignsContent({
+  orgId,
+  userEmail,
+  userName,
+}: {
+  orgId: string
+  userEmail: string
+  userName: string
+}) {
   const supabase = await createClient()
 
   const { data: campaigns } = await supabase
     .from('campaigns')
     .select('*')
-    .eq('org_id', profile.org_id)
+    .eq('org_id', orgId)
     .order('created_at', { ascending: false })
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-[22px] font-bold tracking-[-0.03em] mb-0.5">Emails</h1>
-          <p className="text-sm text-[#71717a]">Manage your weekly email check-ins</p>
-        </div>
-        <Link
-          href="/campaigns/new"
-          className="flex items-center gap-1.5 text-sm font-semibold bg-white text-black px-4 py-2 rounded-md hover:bg-white/90 transition-colors"
-        >
-          <span className="text-lg leading-none">+</span> New email
-        </Link>
-      </div>
-
+    <>
       {campaigns?.length === 0 ? (
         <div className="text-center py-24 border border-white/[0.07] rounded-xl">
           <div className="w-12 h-12 bg-accent/10 border border-accent/20 rounded-xl flex items-center justify-center mx-auto mb-4">
@@ -93,9 +86,59 @@ export default async function CampaignsPage() {
 
       <SendTestEmail
         campaigns={campaigns ?? []}
-        defaultEmail={user.email ?? ''}
-        defaultName={profile?.name ?? user.email ?? 'there'}
+        defaultEmail={userEmail}
+        defaultName={userName}
       />
+    </>
+  )
+}
+
+// ── Skeleton shown while CampaignsContent streams in ──────────────────────
+function CampaignsSkeleton() {
+  return (
+    <div className="animate-pulse flex flex-col gap-3">
+      {[...Array(3)].map((_, i) => (
+        <div key={i} className="bg-surface border border-white/[0.07] rounded-xl px-6 py-5 flex items-center gap-4">
+          <div className="w-2 h-2 rounded-full bg-white/[0.08] shrink-0" />
+          <div className="flex-1">
+            <div className="h-4 w-40 bg-white/[0.08] rounded mb-2" />
+            <div className="h-3 w-56 bg-white/[0.04] rounded" />
+          </div>
+          <div className="h-6 w-16 bg-white/[0.06] rounded-full" />
+        </div>
+      ))}
+    </div>
+  )
+}
+
+// ── Page shell — renders immediately ──────────────────────────────────────
+export default async function CampaignsPage() {
+  const [user, profile] = await Promise.all([getAuthUser(), getProfile()])
+  if (!user) redirect('/auth/login')
+  if (!profile?.org_id) redirect('/onboarding')
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-[22px] font-bold tracking-[-0.03em] mb-0.5">Emails</h1>
+          <p className="text-sm text-[#71717a]">Manage your weekly email check-ins</p>
+        </div>
+        <Link
+          href="/campaigns/new"
+          className="flex items-center gap-1.5 text-sm font-semibold bg-white text-black px-4 py-2 rounded-md hover:bg-white/90 transition-colors"
+        >
+          <span className="text-lg leading-none">+</span> New email
+        </Link>
+      </div>
+
+      <Suspense fallback={<CampaignsSkeleton />}>
+        <CampaignsContent
+          orgId={profile.org_id}
+          userEmail={user.email ?? ''}
+          userName={profile?.name ?? user.email ?? 'there'}
+        />
+      </Suspense>
     </div>
   )
 }

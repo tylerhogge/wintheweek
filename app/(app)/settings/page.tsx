@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import { getAuthUser, getProfile, createServiceClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { DigestToggle } from '@/components/settings/digest-toggle'
@@ -5,62 +6,26 @@ import { OrgNameEdit } from '@/components/settings/org-name-edit'
 import { SlackConnect } from '@/components/settings/slack-connect'
 import { ShameSettings } from '@/components/settings/shame-settings'
 
-export default async function SettingsPage() {
-  const [user, profile] = await Promise.all([getAuthUser(), getProfile()])
-  if (!user) redirect('/auth/login')
+// ── Heavy data section — streams in while shell renders instantly ──────────
+async function SettingsContent({ orgId, org }: { orgId: string; org: any }) {
+  const service = createServiceClient()
+  const [orgData, slackData, countData] = await Promise.all([
+    service.from('organizations').select('digest_notify, shame_enabled, shame_channel_id, shame_channel_name, shame_email_enabled').eq('id', orgId).single(),
+    service.from('slack_integrations').select('team_name').eq('org_id', orgId).single(),
+    service.from('employees').select('slack_user_id', { count: 'exact', head: false }).eq('org_id', orgId).eq('active', true),
+  ])
 
-  const org = (profile as any)?.organizations
-
-  // Fetch org settings + Slack integration + employee match counts in parallel
-  let digestNotify = false
-  let slackIntegration: { team_name: string } | null = null
-  let matchedCount = 0
-  let totalCount = 0
-  let shameEnabled = false
-  let shameChannelId: string | null = null
-  let shameChannelName: string | null = null
-  let shameEmailEnabled = false
-
-  if (profile?.org_id) {
-    const service = createServiceClient()
-    const [orgData, slackData, employeeData] = await Promise.all([
-      service.from('organizations').select('digest_notify, shame_enabled, shame_channel_id, shame_channel_name, shame_email_enabled').eq('id', profile.org_id).single(),
-      service.from('slack_integrations').select('team_name').eq('org_id', profile.org_id).single(),
-      service.from('employees').select('slack_user_id').eq('org_id', profile.org_id).eq('active', true),
-    ])
-    digestNotify = orgData.data?.digest_notify ?? false
-    shameEnabled = orgData.data?.shame_enabled ?? false
-    shameChannelId = orgData.data?.shame_channel_id ?? null
-    shameChannelName = orgData.data?.shame_channel_name ?? null
-    shameEmailEnabled = orgData.data?.shame_email_enabled ?? false
-    slackIntegration = slackData.data ?? null
-    totalCount = employeeData.data?.length ?? 0
-    matchedCount = employeeData.data?.filter((e: any) => e.slack_user_id).length ?? 0
-  }
+  const digestNotify = orgData.data?.digest_notify ?? false
+  const shameEnabled = orgData.data?.shame_enabled ?? false
+  const shameChannelId = orgData.data?.shame_channel_id ?? null
+  const shameChannelName = orgData.data?.shame_channel_name ?? null
+  const shameEmailEnabled = orgData.data?.shame_email_enabled ?? false
+  const slackIntegration = slackData.data ?? null
+  const totalCount = countData.count ?? 0
+  const matchedCount = countData.data?.filter((e: any) => e.slack_user_id).length ?? 0
 
   return (
-    <div className="max-w-[640px]">
-      <div className="mb-8">
-        <h1 className="text-[22px] font-bold tracking-[-0.04em] mb-0.5">Settings</h1>
-        <p className="text-sm text-[#71717a]">Manage your workspace preferences</p>
-      </div>
-
-      {/* Org settings */}
-      <section className="mb-8">
-        <p className="text-xs font-semibold tracking-[0.07em] uppercase text-[#71717a] mb-4">Organization</p>
-        <div className="bg-surface border border-white/[0.07] rounded-xl divide-y divide-white/[0.05]">
-          <div className="px-5 py-4">
-            <OrgNameEdit initialName={org?.name ?? ''} />
-          </div>
-          <div className="px-5 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-            <div>
-              <p className="text-sm font-medium">Workspace URL</p>
-              <p className="text-xs text-[#71717a] mt-0.5">wintheweek.co/{org?.slug ?? '—'}</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
+    <>
       {/* Integrations */}
       <section className="mb-8">
         <p className="text-xs font-semibold tracking-[0.07em] uppercase text-[#71717a] mb-4">Integrations</p>
@@ -80,7 +45,7 @@ export default async function SettingsPage() {
               teamName={slackIntegration?.team_name}
               matchedCount={matchedCount}
               totalCount={totalCount}
-              orgId={profile?.org_id ?? ''}
+              orgId={orgId}
             />
           </div>
         </div>
@@ -135,8 +100,91 @@ export default async function SettingsPage() {
           </div>
         </div>
       </section>
+    </>
+  )
+}
 
-      {/* Account */}
+// ── Skeleton shown while SettingsContent streams in ───────────────────────
+function SettingsContentSkeleton() {
+  return (
+    <div className="animate-pulse space-y-8">
+      {/* Integrations skeleton */}
+      <section>
+        <div className="h-3 w-24 bg-white/[0.06] rounded mb-4" />
+        <div className="bg-surface border border-white/[0.07] rounded-xl px-5 py-4">
+          <div className="h-4 w-16 bg-white/[0.08] rounded mb-2" />
+          <div className="h-3 w-64 bg-white/[0.04] rounded mb-4" />
+          <div className="h-8 w-32 bg-white/[0.06] rounded" />
+        </div>
+      </section>
+      {/* Accountability skeleton */}
+      <section>
+        <div className="h-3 w-28 bg-white/[0.06] rounded mb-4" />
+        <div className="bg-surface border border-white/[0.07] rounded-xl p-5">
+          <div className="h-4 w-28 bg-white/[0.08] rounded mb-2" />
+          <div className="h-3 w-56 bg-white/[0.04] rounded mb-4" />
+          <div className="space-y-3 pl-4 border-l-2 border-white/[0.08]">
+            <div className="h-10 bg-white/[0.04] rounded" />
+            <div className="h-10 bg-white/[0.04] rounded" />
+          </div>
+        </div>
+      </section>
+      {/* Email skeleton */}
+      <section>
+        <div className="h-3 w-12 bg-white/[0.06] rounded mb-4" />
+        <div className="bg-surface border border-white/[0.07] rounded-xl divide-y divide-white/[0.05]">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="px-5 py-4 flex items-center justify-between">
+              <div>
+                <div className="h-4 w-24 bg-white/[0.08] rounded mb-1.5" />
+                <div className="h-3 w-40 bg-white/[0.04] rounded" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+    </div>
+  )
+}
+
+// ── Page shell — renders immediately ──────────────────────────────────────
+export default async function SettingsPage() {
+  const [user, profile] = await Promise.all([getAuthUser(), getProfile()])
+  if (!user) redirect('/auth/login')
+
+  const org = (profile as any)?.organizations
+
+  return (
+    <div className="max-w-[640px]">
+      <div className="mb-8">
+        <h1 className="text-[22px] font-bold tracking-[-0.04em] mb-0.5">Settings</h1>
+        <p className="text-sm text-[#71717a]">Manage your workspace preferences</p>
+      </div>
+
+      {/* Org settings — only needs profile data, renders immediately */}
+      <section className="mb-8">
+        <p className="text-xs font-semibold tracking-[0.07em] uppercase text-[#71717a] mb-4">Organization</p>
+        <div className="bg-surface border border-white/[0.07] rounded-xl divide-y divide-white/[0.05]">
+          <div className="px-5 py-4">
+            <OrgNameEdit initialName={org?.name ?? ''} />
+          </div>
+          <div className="px-5 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+            <div>
+              <p className="text-sm font-medium">Workspace URL</p>
+              <p className="text-xs text-[#71717a] mt-0.5">wintheweek.co/{org?.slug ?? '—'}</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Heavy sections stream in — skeleton shows immediately */}
+      {profile?.org_id ? (
+        <Suspense fallback={<SettingsContentSkeleton />}>
+          <SettingsContent orgId={profile.org_id} org={org} />
+        </Suspense>
+      ) : null}
+
+      {/* Account — only needs user data, renders immediately */}
       <section className="mb-8">
         <p className="text-xs font-semibold tracking-[0.07em] uppercase text-[#71717a] mb-4">Account</p>
         <div className="bg-surface border border-white/[0.07] rounded-xl divide-y divide-white/[0.05]">

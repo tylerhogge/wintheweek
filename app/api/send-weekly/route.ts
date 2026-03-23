@@ -40,6 +40,21 @@ export async function POST(req: Request) {
 
   const results = { sent: 0, failed: 0, skipped: 0 }
 
+  // Cache Slack integrations per org to avoid N+1 queries
+  const slackTokenCache = new Map<string, string | null>()
+
+  async function getSlackToken(orgId: string): Promise<string | null> {
+    if (slackTokenCache.has(orgId)) return slackTokenCache.get(orgId)!
+    const { data } = await supabase
+      .from('slack_integrations')
+      .select('access_token')
+      .eq('org_id', orgId)
+      .single()
+    const token = data?.access_token ?? null
+    slackTokenCache.set(orgId, token)
+    return token
+  }
+
   for (const campaign of campaigns ?? []) {
     // Fetch active employees — filtered by target_teams if set, otherwise all
     const employeeQuery = supabase
@@ -54,17 +69,22 @@ export async function POST(req: Request) {
 
     const { data: employees } = await employeeQuery
 
-    for (const employee of employees ?? []) {
-      // Check if already sent this week (idempotency)
-      const { data: existing } = await supabase
-        .from('submissions')
-        .select('id')
-        .eq('campaign_id', campaign.id)
-        .eq('employee_id', employee.id)
-        .eq('week_start', weekStart)
-        .single()
+    if (!employees || employees.length === 0) continue
 
-      if (existing) {
+    // Batch idempotency check: fetch all existing submissions for this campaign + week in one query
+    const employeeIds = employees.map((e) => e.id)
+    const { data: existingSubmissions } = await supabase
+      .from('submissions')
+      .select('employee_id')
+      .eq('campaign_id', campaign.id)
+      .eq('week_start', weekStart)
+      .in('employee_id', employeeIds)
+
+    const alreadySent = new Set(existingSubmissions?.map((s) => s.employee_id) ?? [])
+
+    for (const employee of employees) {
+      // Skip if already sent this week (idempotency)
+      if (alreadySent.has(employee.id)) {
         results.skipped++
         continue
       }
@@ -90,15 +110,11 @@ export async function POST(req: Request) {
 
       if (employee.slack_user_id) {
         // ── Slack delivery ──────────────────────────────────────────────────
-        const { data: integration } = await supabase
-          .from('slack_integrations')
-          .select('access_token')
-          .eq('org_id', campaign.org_id)
-          .single()
+        const token = await getSlackToken(campaign.org_id)
 
-        if (integration?.access_token) {
+        if (token) {
           const { blocks, fallbackText } = buildCheckinBlocks(employee.name, campaign.body)
-          const slackResult = await sendSlackDM(integration.access_token, employee.slack_user_id, blocks, fallbackText)
+          const slackResult = await sendSlackDM(token, employee.slack_user_id, blocks, fallbackText)
           if (!slackResult.ok) {
             console.error(`[send-weekly] Slack DM failed for ${employee.email}:`, slackResult.error)
             sendError = slackResult.error
