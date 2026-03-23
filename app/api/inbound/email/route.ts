@@ -10,7 +10,7 @@ import { NextResponse } from 'next/server'
 import { getResend, buildDigestEmail, buildReplyNotification, buildManagerReplyEmail, buildNudgeEmail } from '@/lib/resend'
 import { createServiceClient } from '@/lib/supabase/server'
 import { cleanEmailBody, formatWeekRange } from '@/lib/utils'
-import { generateWeeklyInsight } from '@/lib/anthropic'
+import { generateWeeklyInsight, generateQueryResponse } from '@/lib/anthropic'
 
 type ResendInboundPayload = {
   type: string
@@ -19,7 +19,7 @@ type ResendInboundPayload = {
     email_id: string
     from: string
     to: string[]
-    subject: string
+    subject: string      // Email subject line
     message_id: string   // Message-ID header of the incoming email
     created_at: string
   }
@@ -353,6 +353,102 @@ async function handleManagerReply(responseId: string, rawBody: string) {
   })
 }
 
+/**
+ * Handle a manager emailing a free-form question to updates@wintheweek.co.
+ * Pulls recent check-in data, asks Claude, and emails the answer back.
+ */
+async function handleManagerQuery({
+  senderEmail,
+  senderName,
+  emailId,
+  orgId,
+  incomingSubject,
+}: {
+  senderEmail: string
+  senderName: string | null
+  emailId: string
+  orgId: string
+  incomingSubject: string
+}) {
+  const supabase = createServiceClient()
+  const resend = getResend()
+
+  // Fetch the email body
+  const { data: receivedEmail, error: fetchErr } = await resend.emails.receiving.get(emailId)
+  if (fetchErr || !receivedEmail) {
+    console.error('Manager query: failed to fetch email body', fetchErr)
+    return
+  }
+
+  const question = cleanEmailBody(receivedEmail.text ?? '').trim()
+  if (!question) return
+
+  // Org name for context
+  const { data: org } = await supabase
+    .from('organizations')
+    .select('name')
+    .eq('id', orgId)
+    .single()
+
+  // All employees in the org
+  const { data: employeeRows } = await supabase
+    .from('employees')
+    .select('name, team, active')
+    .eq('org_id', orgId)
+    .order('name')
+
+  // Last 8 weeks of submissions + responses, via employee org_id
+  const cutoff = new Date()
+  cutoff.setDate(cutoff.getDate() - 56)
+  const weekStartCutoff = cutoff.toISOString().split('T')[0]
+
+  const { data: submissionRows } = await supabase
+    .from('submissions')
+    .select('week_start, replied_at, sent_at, employees!inner(name, team, org_id), responses(body_clean)')
+    .eq('employees.org_id', orgId)
+    .gte('week_start', weekStartCutoff)
+    .not('sent_at', 'is', null)
+    .order('week_start', { ascending: false })
+    .limit(300)
+
+  const employees = (employeeRows ?? []).map((e: any) => ({
+    name: e.name,
+    team: e.team ?? null,
+    active: e.active,
+  }))
+
+  const submissions = ((submissionRows ?? []) as any[]).map((s: any) => ({
+    weekStart: s.week_start as string,
+    employeeName: s.employees?.name ?? 'Unknown',
+    employeeTeam: s.employees?.team ?? null,
+    responded: s.replied_at !== null,
+    body: s.responses?.body_clean ?? null,
+  }))
+
+  // Generate the AI answer
+  const answer = await generateQueryResponse(org?.name ?? 'your org', question, {
+    employees,
+    submissions,
+  })
+
+  const replySubject = incomingSubject.startsWith('Re:')
+    ? incomingSubject
+    : `Re: ${incomingSubject}`
+
+  const fromAddress = process.env.FROM_EMAIL ?? 'hello@wintheweek.co'
+  const displayName = senderName ? `Hi ${senderName.split(' ')[0]},\n\n` : ''
+
+  await resend.emails.send({
+    from: `Win the Week <${fromAddress}>`,
+    to: senderEmail,
+    subject: replySubject,
+    text: `${displayName}${answer}\n\n—\nWin the Week`,
+    html: `<div style="font-family:sans-serif;font-size:14px;line-height:1.6;color:#111;max-width:600px">${displayName.replace('\n\n', '<br><br>')}${answer.replace(/\n/g, '<br>')}<br><br>—<br>Win the Week</div>`,
+  })
+
+  console.log('[manager query] answered and sent to', senderEmail)
+}
+
 export async function POST(req: Request) {
   let payload: ResendInboundPayload
   try {
@@ -385,13 +481,32 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true, note: 'Manager reply processed' })
   }
 
-  // ── Branch 2: Employee reply ──────────────────────────────────────────────
+  // ── Branch 2: Manager query (sender is a known admin profile) ───────────────
   if (!senderEmail) {
     return NextResponse.json({ error: 'No sender found' }, { status: 400 })
   }
 
   const supabase = createServiceClient()
 
+  const { data: senderProfile } = await supabase
+    .from('profiles')
+    .select('id, org_id, name')
+    .eq('email', senderEmail)
+    .single()
+
+  if (senderProfile?.org_id) {
+    const incomingSubject = payload.data?.subject ?? 'Your team check-ins'
+    await handleManagerQuery({
+      senderEmail,
+      senderName: senderProfile.name ?? null,
+      emailId: payload.data.email_id,
+      orgId: senderProfile.org_id,
+      incomingSubject,
+    }).catch(console.error)
+    return NextResponse.json({ ok: true, note: 'Manager query processed' })
+  }
+
+  // ── Branch 3: Employee reply ──────────────────────────────────────────────
   const { data: employee, error: empErr } = await supabase
     .from('employees')
     .select('id, org_id, name, team')
