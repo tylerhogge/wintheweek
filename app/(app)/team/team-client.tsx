@@ -144,6 +144,37 @@ export function TeamClient({ active, inactive, allTeams }: Props) {
         </div>
       )}
 
+      {/* Manager summary — only shown when managers exist */}
+      {(() => {
+        const managers = active.filter((e) => e.manager_of_teams && e.manager_of_teams.length > 0)
+        if (managers.length === 0) return null
+        return (
+          <div className="mb-6 bg-surface border border-white/[0.07] rounded-xl p-5">
+            <p className="text-xs font-semibold tracking-[0.06em] uppercase text-[#71717a] mb-3">
+              Managers ({managers.length})
+            </p>
+            <div className="space-y-2.5">
+              {managers.map((m) => (
+                <div key={m.id} className="flex items-center gap-3">
+                  <div className={`w-6 h-6 rounded-full bg-gradient-to-br ${avatarGradient(m.email)} flex items-center justify-center text-[10px] font-bold text-white shrink-0`}>
+                    {getInitials(m.name)}
+                  </div>
+                  <span className="text-sm font-medium text-white">{m.name}</span>
+                  <span className="text-xs text-[#52525b]">→</span>
+                  <div className="flex flex-wrap gap-1">
+                    {(m.manager_of_teams ?? []).map((team) => (
+                      <span key={team} className="text-[11px] font-medium text-violet-400 bg-violet-500/10 border border-violet-500/20 px-2 py-0.5 rounded-full">
+                        {team}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+      })()}
+
       {/* Active employees */}
       <div className="bg-surface border border-white/[0.07] rounded-xl overflow-hidden">
         <div className="px-5 py-3 border-b border-white/[0.07] grid grid-cols-[1fr_80px] sm:grid-cols-[2fr_1.5fr_1.5fr_100px_40px] text-xs font-medium text-[#71717a] uppercase tracking-[0.06em]">
