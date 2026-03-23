@@ -24,6 +24,7 @@ export function buildSlackOAuthUrl(): string {
   const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL}/api/slack/oauth`
   const scopes = [
     'chat:write',
+    'chat:write.public',  // post to public channels without joining
     'im:write',
     'users:read',
     'users:read.email',
@@ -172,6 +173,31 @@ export function verifySlackSignature(
   }
 }
 
+// ── Post to a channel ─────────────────────────────────────────────────────────
+
+/**
+ * Posts a Block Kit message to a Slack channel by ID.
+ * Requires chat:write.public scope (or bot must be a channel member).
+ */
+export async function postToSlackChannel(
+  token: string,
+  channelId: string,
+  blocks: object[],
+  fallbackText: string,
+): Promise<SlackSendResult> {
+  const res = await fetch('https://slack.com/api/chat.postMessage', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ channel: channelId, text: fallbackText, blocks }),
+  })
+  const data = await res.json()
+  if (!data.ok) return { ok: false, error: `chat.postMessage failed: ${data.error}` }
+  return { ok: true, ts: data.ts, channel: channelId }
+}
+
 // ── Block Kit message builders ────────────────────────────────────────────────
 
 /**
@@ -234,4 +260,53 @@ export function buildNudgeBlocks(
   ]
 
   return { blocks, fallbackText: text }
+}
+
+/**
+ * Builds a Wall of Shame block kit message for a Slack channel.
+ * Lists employees who haven't replied to the weekly check-in.
+ */
+export function buildWallOfShameBlocks(
+  nonRespondents: string[],   // display names
+  totalSent: number,
+  weekLabel: string,          // e.g. "Mar 17 – 21, 2026"
+): { blocks: object[]; fallbackText: string } {
+  if (nonRespondents.length === 0) {
+    const text = `✅ *Everyone submitted their weekly update!* All ${totalSent} team members replied this week. Great week.`
+    return {
+      blocks: [{ type: 'section', text: { type: 'mrkdwn', text } }],
+      fallbackText: `✅ Everyone submitted their weekly update for ${weekLabel}!`,
+    }
+  }
+
+  const nameList = nonRespondents.map((n) => `• ${n}`).join('\n')
+  const fallbackText = `🚨 Weekly Update Wall of Shame — ${nonRespondents.length} of ${totalSent} haven't replied yet.`
+
+  const blocks: object[] = [
+    {
+      type: 'section',
+      text: {
+        type: 'mrkdwn',
+        text: `🚨 *Weekly Update Wall of Shame* — week of ${weekLabel}`,
+      },
+    },
+    {
+      type: 'section',
+      text: {
+        type: 'mrkdwn',
+        text: `The following *${nonRespondents.length} of ${totalSent}* people haven't submitted yet:\n\n${nameList}`,
+      },
+    },
+    {
+      type: 'context',
+      elements: [
+        {
+          type: 'mrkdwn',
+          text: 'Reply to the Win the Week check-in email (or Slack DM) to get off this list.',
+        },
+      ],
+    },
+  ]
+
+  return { blocks, fallbackText }
 }

@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { DigestToggle } from '@/components/settings/digest-toggle'
 import { OrgNameEdit } from '@/components/settings/org-name-edit'
 import { SlackConnect } from '@/components/settings/slack-connect'
+import { ShameSettings } from '@/components/settings/shame-settings'
 
 export default async function SettingsPage() {
   const [user, profile] = await Promise.all([getAuthUser(), getProfile()])
@@ -15,15 +16,23 @@ export default async function SettingsPage() {
   let slackIntegration: { team_name: string } | null = null
   let matchedCount = 0
   let totalCount = 0
+  let shameEnabled = false
+  let shameChannelId: string | null = null
+  let shameChannelName: string | null = null
+  let shameEmailEnabled = false
 
   if (profile?.org_id) {
     const service = createServiceClient()
     const [orgData, slackData, employeeData] = await Promise.all([
-      service.from('organizations').select('digest_notify').eq('id', profile.org_id).single(),
+      service.from('organizations').select('digest_notify, shame_enabled, shame_channel_id, shame_channel_name, shame_email_enabled').eq('id', profile.org_id).single(),
       service.from('slack_integrations').select('team_name').eq('org_id', profile.org_id).single(),
       service.from('employees').select('slack_user_id').eq('org_id', profile.org_id).eq('active', true),
     ])
     digestNotify = orgData.data?.digest_notify ?? false
+    shameEnabled = orgData.data?.shame_enabled ?? false
+    shameChannelId = orgData.data?.shame_channel_id ?? null
+    shameChannelName = orgData.data?.shame_channel_name ?? null
+    shameEmailEnabled = orgData.data?.shame_email_enabled ?? false
     slackIntegration = slackData.data ?? null
     totalCount = employeeData.data?.length ?? 0
     matchedCount = employeeData.data?.filter((e: any) => e.slack_user_id).length ?? 0
@@ -74,6 +83,26 @@ export default async function SettingsPage() {
               orgId={profile?.org_id ?? ''}
             />
           </div>
+        </div>
+      </section>
+
+      {/* Wall of Shame */}
+      <section className="mb-8">
+        <p className="text-xs font-semibold tracking-[0.07em] uppercase text-[#71717a] mb-4">Accountability</p>
+        <div className="bg-surface border border-white/[0.07] rounded-xl p-5">
+          <div className="mb-4">
+            <p className="text-sm font-medium">Wall of Shame</p>
+            <p className="text-xs text-[#71717a] mt-0.5">
+              Every Monday morning, automatically report who hasn't replied to the weekly check-in.
+            </p>
+          </div>
+          <ShameSettings
+            slackConnected={!!slackIntegration}
+            initialSlackEnabled={shameEnabled}
+            initialChannelId={shameChannelId}
+            initialChannelName={shameChannelName}
+            initialEmailEnabled={shameEmailEnabled}
+          />
         </div>
       </section>
 
