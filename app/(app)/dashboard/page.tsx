@@ -32,7 +32,7 @@ async function DashboardContent({
 
   let submissionsQuery = supabase
     .from('submissions')
-    .select(`*, employee:employees(*), response:responses(*, manager_replies(*))`)
+    .select(`id, campaign_id, employee_id, week_start, sent_at, replied_at, created_at, employee:employees(id, name, email, team, org_id, slack_user_id, active, manager_of_teams, function, created_at), response:responses(id, submission_id, body_raw, body_clean, liked_at, created_at, manager_replies(id, response_id, body_clean, created_at))`)
     .eq('week_start', weekStart)
     .eq('employees.org_id', orgId)
     .order('replied_at', { ascending: false, nullsFirst: false })
@@ -43,7 +43,7 @@ async function DashboardContent({
     submissionsQuery,
     supabase
       .from('insights')
-      .select('*')
+      .select('id, org_id, week_start, summary, highlights, generated_at')
       .eq('org_id', orgId)
       .eq('week_start', weekStart)
       .single(),
@@ -59,7 +59,7 @@ async function DashboardContent({
     ...new Set(teams?.map((t: { team: string | null }) => t.team).filter(Boolean)),
   ] as string[]
 
-  const typed = (submissions ?? []) as SubmissionWithDetails[]
+  const typed = (submissions ?? []) as unknown as SubmissionWithDetails[]
   const replied = typed.filter((s: SubmissionWithDetails) => s.response !== null)
 
   return (

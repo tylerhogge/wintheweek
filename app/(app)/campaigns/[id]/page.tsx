@@ -7,7 +7,7 @@ async function EditCampaignContent({ id, orgId }: { id: string; orgId: string })
   const service = createServiceClient()
 
   const [campaignRes, teamsRes] = await Promise.all([
-    service.from('campaigns').select('*').eq('id', id).eq('org_id', orgId).single(),
+    service.from('campaigns').select('id, org_id, name, subject, body, frequency, send_day, send_time, timezone, active, target_teams, created_at').eq('id', id).eq('org_id', orgId).single(),
     service.from('employees').select('team').eq('org_id', orgId).eq('active', true).not('team', 'is', null),
   ])
 

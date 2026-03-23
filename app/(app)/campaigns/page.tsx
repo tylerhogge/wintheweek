@@ -30,7 +30,7 @@ async function CampaignsContent({
 
   const { data: campaigns } = await supabase
     .from('campaigns')
-    .select('*')
+    .select('id, org_id, name, subject, body, frequency, send_day, send_time, timezone, active, target_teams, created_at')
     .eq('org_id', orgId)
     .order('created_at', { ascending: false })
 

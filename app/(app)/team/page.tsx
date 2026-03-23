@@ -10,7 +10,7 @@ async function TeamContent({ orgId }: { orgId: string }) {
 
   const { data: employees } = await supabase
     .from('employees')
-    .select('*')
+    .select('id, org_id, name, email, team, function, active, slack_user_id, manager_of_teams, created_at')
     .eq('org_id', orgId)
     .order('name')
 

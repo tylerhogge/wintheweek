@@ -3,10 +3,12 @@
 import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSearchParams } from 'next/navigation'
+import dynamic from 'next/dynamic'
 import type { Employee } from '@/types'
 import { getInitials, avatarGradient } from '@/lib/utils'
-import { AddMemberModal } from '@/components/team/add-member-modal'
-import { EditMemberModal } from '@/components/team/edit-member-modal'
+
+const AddMemberModal = dynamic(() => import('@/components/team/add-member-modal').then(m => ({ default: m.AddMemberModal })))
+const EditMemberModal = dynamic(() => import('@/components/team/edit-member-modal').then(m => ({ default: m.EditMemberModal })))
 
 type Props = { active: Employee[]; inactive: Employee[]; allTeams: string[] }
 
