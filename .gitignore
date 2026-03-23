@@ -1,1 +1,22 @@
 .env.local
+.env*.local
+
+# dependencies
+node_modules/
+
+# next.js
+.next/
+out/
+
+# build
+tsconfig.tsbuildinfo
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+
+# vercel
+.vercel
