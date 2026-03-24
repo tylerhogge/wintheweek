@@ -62,7 +62,7 @@ export async function POST(req: Request) {
 
   const weekLabel = formatWeekRange(week_start)
 
-  let insight: { summary: string; highlights: string[] }
+  let insight: { summary: string; highlights: string[]; cross_functional_themes: string | null; risk_items: string | null; bottom_line: string | null }
   try {
     insight = await generateWeeklyInsight(org?.name ?? 'the org', weekLabel, replies)
   } catch (err) {
@@ -77,6 +77,9 @@ export async function POST(req: Request) {
       week_start,
       summary: insight.summary,
       highlights: insight.highlights,
+      cross_functional_themes: insight.cross_functional_themes,
+      risk_items: insight.risk_items,
+      bottom_line: insight.bottom_line,
       generated_at: new Date().toISOString(),
     },
     { onConflict: 'org_id,week_start' },

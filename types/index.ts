@@ -87,6 +87,9 @@ export type Insight = {
   week_start: string
   summary: string | null
   highlights: string[] | null
+  cross_functional_themes: string | null
+  risk_items: string | null
+  bottom_line: string | null
   generated_at: string
 }
 

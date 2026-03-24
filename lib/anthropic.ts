@@ -96,6 +96,9 @@ Answer the question directly and concisely. Be specific — use names, teams, an
 export type InsightResult = {
   summary: string
   highlights: string[]
+  cross_functional_themes: string | null
+  risk_items: string | null
+  bottom_line: string | null
 }
 
 export async function generateWeeklyInsight(
@@ -107,31 +110,50 @@ export async function generateWeeklyInsight(
     .map((r: { name: string; team: string | null; body: string }): string => `[${r.name}${r.team ? ` · ${r.team}` : ''}]: ${r.body}`)
     .join('\n\n')
 
+  // Determine org size to calibrate depth of analysis
+  const replyCount = replies.length
+  const teams = [...new Set(replies.map(r => r.team).filter(Boolean))]
+  const isSmallOrg = replyCount < 8
+
   const message = await anthropic.messages.create({
-    model: 'claude-haiku-4-5-20251001',
-    max_tokens: 1024,
+    model: 'claude-sonnet-4-5-20250514',
+    max_tokens: 4096,
     messages: [
       {
         role: 'user',
-        content: `You are summarizing weekly team check-ins for ${orgName}.
+        content: `You are a chief of staff writing a weekly intelligence briefing for the CEO of ${orgName}. Your job is NOT to summarize what people said — it's to synthesize across people, connect dots they wouldn't connect themselves, identify decisions that are overdue, flag silence as risk, and tell the CEO what they need to hear, not what's comfortable.
 
 Week: ${weekLabel}
-Total replies: ${replies.length}
+Total replies: ${replyCount}
+Teams represented: ${teams.length > 0 ? teams.join(', ') : 'No team labels'}
 
-Replies:
+Individual check-in replies:
 ${repliesText}
 
-Write a concise weekly summary in two parts:
+---
 
-1. SUMMARY: 2-3 sentences capturing what the company as a whole accomplished this week. Be specific, mention numbers and outcomes where possible. Write it as a confident paragraph — no bullet points.
+Write a weekly intelligence briefing with these sections. Be specific — use names, teams, and data from the check-ins. Be opinionated and direct. Do not hedge. If something is a problem, say it plainly.
 
-2. HIGHLIGHTS: Exactly 3 short highlight bullets (one sentence each) that call out the most notable wins across the org. Start each with the person's name or team.
+${isSmallOrg ? `Note: This is a smaller team (${replyCount} replies). Scale the analysis accordingly — fewer themes, shorter sections. Don't manufacture complexity that isn't there, but still be direct about what matters.` : ''}
+
+1. CROSS-FUNCTIONAL THEMES (${isSmallOrg ? '1-2' : '2-4'} paragraphs): What patterns emerge when you read across all the replies? Where are different people independently surfacing the same issue? Where is one person's blocker another person's deliverable? Connect the dots. Name names. If multiple people are describing the same underlying condition from different angles, call it out.
+
+2. RISK AND DECISION ITEMS (${isSmallOrg ? '1-3' : '2-5'} items): Decisions that are overdue, risks that aren't being managed, things the CEO needs to act on THIS WEEK. Each item should name the people involved and state what specifically needs to happen. If nobody mentioned something important and that silence itself is a risk, flag it. Format each as a short paragraph with the involved people's names bolded at the start.
+
+3. BOTTOM LINE (1 paragraph): The single most important thing the CEO should take away. Not a recap — a judgment call. What's the real story this week?
+
+4. HIGHLIGHTS: Exactly 3 short highlight bullets (one sentence each) calling out the most notable wins. Start each with the person's name.
 
 Format your response as JSON exactly like this:
 {
-  "summary": "...",
+  "cross_functional_themes": "Full text with paragraphs separated by \\n\\n",
+  "risk_items": "Full text with items separated by \\n\\n",
+  "bottom_line": "Single paragraph",
+  "summary": "A 2-sentence executive summary for the dashboard card — the most compressed version of the bottom line",
   "highlights": ["...", "...", "..."]
-}`,
+}
+
+Write in confident, direct prose. No corporate fluff. No "it's worth noting" or "it may be beneficial to consider." Just tell the CEO what's happening and what to do about it.`,
       },
     ],
   })
