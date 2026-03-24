@@ -128,16 +128,16 @@ export default function LandingPage() {
         <div className="grid md:grid-cols-3 gap-4">
           {[
             {
-              name: 'Starter', price: '$0', desc: 'Perfect to get started', popular: false,
-              features: ['Up to 10 employees', '1 active campaign', 'Weekly digest dashboard', 'Reply tracking', '30-day history'],
+              name: 'Free', price: '$0', desc: 'Try it with your team', popular: false,
+              features: ['Up to 10 employees', '1 active campaign', 'Weekly reply dashboard', 'Reply tracking & nudges', '30-day history'],
             },
             {
-              name: 'Team', price: '$29', desc: 'For growing companies', popular: true,
-              features: ['Up to 50 employees', 'Unlimited campaigns', 'Team & function filters', 'AI weekly summaries', 'CSV export', 'Unlimited history'],
+              name: 'Growth', price: '$99', desc: 'For scaling companies', popular: true,
+              features: ['Up to 100 employees', 'Unlimited campaigns', 'AI weekly intelligence briefing', 'Full Slack integration', 'Ask-your-data AI queries', 'Team & function filters', 'Unlimited history'],
             },
             {
-              name: 'Growth', price: '$99', desc: 'For larger organizations', popular: false,
-              features: ['Up to 250 employees', 'Everything in Team', 'Slack digest', 'Custom send domain', 'Priority support'],
+              name: 'Premium', price: '$299', desc: 'For larger organizations', popular: false,
+              features: ['Up to 250 employees', 'Everything in Growth', 'Custom send domain', 'Priority support', 'Dedicated onboarding'],
             },
           ].map(({ name, price, desc, popular, features }: { name: string; price: string; desc: string; popular: boolean; features: string[] }) => (
             <div key={name} className={`bg-surface border rounded-xl p-7 ${popular ? 'border-accent/40 bg-gradient-to-b from-accent/[0.06] to-surface' : 'border-white/[0.07]'}`}>
