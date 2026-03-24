@@ -60,7 +60,7 @@ export default function LandingPage() {
               </h1>
 
               <p className="text-[clamp(15px,1.8vw,17px)] text-[#a1a1aa] max-w-[440px] mb-10 leading-relaxed">
-                Send your team a single weekly email. Collect replies. Get an instant view of what the whole company accomplished — without a meeting.
+                Send your team a single weekly email (or Slack!). Collect replies. Get an instant view of what the whole company accomplished in an AI-synthesized summary — without a meeting, and without your team logging into anything.
               </p>
 
               <WaitlistForm />
@@ -123,7 +123,7 @@ export default function LandingPage() {
       {/* ── PRICING ── */}
       <section id="pricing" className="py-24 max-w-[1080px] mx-auto px-6">
         <p className="text-xs font-semibold tracking-[0.1em] uppercase text-accent mb-4">Pricing</p>
-        <h2 className="text-[clamp(26px,4vw,38px)] font-bold tracking-[-0.03em] leading-[1.15] mb-14">Dead simple — the most value per $ of any software you use.</h2>
+        <h2 className="text-[clamp(26px,4vw,38px)] font-bold tracking-[-0.03em] leading-[1.15] mb-14">Dead simple. Massive value.</h2>
 
         <div className="grid md:grid-cols-3 gap-4">
           {[
