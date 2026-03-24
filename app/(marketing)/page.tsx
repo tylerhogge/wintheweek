@@ -128,7 +128,7 @@ export default function LandingPage() {
         <div className="grid md:grid-cols-4 gap-4">
           {[
             {
-              name: 'Free', price: '$0', desc: 'Try it with your team', popular: false, cta: 'Get started',
+              name: 'Free', price: '$0', desc: 'Try it with your team', popular: false, cta: 'Join waitlist',
               features: ['Up to 10 employees', '1 active campaign', 'Weekly reply dashboard', 'Reply tracking & nudges', '30-day history'],
             },
             {
