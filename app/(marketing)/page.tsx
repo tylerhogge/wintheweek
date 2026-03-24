@@ -97,6 +97,13 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ── POSITIONING ── */}
+      <section className="py-16 max-w-[1080px] mx-auto px-6">
+        <p className="text-center text-[clamp(20px,3vw,28px)] text-[#a1a1aa] leading-relaxed max-w-2xl mx-auto font-medium tracking-[-0.02em]">
+          The CEO&apos;s operating system. Every week: what your company accomplished, and what it needs from you.
+        </p>
+      </section>
+
       {/* ── FEATURES ── */}
       <section id="features" className="py-24 max-w-[1080px] mx-auto px-6">
         <p className="text-xs font-semibold tracking-[0.1em] uppercase text-accent mb-4">Features</p>
