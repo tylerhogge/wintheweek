@@ -24,10 +24,10 @@ export async function POST(req: Request) {
 
   const supabase = createServiceClient()
 
-  // Fetch org name
+  // Fetch org name and priorities
   const { data: org } = await supabase
     .from('organizations')
-    .select('name')
+    .select('name, priorities')
     .eq('id', org_id)
     .single()
 
@@ -62,9 +62,9 @@ export async function POST(req: Request) {
 
   const weekLabel = formatWeekRange(week_start)
 
-  let insight: { summary: string; highlights: string[]; cross_functional_themes: string | null; risk_items: string | null; bottom_line: string | null }
+  let insight: { summary: string; highlights: string[]; cross_functional_themes: string | null; risk_items: string | null; bottom_line: string | null; initiative_tracking: string | null }
   try {
-    insight = await generateWeeklyInsight(org?.name ?? 'the org', weekLabel, replies)
+    insight = await generateWeeklyInsight(org?.name ?? 'the org', weekLabel, replies, org?.priorities as any)
   } catch (err) {
     console.error('AI insight generation failed', err)
     return NextResponse.json({ error: 'AI generation failed' }, { status: 500 })
@@ -80,6 +80,7 @@ export async function POST(req: Request) {
       cross_functional_themes: insight.cross_functional_themes,
       risk_items: insight.risk_items,
       bottom_line: insight.bottom_line,
+      initiative_tracking: insight.initiative_tracking,
       generated_at: new Date().toISOString(),
     },
     { onConflict: 'org_id,week_start' },

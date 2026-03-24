@@ -99,12 +99,19 @@ export type InsightResult = {
   cross_functional_themes: string | null
   risk_items: string | null
   bottom_line: string | null
+  initiative_tracking: string | null
+}
+
+export type PriorityInput = {
+  name: string
+  description: string
 }
 
 export async function generateWeeklyInsight(
   orgName: string,
   weekLabel: string,
   replies: Array<{ name: string; team: string | null; body: string }>,
+  priorities?: PriorityInput[] | null,
 ): Promise<InsightResult> {
   const repliesText = replies
     .map((r: { name: string; team: string | null; body: string }): string => `[${r.name}${r.team ? ` · ${r.team}` : ''}]: ${r.body}`)
@@ -114,6 +121,19 @@ export async function generateWeeklyInsight(
   const replyCount = replies.length
   const teams = [...new Set(replies.map(r => r.team).filter(Boolean))]
   const isSmallOrg = replyCount < 8
+  const hasPriorities = priorities && priorities.length > 0
+
+  const prioritiesBlock = hasPriorities
+    ? `\n\nCEO-DEFINED COMPANY PRIORITIES:\n${priorities.map((p, i) => `${i + 1}. ${p.name}${p.description ? ` — ${p.description}` : ''}`).join('\n')}\n`
+    : ''
+
+  const initiativeSection = hasPriorities
+    ? `\n\n5. INITIATIVE TRACKING (1 paragraph per priority): For each CEO-defined priority above, evaluate how the company is tracking this week based on the check-in data. Is there forward motion? Is anyone actively working on it? Is it stalled? If a priority has ZERO signal in the check-ins — nobody mentioned anything related to it — that is a red flag and you should say so explicitly. Be direct: "on track", "at risk", "no signal this week." Name the people whose work connects to each priority.`
+    : ''
+
+  const initiativeJsonField = hasPriorities
+    ? `\n  "initiative_tracking": "Full text with one paragraph per priority separated by \\n\\n",`
+    : `\n  "initiative_tracking": null,`
 
   const message = await anthropic.messages.create({
     model: 'claude-sonnet-4-5-20250514',
@@ -125,7 +145,7 @@ export async function generateWeeklyInsight(
 
 Week: ${weekLabel}
 Total replies: ${replyCount}
-Teams represented: ${teams.length > 0 ? teams.join(', ') : 'No team labels'}
+Teams represented: ${teams.length > 0 ? teams.join(', ') : 'No team labels'}${prioritiesBlock}
 
 Individual check-in replies:
 ${repliesText}
@@ -142,7 +162,7 @@ ${isSmallOrg ? `Note: This is a smaller team (${replyCount} replies). Scale the 
 
 3. BOTTOM LINE (1 paragraph): The single most important thing the CEO should take away. Not a recap — a judgment call. What's the real story this week?
 
-4. HIGHLIGHTS: Exactly 3 short highlight bullets (one sentence each) calling out the most notable wins. Start each with the person's name.
+4. HIGHLIGHTS: Exactly 3 short highlight bullets (one sentence each) calling out the most notable wins. Start each with the person's name.${initiativeSection}
 
 Format your response as JSON exactly like this:
 {
@@ -150,7 +170,7 @@ Format your response as JSON exactly like this:
   "risk_items": "Full text with items separated by \\n\\n",
   "bottom_line": "Single paragraph",
   "summary": "A 2-sentence executive summary for the dashboard card — the most compressed version of the bottom line",
-  "highlights": ["...", "...", "..."]
+  "highlights": ["...", "...", "..."],${initiativeJsonField}
 }
 
 Write in confident, direct prose. No corporate fluff. No "it's worth noting" or "it may be beneficial to consider." Just tell the CEO what's happening and what to do about it.`,

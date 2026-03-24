@@ -1,9 +1,15 @@
+export type Priority = {
+  name: string
+  description: string
+}
+
 export type Organization = {
   id: string
   name: string
   slug: string
   logo_url: string | null
   digest_notify: boolean
+  priorities: Priority[] | null
   created_at: string
 }
 
@@ -90,6 +96,7 @@ export type Insight = {
   cross_functional_themes: string | null
   risk_items: string | null
   bottom_line: string | null
+  initiative_tracking: string | null
   generated_at: string
 }
 

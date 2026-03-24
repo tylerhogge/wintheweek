@@ -5,12 +5,14 @@ import { DigestToggle } from '@/components/settings/digest-toggle'
 import { OrgNameEdit } from '@/components/settings/org-name-edit'
 import { SlackConnect } from '@/components/settings/slack-connect'
 import { ShameSettings } from '@/components/settings/shame-settings'
+import { PrioritiesEditor } from '@/components/settings/priorities-editor'
+import type { Priority } from '@/types'
 
 // ── Heavy data section — streams in while shell renders instantly ──────────
 async function SettingsContent({ orgId, org }: { orgId: string; org: any }) {
   const service = createServiceClient()
   const [orgData, slackData, countData] = await Promise.all([
-    service.from('organizations').select('digest_notify, shame_enabled, shame_channel_id, shame_channel_name, shame_email_enabled, auto_nudge').eq('id', orgId).single(),
+    service.from('organizations').select('digest_notify, shame_enabled, shame_channel_id, shame_channel_name, shame_email_enabled, auto_nudge, priorities').eq('id', orgId).single(),
     service.from('slack_integrations').select('team_name').eq('org_id', orgId).single(),
     service.from('employees').select('slack_user_id', { count: 'exact', head: false }).eq('org_id', orgId).eq('active', true),
   ])
@@ -21,12 +23,27 @@ async function SettingsContent({ orgId, org }: { orgId: string; org: any }) {
   const shameChannelName = orgData.data?.shame_channel_name ?? null
   const shameEmailEnabled = orgData.data?.shame_email_enabled ?? false
   const autoNudge = orgData.data?.auto_nudge ?? false
+  const priorities = (orgData.data?.priorities as Priority[] | null) ?? []
   const slackIntegration = slackData.data ?? null
   const totalCount = countData.count ?? 0
   const matchedCount = countData.data?.filter((e: any) => e.slack_user_id).length ?? 0
 
   return (
     <>
+      {/* CEO Priorities */}
+      <section className="mb-8">
+        <p className="text-xs font-semibold tracking-[0.07em] uppercase text-[#71717a] mb-4">CEO Priorities</p>
+        <div className="bg-surface border border-white/[0.07] rounded-xl p-5">
+          <div className="mb-4">
+            <p className="text-sm font-medium">Company priorities</p>
+            <p className="text-xs text-[#71717a] mt-0.5">
+              Set your top priorities and the AI weekly briefing will evaluate how the company is tracking against each one.
+            </p>
+          </div>
+          <PrioritiesEditor initialPriorities={priorities} />
+        </div>
+      </section>
+
       {/* Integrations */}
       <section className="mb-8">
         <p className="text-xs font-semibold tracking-[0.07em] uppercase text-[#71717a] mb-4">Integrations</p>

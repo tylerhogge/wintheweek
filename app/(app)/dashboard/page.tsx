@@ -43,7 +43,7 @@ async function DashboardContent({
     submissionsQuery,
     supabase
       .from('insights')
-      .select('id, org_id, week_start, summary, highlights, cross_functional_themes, risk_items, bottom_line, generated_at')
+      .select('id, org_id, week_start, summary, highlights, cross_functional_themes, risk_items, bottom_line, initiative_tracking, generated_at')
       .eq('org_id', orgId)
       .eq('week_start', weekStart)
       .single(),

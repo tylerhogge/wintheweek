@@ -35,7 +35,7 @@ export function AISummary({ insight, className }: Props) {
   const [expanded, setExpanded] = useState(false)
   if (!insight.summary) return null
 
-  const hasFullBriefing = insight.cross_functional_themes || insight.risk_items || insight.bottom_line
+  const hasFullBriefing = insight.cross_functional_themes || insight.risk_items || insight.bottom_line || insight.initiative_tracking
 
   return (
     <div className={cn(
@@ -82,6 +82,9 @@ export function AISummary({ insight, className }: Props) {
           )}
           {insight.risk_items && (
             <Section title="Risk & Decision Items" content={insight.risk_items} />
+          )}
+          {insight.initiative_tracking && (
+            <Section title="Initiative Tracking" content={insight.initiative_tracking} />
           )}
           {insight.bottom_line && insight.summary && (
             <div>
