@@ -107,7 +107,7 @@ export default function LandingPage() {
             { icon: '📬', title: 'Zero-friction replies', body: 'Employees reply directly to the email — or Slack. No app download, no login, no portal. Just hit Reply and type.' },
             { icon: '✦', title: 'AI weekly briefing', body: 'AI generates a highly contextual weekly briefing — not just on what your company is getting done, but what you should do as a CEO.' },
             { icon: '🏢', title: 'Team-level views', body: 'Filter by team or function to see what Engineering shipped vs. what Sales closed this week.' },
-            { icon: '📅', title: 'Flexible scheduling', body: 'Send Friday mornings, Monday afternoons, biweekly — whatever cadence fits your company.' },
+            { icon: '⚡', title: 'Full Slack integration', body: 'Run your company on Slack? No problem. Check-ins delivered as DMs, replies collected automatically — your team never leaves Slack.' },
             { icon: '🔔', title: 'Auto-nudges & accountability', body: 'Automatic reminders for people who haven\'t replied. You see who responded and who didn\'t — no awkward follow-ups needed.' },
             { icon: '💬', title: 'Ask your data anything', body: 'Email a question and get an AI-powered answer based on your team\'s check-in data. Like having a chief of staff on call.' },
           ].map(({ icon, title, body }: { icon: string; title: string; body: string }) => (
