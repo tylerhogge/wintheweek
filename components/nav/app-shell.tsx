@@ -3,15 +3,46 @@
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { LayoutDashboard, Mail, Users, Settings, CheckSquare, ChevronLeft, ChevronRight, LogOut, User, BarChart3 } from 'lucide-react'
+import { LayoutDashboard, Users, Settings, CheckSquare, ChevronLeft, ChevronRight, LogOut, User } from 'lucide-react'
 import { cn, getInitials } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
+
+// Custom animated mail icon — flap opens on hover
+function MailIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      {/* Envelope body */}
+      <rect x="2" y="7" width="20" height="14" rx="2" />
+      <polyline points="2,7 12,14 22,7" />
+      {/* Flap that opens */}
+      <path
+        d="M2,7 L12,2 L22,7"
+        className="origin-[50%_100%] group-hover:animate-icon-mail-open"
+        style={{ transformOrigin: '12px 7px' }}
+      />
+    </svg>
+  )
+}
+
+// Custom animated bar chart — bars wave on hover
+function TrendBarsIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      {/* Base line */}
+      <line x1="3" y1="22" x2="21" y2="22" />
+      {/* Bars with staggered animation */}
+      <rect x="5"  y="12" width="3" height="10" rx="1" className="origin-bottom group-hover:animate-icon-bar-1" />
+      <rect x="11" y="6"  width="3" height="16" rx="1" className="origin-bottom group-hover:animate-icon-bar-2" />
+      <rect x="17" y="2"  width="3" height="20" rx="1" className="origin-bottom group-hover:animate-icon-bar-3" />
+    </svg>
+  )
+}
 
 const NAV = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard', anim: 'group-hover:animate-icon-bounce'  },
   { href: '/team',      icon: Users,           label: 'Team',      anim: 'group-hover:animate-icon-wiggle'  },
-  { href: '/campaigns', icon: Mail,            label: 'Emails',    anim: 'group-hover:animate-icon-tilt'    },
-  { href: '/trends',    icon: BarChart3,       label: 'Trends',    anim: 'group-hover:animate-icon-bounce'  },
+  { href: '/campaigns', icon: MailIcon,        label: 'Emails',    anim: ''                                 },
+  { href: '/trends',    icon: TrendBarsIcon,   label: 'Trends',    anim: ''                                 },
   { href: '/settings',  icon: Settings,        label: 'Settings',  anim: 'group-hover:animate-icon-spin'    },
 ]
 
