@@ -58,7 +58,7 @@ export function TeamClient({ active, inactive, allTeams }: Props) {
             onClick={() => setShowImportModal(true)}
             className="text-sm border border-white/10 text-[#a1a1aa] hover:text-white hover:border-white/20 px-4 py-2 rounded-md transition-colors"
           >
-            Import
+            Bulk Import
           </button>
           <button
             onClick={() => setShowModal(true)}
