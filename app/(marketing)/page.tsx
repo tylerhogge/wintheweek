@@ -104,12 +104,12 @@ export default function LandingPage() {
 
         <div className="grid md:grid-cols-3 gap-4">
           {[
-            { icon: '📬', title: 'Zero-friction replies', body: 'Employees reply directly to the email. No app download, no login, no portal. Just hit Reply and type.' },
-            { icon: '✦', title: 'AI weekly summaries', body: 'Claude reads every reply and surfaces the highlights, themes, and standout wins — so you don\'t have to.' },
+            { icon: '📬', title: 'Zero-friction replies', body: 'Employees reply directly to the email — or Slack. No app download, no login, no portal. Just hit Reply and type.' },
+            { icon: '✦', title: 'AI weekly briefing', body: 'AI generates a highly contextual weekly briefing — not just on what your company is getting done, but what you should do as a CEO.' },
             { icon: '🏢', title: 'Team-level views', body: 'Filter by team or function to see what Engineering shipped vs. what Sales closed this week.' },
             { icon: '📅', title: 'Flexible scheduling', body: 'Send Friday mornings, Monday afternoons, biweekly — whatever cadence fits your company.' },
-            { icon: '❤️', title: 'Likes & comments', body: 'Managers can react and comment on replies, making recognition easy and visible to the whole team.' },
-            { icon: '📊', title: 'Reply rate tracking', body: 'See who responded and who didn\'t at a glance. Gently nudge stragglers without awkward Slack messages.' },
+            { icon: '🔔', title: 'Auto-nudges & accountability', body: 'Automatic reminders for people who haven\'t replied. You see who responded and who didn\'t — no awkward follow-ups needed.' },
+            { icon: '💬', title: 'Ask your data anything', body: 'Email a question and get an AI-powered answer based on your team\'s check-in data. Like having a chief of staff on call.' },
           ].map(({ icon, title, body }: { icon: string; title: string; body: string }) => (
             <div key={title} className="bg-surface border border-white/[0.07] rounded-xl p-7 hover:border-white/[0.12] transition-colors">
               <div className="text-2xl mb-4">{icon}</div>
