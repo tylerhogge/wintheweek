@@ -125,28 +125,32 @@ export default function LandingPage() {
         <p className="text-xs font-semibold tracking-[0.1em] uppercase text-accent mb-4">Pricing</p>
         <h2 className="text-[clamp(26px,4vw,38px)] font-bold tracking-[-0.03em] leading-[1.15] mb-14">Dead simple. Massive value.</h2>
 
-        <div className="grid md:grid-cols-3 gap-4">
+        <div className="grid md:grid-cols-4 gap-4">
           {[
             {
-              name: 'Free', price: '$0', desc: 'Try it with your team', popular: false,
+              name: 'Free', price: '$0', desc: 'Try it with your team', popular: false, cta: 'Get started',
               features: ['Up to 10 employees', '1 active campaign', 'Weekly reply dashboard', 'Reply tracking & nudges', '30-day history'],
             },
             {
-              name: 'Growth', price: '$99', desc: 'For scaling companies', popular: true,
+              name: 'Growth', price: '$99', desc: 'For scaling companies', popular: true, cta: 'Join waitlist',
               features: ['Up to 100 employees', 'Unlimited campaigns', 'AI weekly intelligence briefing', 'Full Slack integration', 'Ask-your-data AI queries', 'Team & function filters', 'Unlimited history'],
             },
             {
-              name: 'Premium', price: '$299', desc: 'For larger organizations', popular: false,
+              name: 'Premium', price: '$299', desc: 'For larger organizations', popular: false, cta: 'Join waitlist',
               features: ['Up to 250 employees', 'Everything in Growth', 'Custom send domain', 'Priority support', 'Dedicated onboarding'],
             },
-          ].map(({ name, price, desc, popular, features }: { name: string; price: string; desc: string; popular: boolean; features: string[] }) => (
+            {
+              name: 'Enterprise', price: 'Custom', desc: '250+ employees', popular: false, cta: 'Contact us',
+              features: ['Unlimited employees', 'Everything in Premium', 'SSO & advanced security', 'Custom integrations', 'Dedicated account manager'],
+            },
+          ].map(({ name, price, desc, popular, features, cta }: { name: string; price: string; desc: string; popular: boolean; features: string[]; cta: string }) => (
             <div key={name} className={`bg-surface border rounded-xl p-7 ${popular ? 'border-accent/40 bg-gradient-to-b from-accent/[0.06] to-surface' : 'border-white/[0.07]'}`}>
               <div className="flex items-center gap-2 mb-1">
                 <p className="text-[13px] font-semibold">{name}</p>
                 {popular && <span className="text-[10px] font-semibold bg-accent/10 text-accent border border-accent/30 px-2 py-0.5 rounded-full">Popular</span>}
               </div>
               <p className="text-xs text-[#71717a] mb-5">{desc}</p>
-              <p className="mb-6"><span className="text-[36px] font-bold tracking-[-0.04em]">{price}</span><span className="text-sm text-[#71717a] ml-1">/ mo</span></p>
+              <p className="mb-6"><span className="text-[36px] font-bold tracking-[-0.04em]">{price}</span>{price !== 'Custom' && <span className="text-sm text-[#71717a] ml-1">/ mo</span>}</p>
               <ul className="space-y-2.5 mb-6">
                 {features.map((f: string) => (
                   <li key={f} className="text-sm text-[#a1a1aa] flex items-center gap-2">
@@ -154,8 +158,8 @@ export default function LandingPage() {
                   </li>
                 ))}
               </ul>
-              <Link href="#waitlist" className={`block text-center text-sm font-semibold py-2 rounded-md transition-colors ${popular ? 'bg-accent text-black hover:bg-accent/90' : 'border border-white/10 hover:bg-white/[0.04]'}`}>
-                {popular ? 'Join waitlist' : 'Get started'}
+              <Link href={name === 'Enterprise' ? '/contact' : '#waitlist'} className={`block text-center text-sm font-semibold py-2 rounded-md transition-colors ${popular ? 'bg-accent text-black hover:bg-accent/90' : 'border border-white/10 hover:bg-white/[0.04]'}`}>
+                {cta}
               </Link>
             </div>
           ))}
