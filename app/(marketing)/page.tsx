@@ -104,16 +104,24 @@ export default function LandingPage() {
 
         <div className="grid md:grid-cols-3 gap-4">
           {[
-            { icon: '📬', title: 'Zero-friction replies', body: 'Employees reply directly to the email — or Slack. No app download, no login, no portal. Just hit Reply and type.' },
-            { icon: '✦', title: 'AI weekly briefing', body: 'AI generates a highly contextual weekly briefing — not just on what your company is getting done, but what you should do as a CEO.' },
-            { icon: '🎯', title: 'Priority tracking with AI', body: 'Set your top priorities. AI evaluates your company\'s progress against them every week — surfacing what\'s moving, what\'s stalled, and what needs your attention.' },
-            { icon: '🏢', title: 'Team-level views', body: 'Filter by team or function to see what Engineering shipped vs. what Sales closed this week.' },
-            { icon: '⚡', title: 'Full Slack integration', body: 'Run your company on Slack? No problem. Check-ins delivered as DMs, replies collected automatically — your team never leaves Slack.' },
+            { icon: '📬', title: 'Zero-friction check-ins', body: 'Employees reply directly to the email — or Slack. No app download, no login, no portal. Just hit Reply and type.' },
+            { icon: '✦', title: 'AI CEO briefing', body: 'Every week, AI synthesizes your entire company\'s check-ins into a highly contextualized CEO briefing. Track progress against your top priorities automatically — surface what\'s moving, what\'s stalled, and what needs your attention.' },
+            { icon: 'slack', title: 'Slack integration', body: 'Run your company on Slack? No problem. Check-ins delivered as DMs, replies collected automatically — your team never leaves Slack.' },
             { icon: '🔔', title: 'Auto-nudges & accountability', body: 'Automatic reminders for people who haven\'t replied. You see who responded and who didn\'t — no awkward follow-ups needed.' },
             { icon: '💬', title: 'Ask your data anything', body: 'Email a question and get an AI-powered answer based on your team\'s check-in data. Like having a chief of staff on call.' },
+            { icon: '📊', title: 'Trends & insights over time', body: 'See how themes evolve week over week across your company. Spot patterns in morale, blockers, and momentum before they become problems.' },
           ].map(({ icon, title, body }: { icon: string; title: string; body: string }) => (
             <div key={title} className="bg-surface border border-white/[0.07] rounded-xl p-7 hover:border-white/[0.12] transition-colors">
-              <div className="text-2xl mb-4">{icon}</div>
+              <div className="text-2xl mb-4">
+                {icon === 'slack' ? (
+                  <svg width="28" height="28" viewBox="0 0 127 127" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M27.2 80c0 7.3-5.9 13.2-13.2 13.2C6.7 93.2.8 87.3.8 80c0-7.3 5.9-13.2 13.2-13.2h13.2V80zm6.6 0c0-7.3 5.9-13.2 13.2-13.2 7.3 0 13.2 5.9 13.2 13.2v33c0 7.3-5.9 13.2-13.2 13.2-7.3 0-13.2-5.9-13.2-13.2V80z" fill="#E01E5A"/>
+                    <path d="M47 27c-7.3 0-13.2-5.9-13.2-13.2C33.8 6.5 39.7.6 47 .6c7.3 0 13.2 5.9 13.2 13.2V27H47zm0 6.7c7.3 0 13.2 5.9 13.2 13.2 0 7.3-5.9 13.2-13.2 13.2H13.9C6.6 60.1.7 54.2.7 46.9c0-7.3 5.9-13.2 13.2-13.2H47z" fill="#36C5F0"/>
+                    <path d="M99.9 46.9c0-7.3 5.9-13.2 13.2-13.2 7.3 0 13.2 5.9 13.2 13.2 0 7.3-5.9 13.2-13.2 13.2H99.9V46.9zm-6.6 0c0 7.3-5.9 13.2-13.2 13.2-7.3 0-13.2-5.9-13.2-13.2V13.8C66.9 6.5 72.8.6 80.1.6c7.3 0 13.2 5.9 13.2 13.2v33.1z" fill="#2EB67D"/>
+                    <path d="M80.1 99.8c7.3 0 13.2 5.9 13.2 13.2 0 7.3-5.9 13.2-13.2 13.2-7.3 0-13.2-5.9-13.2-13.2V99.8h13.2zm0-6.6c-7.3 0-13.2-5.9-13.2-13.2 0-7.3 5.9-13.2 13.2-13.2h33.1c7.3 0 13.2 5.9 13.2 13.2 0 7.3-5.9 13.2-13.2 13.2H80.1z" fill="#ECB22E"/>
+                  </svg>
+                ) : icon}
+              </div>
               <h3 className="text-[15px] font-semibold tracking-tight mb-2">{title}</h3>
               <p className="text-sm text-[#a1a1aa] leading-relaxed">{body}</p>
             </div>
