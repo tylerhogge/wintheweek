@@ -111,7 +111,7 @@ export default function LandingPage() {
             { icon: '💬', title: 'Ask your data anything', body: 'Email a question and get an AI-powered answer based on your team\'s check-in data. Like having a chief of staff on call.' },
             { icon: '📊', title: 'Trends & insights over time', body: 'See how themes evolve week over week across your company. Spot patterns in morale, blockers, and momentum before they become problems.' },
           ].map(({ icon, title, body }: { icon: string; title: string; body: string }) => (
-            <div key={title} className="bg-surface border border-white/[0.07] rounded-xl p-7 hover:border-white/[0.12] transition-colors">
+            <div key={title} className="bg-surface border border-white/[0.07] rounded-xl p-7 hover:border-white/[0.12] transition-colors h-full">
               <div className="text-2xl mb-4">
                 {icon === 'slack' ? (
                   <svg width="28" height="28" viewBox="0 0 127 127" xmlns="http://www.w3.org/2000/svg">
