@@ -334,9 +334,9 @@ export function DemoAnimation() {
                 <span style={{ color: '#22c55e', fontSize: 10, fontWeight: 600 }}>4/5 replied</span>
               </div>
             </div>
-            {/* AI summary strip */}
+            {/* AI CEO briefing strip */}
             <div style={{ background: 'rgba(34,197,94,0.06)', border: '1px solid rgba(34,197,94,0.18)', borderRadius: 8, padding: '7px 10px', marginBottom: 10 }}>
-              <p style={{ color: '#22c55e', fontSize: 10, fontWeight: 600, marginBottom: 3 }}>✦ AI SUMMARY</p>
+              <p style={{ color: '#22c55e', fontSize: 10, fontWeight: 600, marginBottom: 3 }}>✦ AI CEO BRIEFING</p>
               <p style={{ color: '#a1a1aa', fontSize: 11, lineHeight: 1.5 }}>Strong week — major product launch, 3 enterprise deals closed, mobile redesign shipped.</p>
             </div>
             {/* Reply cards */}
