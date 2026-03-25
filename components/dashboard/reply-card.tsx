@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Heart, Bell } from 'lucide-react'
+import { Bell } from 'lucide-react'
 import { getInitials, avatarGradient } from '@/lib/utils'
 import type { SubmissionWithDetails, ManagerReply } from '@/types'
 
@@ -12,8 +12,6 @@ export function ReplyCard({ submission }: Props) {
   const hasReplied = !!response
   const managerReplies: ManagerReply[] = (response as any)?.manager_replies ?? []
 
-  const [liked, setLiked] = useState(!!(response as any)?.liked_at)
-  const [loading, setLoading] = useState(false)
   const [nudgeSent, setNudgeSent] = useState(false)
   const [nudging, setNudging] = useState(false)
 
@@ -27,20 +25,6 @@ export function ReplyCard({ submission }: Props) {
       // silent
     } finally {
       setNudging(false)
-    }
-  }
-
-  async function toggleLike() {
-    if (!response || loading) return
-    setLoading(true)
-    setLiked((prev) => !prev) // optimistic update
-    try {
-      const res = await fetch(`/api/responses/${response.id}/like`, { method: 'POST' })
-      if (!res.ok) setLiked((prev) => !prev) // revert on error
-    } catch {
-      setLiked((prev) => !prev)
-    } finally {
-      setLoading(false)
     }
   }
 
@@ -101,22 +85,6 @@ export function ReplyCard({ submission }: Props) {
             </p>
           )}
         </div>
-
-        {/* Like button — only shown when there is a reply */}
-        {hasReplied && (
-          <button
-            onClick={toggleLike}
-            disabled={loading}
-            aria-label={liked ? 'Unlike' : 'Like this reply'}
-            className={`shrink-0 mt-0.5 flex items-center gap-1 rounded-md px-2 py-1.5 transition-all ${
-              liked
-                ? 'text-rose-400 bg-rose-500/[0.1] border border-rose-500/20'
-                : 'text-[#52525b] hover:text-rose-400 border border-transparent hover:border-rose-500/20 hover:bg-rose-500/[0.06]'
-            }`}
-          >
-            <Heart className={`w-3.5 h-3.5 transition-all ${liked ? 'fill-rose-400' : ''}`} />
-          </button>
-        )}
       </div>
 
       {/* Manager reply thread */}

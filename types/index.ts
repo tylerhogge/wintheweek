@@ -82,7 +82,6 @@ export type Response = {
   submission_id: string
   body_raw: string
   body_clean: string | null
-  liked_at: string | null
   created_at: string
   manager_replies?: ManagerReply[]
 }

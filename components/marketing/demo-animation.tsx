@@ -33,8 +33,7 @@ export function DemoAnimation() {
       hide('demo-phone-wrap')
       // Desktop
       hide('demo-desktop-wrap')
-      hide('demo-heart')
-      hide('demo-comment')
+      // (heart + comment removed — CEO operating system, not social)
       // Typing
       const typed = el('demo-typed')
       if (typed) typed.textContent = ''
@@ -97,9 +96,7 @@ export function DemoAnimation() {
       } else if (scene === 3) {
         // Scene 3: dashboard
         show('demo-desktop-wrap'); setDot(3)
-        t(() => { show('demo-heart') }, 1800)
-        t(() => { show('demo-comment') }, 3200)
-        t(() => playFromScene(0), 7000)
+        t(() => playFromScene(0), 5000)
       }
     }
 
@@ -110,9 +107,7 @@ export function DemoAnimation() {
           if (cursor) cursor.style.opacity = '0'
           t(() => { hide('demo-scene-compose'); show('demo-scene-sent'); setDot(3) }, 800)
           t(() => { hide('demo-phone-wrap'); show('demo-desktop-wrap') }, 1800)
-          t(() => { show('demo-heart') }, 1800 + 1800)
-          t(() => { show('demo-comment') }, 1800 + 3200)
-          t(() => playFromScene(0), 1800 + 7000)
+          t(() => playFromScene(0), 1800 + 5000)
         })
       }, 400)
     }
@@ -356,20 +351,8 @@ export function DemoAnimation() {
                   </div>
                   <span style={{ color: '#fafafa', fontSize: 11, fontWeight: 600 }}>{r.name}</span>
                   <span style={{ background: 'rgba(255,255,255,0.06)', color: '#71717a', fontSize: 9, padding: '1px 5px', borderRadius: 4 }}>{r.team}</span>
-                  {i === 0 && (
-                    <div id="demo-heart" style={{ opacity: 0, transition: 'opacity 0.3s ease, transform 0.4s cubic-bezier(.22,.68,0,1.5)', marginLeft: 'auto', fontSize: 13 }}>
-                      ❤️ <span style={{ color: '#71717a', fontSize: 10 }}>2</span>
-                    </div>
-                  )}
                 </div>
                 <p style={{ color: '#a1a1aa', fontSize: 11, lineHeight: 1.5 }}>{r.text}</p>
-                {i === 0 && (
-                  <div id="demo-comment" style={{ opacity: 0, transition: 'opacity 0.3s ease', marginTop: 6, paddingTop: 6, borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-                    <p style={{ color: '#71717a', fontSize: 10 }}>
-                      <span style={{ color: '#a1a1aa', fontWeight: 600 }}>Sarah M.:</span> Great work this week! 🙌
-                    </p>
-                  </div>
-                )}
               </div>
             ))}
           </div>
