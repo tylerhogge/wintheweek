@@ -60,7 +60,7 @@ export default function LandingPage() {
               </h1>
 
               <p className="text-[clamp(15px,1.8vw,17px)] text-[#d4d4d8] max-w-[440px] mb-10 leading-relaxed">
-                Send your team a single weekly email (or Slack!). Collect replies. Get an instant view of what the whole company accomplished in an AI-synthesized CEO briefing — without a meeting, and without your team logging into anything.
+                Send your team one weekly email (or Slack!). Collect replies. Get an AI-synthesized CEO briefing on what the whole company accomplished — no meetings, no logins.
               </p>
 
               <WaitlistForm />
