@@ -85,7 +85,7 @@ export default function LandingPage() {
         <div className="grid md:grid-cols-3 gap-4">
           {[
             { n: '01', title: 'Configure your check-in', body: 'Add your team, set your CEO priorities, and choose your send schedule. Takes two minutes.' },
-            { n: '02', title: 'Employees just reply', body: 'They get a clean email. They hit Reply, type what they accomplished, and send. No app. No login. No friction whatsoever.' },
+            { n: '02', title: 'Employees just reply', body: 'They get a clean email or Slack DM. They hit Reply, type what they accomplished, and send. No app. No login. No friction.' },
             { n: '03', title: 'You see everything', body: 'Replies land in your dashboard, organized by team. AI surfaces the highlights and trends so you don\'t have to dig.' },
           ].map(({ n, title, body }: { n: string; title: string; body: string }) => (
             <div key={n} className="bg-surface border border-white/[0.07] rounded-xl p-7 hover:border-white/[0.12] transition-colors">
