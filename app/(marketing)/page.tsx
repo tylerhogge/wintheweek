@@ -105,9 +105,9 @@ export default function LandingPage() {
         <div className="grid md:grid-cols-3 gap-4">
           {[
             { icon: '📬', title: 'Zero-friction check-ins', body: 'Employees reply directly to the email — or Slack. No app download, no login, no portal. Just hit Reply and type.' },
-            { icon: '✦', title: 'AI CEO briefing', body: 'AI synthesizes every check-in into a contextualized CEO briefing. Track progress against your top priorities — what\'s moving, what\'s stalled, what needs you.' },
+            { icon: '✦', title: 'AI CEO briefing', body: 'AI synthesizes every check-in into a contextualized CEO briefing. Track progress against your priorities — what\'s moving, what\'s stalled, what needs you.' },
             { icon: 'slack', title: 'Slack integration', body: 'Run your company on Slack? No problem. Check-ins delivered as DMs, replies collected automatically — your team never leaves Slack.' },
-            { icon: '🔔', title: 'Auto-nudges & accountability', body: 'Automatic reminders for people who haven\'t replied. You see who responded and who didn\'t — no awkward follow-ups needed.' },
+            { icon: '🔔', title: 'Auto-nudges & accountability', body: 'Automatic reminders for people who haven\'t replied. See who responded and who didn\'t — no awkward follow-ups.' },
             { icon: '💬', title: 'Ask your data anything', body: 'Email a question and get an AI-powered answer based on your team\'s check-in data. Like having a chief of staff on call.' },
             { icon: '📊', title: 'Trends & insights over time', body: 'See how themes evolve week over week across your company. Spot patterns in morale, blockers, and momentum before they become problems.' },
           ].map(({ icon, title, body }: { icon: string; title: string; body: string }) => (
