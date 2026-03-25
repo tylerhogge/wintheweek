@@ -42,22 +42,33 @@ export default async function Image() {
           </span>
         </div>
 
-        {/* Headline */}
-        <h1
-          style={{
-            color: '#fafafa',
-            fontSize: '64px',
-            fontWeight: 700,
-            letterSpacing: '-0.04em',
-            lineHeight: 1.1,
-            margin: 0,
-            marginBottom: '24px',
-            maxWidth: '800px',
-          }}
-        >
-          What did your company get done{' '}
-          <span style={{ color: '#22c55e' }}>this week?</span>
-        </h1>
+        {/* Headline — two explicit lines to control wrapping */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '28px' }}>
+          <h1
+            style={{
+              color: '#fafafa',
+              fontSize: '62px',
+              fontWeight: 700,
+              letterSpacing: '-0.04em',
+              lineHeight: 1.15,
+              margin: 0,
+            }}
+          >
+            The CEO&apos;s weekly
+          </h1>
+          <h1
+            style={{
+              color: '#22c55e',
+              fontSize: '62px',
+              fontWeight: 700,
+              letterSpacing: '-0.04em',
+              lineHeight: 1.15,
+              margin: 0,
+            }}
+          >
+            operating system.
+          </h1>
+        </div>
 
         {/* Subline */}
         <p
@@ -69,7 +80,7 @@ export default async function Image() {
             maxWidth: '700px',
           }}
         >
-          The CEO&apos;s weekly operating system. AI-powered briefings on what your company accomplished and what it needs from you.
+          AI-powered briefings on what your company accomplished and what it needs from you. No meetings. No logins.
         </p>
 
         {/* URL */}
