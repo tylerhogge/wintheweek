@@ -84,7 +84,7 @@ export default function LandingPage() {
 
         <div className="grid md:grid-cols-3 gap-4">
           {[
-            { n: '01', title: 'Configure your check-in', body: 'Customize the question, set your send schedule — Friday morning, every two weeks, whenever. Add your team in seconds.' },
+            { n: '01', title: 'Configure your check-in', body: 'Add your team, set your CEO priorities, and choose your send schedule. Takes two minutes.' },
             { n: '02', title: 'Employees just reply', body: 'They get a clean email. They hit Reply, type what they accomplished, and send. No app. No login. No friction whatsoever.' },
             { n: '03', title: 'You see everything', body: 'Replies land in your dashboard, organized by team. AI surfaces the highlights and trends so you don\'t have to dig.' },
           ].map(({ n, title, body }: { n: string; title: string; body: string }) => (
