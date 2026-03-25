@@ -2,6 +2,7 @@ import { Suspense } from 'react'
 import { getAuthUser, getProfile, createServiceClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { DigestToggle } from '@/components/settings/digest-toggle'
+import { ReplyNotifyToggle } from '@/components/settings/reply-notify-toggle'
 import { OrgNameEdit } from '@/components/settings/org-name-edit'
 import { SlackConnect } from '@/components/settings/slack-connect'
 import { ShameSettings } from '@/components/settings/shame-settings'
@@ -12,12 +13,13 @@ import type { Priority } from '@/types'
 async function SettingsContent({ orgId, org }: { orgId: string; org: any }) {
   const service = createServiceClient()
   const [orgData, slackData, countData] = await Promise.all([
-    service.from('organizations').select('digest_notify, shame_enabled, shame_channel_id, shame_channel_name, shame_email_enabled, auto_nudge, priorities').eq('id', orgId).single(),
+    service.from('organizations').select('digest_notify, notify_on_reply, shame_enabled, shame_channel_id, shame_channel_name, shame_email_enabled, auto_nudge, priorities').eq('id', orgId).single(),
     service.from('slack_integrations').select('team_name').eq('org_id', orgId).single(),
     service.from('employees').select('slack_user_id', { count: 'exact', head: false }).eq('org_id', orgId).eq('active', true),
   ])
 
   const digestNotify = orgData.data?.digest_notify ?? false
+  const notifyOnReply = orgData.data?.notify_on_reply ?? true
   const shameEnabled = orgData.data?.shame_enabled ?? false
   const shameChannelId = orgData.data?.shame_channel_id ?? null
   const shameChannelName = orgData.data?.shame_channel_name ?? null
@@ -110,12 +112,21 @@ async function SettingsContent({ orgId, org }: { orgId: string; org: any }) {
           </div>
           <div className="px-5 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
-              <p className="text-sm font-medium">Email me the weekly digest</p>
+              <p className="text-sm font-medium">Email me the weekly CEO briefing</p>
               <p className="text-xs text-[#71717a] mt-0.5">
-                Get the AI summary + all replies emailed to you once everyone has responded
+                Get the AI briefing + all replies emailed to you once everyone has responded
               </p>
             </div>
             <DigestToggle initialValue={digestNotify} />
+          </div>
+          <div className="px-5 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+              <p className="text-sm font-medium">Notify me when each person replies</p>
+              <p className="text-xs text-[#71717a] mt-0.5">
+                Get an email every time someone submits their individual check-in
+              </p>
+            </div>
+            <ReplyNotifyToggle initialValue={notifyOnReply} />
           </div>
         </div>
       </section>

@@ -9,6 +9,7 @@ export type Organization = {
   slug: string
   logo_url: string | null
   digest_notify: boolean
+  notify_on_reply: boolean
   priorities: Priority[] | null
   created_at: string
 }

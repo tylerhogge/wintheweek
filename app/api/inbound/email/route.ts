@@ -720,14 +720,23 @@ export async function POST(req: Request) {
     const weekStart = (priorSubmission as any).week_start
 
     if (orgId && weekStart) {
-      await notifyAdmin({
-        orgId,
-        responseId: priorResponse.id,
-        employeeName: employee.name,
-        employeeTeam: (employee as any).team ?? null,
-        replyBody: followUpBody,
-        weekStart,
-      }).catch((err) => console.error('[notifyAdmin thread]', err))
+      // Check if the org wants individual reply notifications
+      const { data: orgSettingsThread } = await supabase
+        .from('organizations')
+        .select('notify_on_reply')
+        .eq('id', orgId)
+        .single()
+
+      if (orgSettingsThread?.notify_on_reply ?? true) {
+        await notifyAdmin({
+          orgId,
+          responseId: priorResponse.id,
+          employeeName: employee.name,
+          employeeTeam: (employee as any).team ?? null,
+          replyBody: followUpBody,
+          weekStart,
+        }).catch((err) => console.error('[notifyAdmin thread]', err))
+      }
     }
 
     return NextResponse.json({ ok: true, note: 'Thread continuation forwarded to admin' })
@@ -799,24 +808,35 @@ export async function POST(req: Request) {
   // Await notification so it completes before the function returns —
   // Vercel can kill un-awaited background promises after the response is sent.
   if (orgId && weekStart) {
-    await notifyAdmin({
-      orgId,
-      responseId: savedResponse.id,
-      employeeName: employee.name,
-      employeeTeam: (employee as any).team ?? null,
-      replyBody: cleanBody,
-      weekStart,
-    }).catch((err) => console.error('[notifyAdmin]', err))
+    // Check if the org wants individual reply notifications
+    const { data: orgSettings } = await supabase
+      .from('organizations')
+      .select('notify_on_reply')
+      .eq('id', orgId)
+      .single()
 
-    // Notify managers of this employee's team
-    await notifyManagers({
-      orgId,
-      responseId: savedResponse.id,
-      employeeName: employee.name,
-      employeeTeam: (employee as any).team ?? null,
-      replyBody: cleanBody,
-      weekStart,
-    }).catch((err) => console.error('[notifyManagers]', err))
+    const shouldNotify = orgSettings?.notify_on_reply ?? true
+
+    if (shouldNotify) {
+      await notifyAdmin({
+        orgId,
+        responseId: savedResponse.id,
+        employeeName: employee.name,
+        employeeTeam: (employee as any).team ?? null,
+        replyBody: cleanBody,
+        weekStart,
+      }).catch((err) => console.error('[notifyAdmin]', err))
+
+      // Notify managers of this employee's team
+      await notifyManagers({
+        orgId,
+        responseId: savedResponse.id,
+        employeeName: employee.name,
+        employeeTeam: (employee as any).team ?? null,
+        replyBody: cleanBody,
+        weekStart,
+      }).catch((err) => console.error('[notifyManagers]', err))
+    }
 
     // These are slower and optional — keep them as background work
     Promise.all([
