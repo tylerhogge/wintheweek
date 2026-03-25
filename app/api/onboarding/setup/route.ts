@@ -6,7 +6,7 @@ function slugify(name: string): string {
 }
 
 export async function POST(req: Request) {
-  const { company, yourName } = await req.json()
+  const { company, yourName, priorities } = await req.json()
 
   if (!company?.trim()) {
     return NextResponse.json({ error: 'Company name required' }, { status: 400 })
@@ -47,10 +47,27 @@ export async function POST(req: Request) {
     slug = `${baseSlug}-${attempt}`
   }
 
+  // Validate priorities if provided
+  let validPriorities = null
+  if (Array.isArray(priorities) && priorities.length > 0) {
+    validPriorities = priorities
+      .filter((p: any) => typeof p.name === 'string' && p.name.trim())
+      .slice(0, 7)
+      .map((p: any) => ({
+        name: p.name.trim(),
+        description: typeof p.description === 'string' ? p.description.trim() : '',
+      }))
+    if (validPriorities.length === 0) validPriorities = null
+  }
+
   // Create the organization
   const { data: org, error: orgErr } = await supabase
     .from('organizations')
-    .insert({ name: company.trim(), slug })
+    .insert({
+      name: company.trim(),
+      slug,
+      ...(validPriorities && { priorities: validPriorities }),
+    })
     .select()
     .single()
 
