@@ -134,7 +134,7 @@ export default function LandingPage() {
         <p className="text-xs font-semibold tracking-[0.1em] uppercase text-accent mb-4">Pricing</p>
         <h2 className="text-[clamp(26px,4vw,38px)] font-bold tracking-[-0.03em] leading-[1.15] mb-14">Dead simple. Massive value.</h2>
 
-        <div className="grid md:grid-cols-4 gap-4">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {[
             {
               name: 'Free', price: '$0', desc: 'Try it with your team', popular: false, cta: 'Join waitlist',

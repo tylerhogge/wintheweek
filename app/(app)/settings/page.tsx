@@ -121,9 +121,9 @@ async function SettingsContent({ orgId, org }: { orgId: string; org: any }) {
           </div>
           <div className="px-5 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
-              <p className="text-sm font-medium">Notify me when each person replies</p>
+              <p className="text-sm font-medium">Email me each reply as it comes in</p>
               <p className="text-xs text-[#71717a] mt-0.5">
-                Get an email every time someone submits their individual check-in
+                Get each person&apos;s check-in delivered to your inbox — reply directly to engage with them
               </p>
             </div>
             <ReplyNotifyToggle initialValue={notifyOnReply} />

@@ -121,7 +121,7 @@ export function ReplyCard({ submission }: Props) {
 
       {/* Manager reply thread */}
       {managerReplies.length > 0 && (
-        <div className="mt-3 ml-12 flex flex-col gap-2.5">
+        <div className="mt-3 ml-6 sm:ml-12 flex flex-col gap-2.5">
           {managerReplies.map((mr: ManagerReply) => (
             <div key={mr.id} className="flex items-start gap-3">
               {/* Connector line */}

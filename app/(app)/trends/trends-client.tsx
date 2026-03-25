@@ -68,7 +68,7 @@ export function TrendsClient({ weeklyData, employeeList, teamList }: Props) {
             No data yet — reply rates will appear after your first campaign.
           </div>
         ) : (
-          <div className="flex items-end gap-1 sm:gap-1.5" style={{ height: chartHeight }}>
+          <div className="flex items-end gap-px sm:gap-1.5" style={{ height: chartHeight }}>
             {weeklyData.map((w, i) => {
               const barH = Math.max(4, (w.rate / maxRate) * chartHeight)
               const color =
@@ -100,7 +100,7 @@ export function TrendsClient({ weeklyData, employeeList, teamList }: Props) {
 
       {/* ── Summary Stats ─────────────────────────────────────────────────── */}
       {weeklyData.length > 0 && (
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {(() => {
             const totalSent = weeklyData.reduce((a, w) => a + w.sent, 0)
             const totalReplied = weeklyData.reduce((a, w) => a + w.replied, 0)
@@ -154,7 +154,7 @@ export function TrendsClient({ weeklyData, employeeList, teamList }: Props) {
 
         {tab === 'people' ? (
           <div className="bg-surface border border-white/[0.07] rounded-xl overflow-hidden">
-            <div className="px-5 py-3 border-b border-white/[0.07] grid grid-cols-[2fr_1fr_80px] sm:grid-cols-[2fr_1.2fr_1fr_100px] text-xs font-medium text-[#71717a] uppercase tracking-[0.06em]">
+            <div className="px-5 py-3 border-b border-white/[0.07] grid grid-cols-[1.5fr_1fr_60px] sm:grid-cols-[2fr_1.2fr_1fr_100px] text-xs font-medium text-[#71717a] uppercase tracking-[0.06em]">
               <span>Name</span>
               <span className="hidden sm:block">Team</span>
               <span>Reply rate</span>
@@ -166,7 +166,7 @@ export function TrendsClient({ weeklyData, employeeList, teamList }: Props) {
               employeeList.map((emp, i) => (
                 <div
                   key={emp.name + i}
-                  className={`px-5 py-3 grid grid-cols-[2fr_1fr_80px] sm:grid-cols-[2fr_1.2fr_1fr_100px] items-center ${
+                  className={`px-5 py-3 grid grid-cols-[1.5fr_1fr_60px] sm:grid-cols-[2fr_1.2fr_1fr_100px] items-center ${
                     i < employeeList.length - 1 ? 'border-b border-white/[0.05]' : ''
                   }`}
                 >
