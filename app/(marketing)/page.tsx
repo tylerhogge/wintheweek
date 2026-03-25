@@ -86,7 +86,7 @@ export default function LandingPage() {
           {[
             { n: '01', title: 'Configure your check-in', body: 'Add your team, set your CEO priorities, and choose your send schedule. Takes two minutes.' },
             { n: '02', title: 'Employees just reply', body: 'They get a clean email or Slack DM. They hit Reply, type what they accomplished, and send. No app. No login. No friction.' },
-            { n: '03', title: 'Get your CEO briefing', body: 'Every Monday, get an AI-powered briefing — what moved, what stalled, who delivered, and how it all maps to your priorities.' },
+            { n: '03', title: 'Get your CEO briefing', body: 'Every Monday, get an AI-powered briefing — what moved, what stalled, who delivered, and how it maps to your priorities.' },
           ].map(({ n, title, body }: { n: string; title: string; body: string }) => (
             <div key={n} className="bg-surface border border-white/[0.07] rounded-xl p-7 hover:border-white/[0.12] transition-colors">
               <div className="w-7 h-7 border border-white/10 rounded-md flex items-center justify-center text-xs font-semibold text-[#71717a] mb-5">{n}</div>
