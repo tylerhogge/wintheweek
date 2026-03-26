@@ -109,6 +109,15 @@ export function RichBodyEditor({ value, onChange, className }: Props) {
 
   return (
     <div>
+      {!hasName && (
+        <button
+          type="button"
+          onClick={insertFirstName}
+          className="text-xs text-accent/70 hover:text-accent mb-1.5 transition-colors"
+        >
+          + Add employee first name
+        </button>
+      )}
       <div
         ref={editorRef}
         contentEditable
@@ -118,15 +127,6 @@ export function RichBodyEditor({ value, onChange, className }: Props) {
         className={className}
         style={{ minHeight: '180px', whiteSpace: 'pre-wrap', lineHeight: '1.7' }}
       />
-      {!hasName && (
-        <button
-          type="button"
-          onClick={insertFirstName}
-          className="text-xs text-accent/70 hover:text-accent mt-1.5 transition-colors"
-        >
-          + Add employee first name
-        </button>
-      )}
     </div>
   )
 }
