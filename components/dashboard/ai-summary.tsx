@@ -37,16 +37,31 @@ export function AISummary({ insight, className }: Props) {
 
   const hasFullBriefing = insight.cross_functional_themes || insight.risk_items || insight.bottom_line || insight.initiative_tracking
 
+  function sentimentColor(score: number) {
+    if (score >= 8) return 'text-accent'
+    if (score >= 6) return 'text-blue-400'
+    if (score >= 4) return 'text-yellow-500'
+    if (score >= 2) return 'text-orange-500'
+    return 'text-red-400'
+  }
+
   return (
     <div className={cn(
       'bg-accent/[0.06] border border-accent/[0.18] rounded-xl px-5 py-4',
       className,
     )}>
-      {/* Header */}
+      {/* Header + Sentiment badge */}
       <div className="flex items-center justify-between mb-2.5">
-        <p className="text-[10px] font-semibold tracking-[0.08em] uppercase text-accent flex items-center gap-1.5">
-          <span>✦</span> AI Weekly Briefing
-        </p>
+        <div className="flex items-center gap-3">
+          <p className="text-[10px] font-semibold tracking-[0.08em] uppercase text-accent flex items-center gap-1.5">
+            <span>✦</span> AI Weekly Briefing
+          </p>
+          {insight.sentiment_score != null && (
+            <span className={`text-[10px] font-semibold ${sentimentColor(insight.sentiment_score)}`}>
+              {insight.sentiment_label ?? 'Mood'} {insight.sentiment_score}/10
+            </span>
+          )}
+        </div>
         {hasFullBriefing && (
           <button
             onClick={() => setExpanded(!expanded)}
@@ -72,6 +87,20 @@ export function AISummary({ insight, className }: Props) {
             </li>
           ))}
         </ul>
+      )}
+
+      {/* Themes pills */}
+      {insight.themes && insight.themes.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 mt-3 pt-3 border-t border-white/[0.06]">
+          {(insight.themes as string[]).map((theme: string) => (
+            <span
+              key={theme}
+              className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-white/[0.06] border border-white/[0.08] text-[#a1a1aa]"
+            >
+              {theme}
+            </span>
+          ))}
+        </div>
       )}
 
       {/* Expanded: full briefing sections */}
