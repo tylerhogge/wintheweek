@@ -80,6 +80,12 @@ export function cleanEmailBody(raw: string): string {
   // Remove Resend's [signature_XXXXXXXX] placeholders and inline image refs
   let text = raw.replace(/\[signature_\d+\]/gi, '').replace(/\[cid:[^\]]+\]/gi, '')
 
+  // Remove image attachment references like [12_Email Signature Banner...png]
+  text = text.replace(/\[\d*_?[^\]]*\.(png|jpg|jpeg|gif|bmp)\]/gi, '')
+
+  // Remove bare URLs in angle brackets (common in signatures)
+  text = text.replace(/<https?:\/\/[^>]+>/g, '')
+
   const lines = text.split('\n')
   const cleaned: string[] = []
   let consecutiveBlanks = 0
@@ -89,14 +95,21 @@ export function cleanEmailBody(raw: string): string {
     const trimmed = line.trim()
 
     // Track consecutive blank lines.
-    // People often leave blank lines between bullet points or paragraphs, so we
-    // only treat 3+ consecutive blanks as a signature/footer boundary.
     if (trimmed === '') {
       consecutiveBlanks++
       if (consecutiveBlanks >= 3) break
+      // 2 blanks = likely signature boundary, UNLESS the next non-blank
+      // line looks like content (bullet, number, continuation paragraph)
+      if (consecutiveBlanks >= 2) {
+        const nextNonBlank = lines.slice(i + 1).find((l) => l.trim())?.trim()
+        if (
+          !nextNonBlank ||
+          !/^[\d•\-\*\(\)]/.test(nextNonBlank)
+        ) {
+          break
+        }
+      }
     } else {
-      // If we had exactly 2 blanks but the next line looks like content
-      // (bullet, number, letter), keep going — it's just formatted text.
       consecutiveBlanks = 0
     }
 
@@ -124,10 +137,30 @@ export function cleanEmailBody(raw: string): string {
       break
     }
 
+    // Stop at likely signature lines: phone numbers, addresses, URLs
+    if (/^\d{3}[-.\s]?\d{3}[-.\s]?\d{4}/.test(trimmed)) break
+    if (/^\d+\s+\w+\s+(st|street|ave|avenue|way|blvd|rd|road|dr|drive|ln|lane|suite|ste)\b/i.test(trimmed)) break
+
     cleaned.push(line)
   }
 
   // Trim trailing blank lines
+  while (cleaned.length && cleaned[cleaned.length - 1].trim() === '') cleaned.pop()
+
+  // Trim trailing lines that look like a name/title (signature start without delimiter)
+  // e.g. "Jack Cutler\nInvestor\nPelion Venture Partners"
+  // Detect: last few lines are short, no punctuation, look like name/title/company
+  while (cleaned.length > 1) {
+    const last = cleaned[cleaned.length - 1].trim()
+    // Short line with no sentence punctuation — likely a signature line
+    if (last.length > 0 && last.length <= 60 && !/[.!?:,]/.test(last) && !/^\d/.test(last)) {
+      cleaned.pop()
+    } else {
+      break
+    }
+  }
+
+  // Trim trailing blank lines again after signature removal
   while (cleaned.length && cleaned[cleaned.length - 1].trim() === '') cleaned.pop()
 
   return cleaned.join('\n').trim()
@@ -192,12 +225,22 @@ export function htmlToPlainText(html: string): string {
   // Clean up whitespace: collapse multiple spaces (but preserve newlines)
   text = text.replace(/[^\S\n]+/g, ' ')
 
-  // Clean up lines: trim each line, collapse 3+ consecutive newlines to 2
-  text = text
-    .split('\n')
-    .map((line) => line.trim())
-    .join('\n')
-    .replace(/\n{3,}/g, '\n\n')
+  // Clean up lines: trim each, merge orphaned number lines with their content
+  const rawLines = text.split('\n').map((line) => line.trim())
+  const merged: string[] = []
+  for (let i = 0; i < rawLines.length; i++) {
+    const line = rawLines[i]
+    // If this line is just a number/bullet marker (e.g. "1.", "2)", "•")
+    // and the next line has content, merge them
+    if (/^(\d+[.):]|•|-)$/.test(line) && i + 1 < rawLines.length && rawLines[i + 1]) {
+      merged.push(`${line} ${rawLines[i + 1]}`)
+      i++ // skip the next line since we merged it
+    } else {
+      merged.push(line)
+    }
+  }
+
+  text = merged.join('\n').replace(/\n{3,}/g, '\n\n')
 
   return text.trim()
 }
