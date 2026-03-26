@@ -354,13 +354,18 @@ async function notifyManagers({
 
   if (!managers || managers.length === 0) return
 
-  // Get admin email to avoid double-notifying
-  const { data: adminProfile } = await supabase
+  // Get all admin email addresses to avoid double-notifying.
+  // The admin may use different emails in their auth profile vs employee record,
+  // so we collect all known admin emails for dedup.
+  const { data: adminProfiles } = await supabase
     .from('profiles')
     .select('email')
     .eq('org_id', orgId)
-    .limit(1)
-    .single()
+
+  const adminEmails = new Set<string>()
+  for (const p of adminProfiles ?? []) {
+    if (p.email) adminEmails.add(p.email.toLowerCase())
+  }
 
   // Week reply counts for context
   const { data: weekSubs } = await supabase
@@ -380,8 +385,8 @@ async function notifyManagers({
   const fromAddress = `Win the Week <${process.env.FROM_EMAIL ?? 'hello@wintheweek.co'}>`
 
   for (const manager of managers) {
-    // Skip if manager is the admin (they already got notified)
-    if (manager.email === adminProfile?.email) continue
+    // Skip if manager is the admin (they already got notified via notifyAdmin)
+    if (adminEmails.has(manager.email.toLowerCase())) continue
 
     const emailContent = buildReplyNotification({
       adminName: manager.name?.split(' ')[0] ?? 'Manager',
