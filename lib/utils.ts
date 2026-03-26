@@ -88,11 +88,15 @@ export function cleanEmailBody(raw: string): string {
     const line = lines[i]
     const trimmed = line.trim()
 
-    // Track consecutive blank lines — 2+ in a row = signature/footer territory
+    // Track consecutive blank lines.
+    // People often leave blank lines between bullet points or paragraphs, so we
+    // only treat 3+ consecutive blanks as a signature/footer boundary.
     if (trimmed === '') {
       consecutiveBlanks++
-      if (consecutiveBlanks >= 2) break
+      if (consecutiveBlanks >= 3) break
     } else {
+      // If we had exactly 2 blanks but the next line looks like content
+      // (bullet, number, letter), keep going — it's just formatted text.
       consecutiveBlanks = 0
     }
 
