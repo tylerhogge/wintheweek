@@ -81,7 +81,7 @@ export function buildDigestEmail({
 
   const summaryHtml = summary
     ? `<div style="background:rgba(34,197,94,0.06); border:1px solid rgba(34,197,94,0.18); border-radius:10px; padding:20px 24px; margin-bottom:28px;">
-        <p style="font-size:10px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:#22c55e; margin:0 0 10px;">✦ AI Summary</p>
+        <p style="font-size:10px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:#22c55e; margin:0 0 10px;">✦ AI CEO Briefing</p>
         <p style="font-size:14px; color:#a1a1aa; line-height:1.65; margin:0 0 ${highlights && highlights.length > 0 ? '14px' : '0'};">${summary}</p>
         ${
           highlights && highlights.length > 0
@@ -117,7 +117,7 @@ export function buildDigestEmail({
   const text = [
     `Weekly Digest — ${weekLabel}`,
     '',
-    summary ? `AI Summary:\n${summary}` : '',
+    summary ? `AI CEO Briefing:\n${summary}` : '',
     '',
     ...replies.map((r) => `${r.name}${r.team ? ` (${r.team})` : ''}:\n${r.body}`),
     '',

@@ -244,6 +244,7 @@ async function notifyAdmin({
   employeeTeam,
   replyBody,
   weekStart,
+  isFollowUp = false,
 }: {
   orgId: string
   responseId: string
@@ -251,6 +252,7 @@ async function notifyAdmin({
   employeeTeam: string | null
   replyBody: string
   weekStart: string
+  isFollowUp?: boolean
 }) {
   const supabase = createServiceClient()
 
@@ -289,6 +291,21 @@ async function notifyAdmin({
     weekTotal,
   })
 
+  // Threading: use a deterministic Message-ID based on the response ID so that
+  // follow-up notifications (and the CEO's own replies) all reference the same
+  // anchor and Gmail groups them into one thread.
+  const anchorMessageId = `<notify-${responseId}@wintheweek.co>`
+  const headers: Record<string, string> = {}
+
+  if (isFollowUp) {
+    // Follow-up: thread onto the original notification
+    headers['In-Reply-To'] = anchorMessageId
+    headers['References'] = anchorMessageId
+  } else {
+    // First notification: set the anchor Message-ID
+    headers['Message-ID'] = anchorMessageId
+  }
+
   const resend = getResend()
   await resend.emails.send({
     from: `Win the Week <${process.env.FROM_EMAIL ?? 'hello@wintheweek.co'}>`,
@@ -297,6 +314,7 @@ async function notifyAdmin({
     subject: emailContent.subject,
     html: emailContent.html,
     text: emailContent.text,
+    headers,
   })
 }
 
@@ -719,6 +737,14 @@ export async function POST(req: Request) {
     const orgId = employee.org_id
     const weekStart = (priorSubmission as any).week_start
 
+    // Store the employee follow-up in the conversation thread
+    await supabase.from('manager_replies').insert({
+      response_id: priorResponse.id,
+      body_clean: followUpBody,
+      sender_type: 'employee',
+      employee_name: employee.name,
+    })
+
     if (orgId && weekStart) {
       // Check if the org wants individual reply notifications
       const { data: orgSettingsThread } = await supabase
@@ -735,6 +761,7 @@ export async function POST(req: Request) {
           employeeTeam: (employee as any).team ?? null,
           replyBody: followUpBody,
           weekStart,
+          isFollowUp: true,
         }).catch((err) => console.error('[notifyAdmin thread]', err))
       }
     }

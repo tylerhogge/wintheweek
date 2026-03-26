@@ -74,6 +74,8 @@ export type ManagerReply = {
   id: string
   response_id: string
   body_clean: string
+  sender_type: 'manager' | 'employee'
+  employee_name: string | null
   created_at: string
 }
 

@@ -87,30 +87,41 @@ export function ReplyCard({ submission }: Props) {
         </div>
       </div>
 
-      {/* Manager reply thread */}
+      {/* Conversation thread (CEO replies + employee follow-ups) */}
       {managerReplies.length > 0 && (
         <div className="mt-3 ml-6 sm:ml-12 flex flex-col gap-2.5">
-          {managerReplies.map((mr: ManagerReply) => (
-            <div key={mr.id} className="flex items-start gap-3">
-              {/* Connector line */}
-              <div className="flex flex-col items-center self-stretch shrink-0" style={{ width: 20 }}>
-                <div className="w-px flex-1 bg-white/[0.06]" />
-              </div>
-              <div className="flex-1 min-w-0 bg-white/[0.02] border border-white/[0.06] rounded-lg px-3.5 py-2.5">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-[11px] font-semibold text-[#71717a] uppercase tracking-[0.05em]">You replied</span>
-                  <span className="text-[11px] text-[#3f3f46]">
-                    {new Date(mr.created_at).toLocaleString('en-US', {
-                      weekday: 'short', hour: 'numeric', minute: '2-digit',
-                    })}
-                  </span>
+          {managerReplies.map((mr: ManagerReply) => {
+            const isEmployee = mr.sender_type === 'employee'
+            return (
+              <div key={mr.id} className="flex items-start gap-3">
+                {/* Connector line */}
+                <div className="flex flex-col items-center self-stretch shrink-0" style={{ width: 20 }}>
+                  <div className="w-px flex-1 bg-white/[0.06]" />
                 </div>
-                <p className="text-[13px] text-[#a1a1aa] leading-[1.6] whitespace-pre-wrap">
-                  {mr.body_clean}
-                </p>
+                <div className={`flex-1 min-w-0 rounded-lg px-3.5 py-2.5 ${
+                  isEmployee
+                    ? 'bg-white/[0.02] border border-white/[0.06]'
+                    : 'bg-white/[0.02] border border-white/[0.06]'
+                }`}>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className={`text-[11px] font-semibold uppercase tracking-[0.05em] ${
+                      isEmployee ? 'text-accent/70' : 'text-[#71717a]'
+                    }`}>
+                      {isEmployee ? (mr.employee_name?.split(' ')[0] ?? 'Employee') : 'You replied'}
+                    </span>
+                    <span className="text-[11px] text-[#3f3f46]">
+                      {new Date(mr.created_at).toLocaleString('en-US', {
+                        weekday: 'short', hour: 'numeric', minute: '2-digit',
+                      })}
+                    </span>
+                  </div>
+                  <p className="text-[13px] text-[#a1a1aa] leading-[1.6] whitespace-pre-wrap">
+                    {mr.body_clean}
+                  </p>
+                </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       )}
     </div>
