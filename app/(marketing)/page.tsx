@@ -109,7 +109,7 @@ export default function LandingPage() {
             { icon: 'slack', title: 'Slack integration', body: 'Run your company on Slack? No problem. Check-ins delivered as DMs, replies collected automatically — your team never leaves Slack.' },
             { icon: '🔔', title: 'Auto-nudges & accountability', body: 'Automatic reminders for people who haven\'t replied. See who responded and who didn\'t — no awkward follow-ups.' },
             { icon: '💬', title: 'Ask your data anything', body: 'Email a question and get an AI-powered answer based on your team\'s check-in data. Like having a chief of staff on call.' },
-            { icon: '📊', title: 'Sentiment & trends over time', body: 'Track company mood, top themes, and reply rates week over week. AI scores team sentiment from check-in tone — spot morale dips before they become problems.' },
+            { icon: '📊', title: 'Sentiment & trends over time', body: 'Track company mood, top themes, and reply rates week over week. AI scores team sentiment from check-in tone — spot morale dips early.' },
           ].map(({ icon, title, body }: { icon: string; title: string; body: string }) => (
             <div key={title} className="bg-surface border border-white/[0.07] rounded-xl p-7 hover:border-white/[0.12] transition-colors h-full">
               <div className="text-2xl mb-4">
