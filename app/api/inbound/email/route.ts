@@ -10,7 +10,7 @@ import { NextResponse } from 'next/server'
 import { Webhook } from 'svix'
 import { getResend, buildDigestEmail, buildReplyNotification, buildManagerReplyEmail, buildNudgeEmail } from '@/lib/resend'
 import { createServiceClient } from '@/lib/supabase/server'
-import { cleanEmailBody, formatWeekRange } from '@/lib/utils'
+import { cleanEmailBody, htmlToPlainText, formatWeekRange } from '@/lib/utils'
 import { generateWeeklyInsight, generateQueryResponse } from '@/lib/anthropic'
 
 type ResendInboundPayload = {
@@ -653,19 +653,7 @@ export async function POST(req: Request) {
     let rawBody = receivedEmail.text ?? ''
     const htmlBody = (receivedEmail as any).html ?? ''
     if (htmlBody && rawBody.split('\n').filter((l: string) => l.trim()).length <= 2) {
-      rawBody = htmlBody
-        .replace(/<br\s*\/?>/gi, '\n')
-        .replace(/<\/p>/gi, '\n\n')
-        .replace(/<\/div>/gi, '\n')
-        .replace(/<\/li>/gi, '\n')
-        .replace(/<li[^>]*>/gi, '- ')
-        .replace(/<[^>]+>/g, '')
-        .replace(/&nbsp;/g, ' ')
-        .replace(/&amp;/g, '&')
-        .replace(/&lt;/g, '<')
-        .replace(/&gt;/g, '>')
-        .replace(/&quot;/g, '"')
-        .replace(/&#39;/g, "'")
+      rawBody = htmlToPlainText(htmlBody)
     }
     await handleManagerReply(responseId, rawBody).catch(console.error)
     return NextResponse.json({ ok: true, note: 'Manager reply processed' })
@@ -823,19 +811,7 @@ export async function POST(req: Request) {
 
   if (htmlBody && rawBody.split('\n').filter((l: string) => l.trim()).length <= 2) {
     // Text version has 2 or fewer non-blank lines but HTML exists — extract from HTML
-    const fromHtml = htmlBody
-      .replace(/<br\s*\/?>/gi, '\n')
-      .replace(/<\/p>/gi, '\n\n')
-      .replace(/<\/div>/gi, '\n')
-      .replace(/<\/li>/gi, '\n')
-      .replace(/<li[^>]*>/gi, '- ')
-      .replace(/<[^>]+>/g, '')
-      .replace(/&nbsp;/g, ' ')
-      .replace(/&amp;/g, '&')
-      .replace(/&lt;/g, '<')
-      .replace(/&gt;/g, '>')
-      .replace(/&quot;/g, '"')
-      .replace(/&#39;/g, "'")
+    const fromHtml = htmlToPlainText(htmlBody)
     console.log('[inbound] text was short, extracted from HTML:', JSON.stringify(fromHtml.slice(0, 300)))
     rawBody = fromHtml
   }

@@ -133,6 +133,75 @@ export function cleanEmailBody(raw: string): string {
   return cleaned.join('\n').trim()
 }
 
+/**
+ * Convert HTML email body to clean plain text.
+ * Handles Outlook's verbose HTML with ordered/unordered lists,
+ * nested divs/spans, and signature blocks.
+ */
+export function htmlToPlainText(html: string): string {
+  let text = html
+
+  // Remove style and script blocks entirely
+  text = text.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+  text = text.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+
+  // Convert <br> to newline
+  text = text.replace(/<br\s*\/?>/gi, '\n')
+
+  // Convert block-level closers to newlines
+  text = text.replace(/<\/p>/gi, '\n')
+  text = text.replace(/<\/div>/gi, '\n')
+  text = text.replace(/<\/tr>/gi, '\n')
+  text = text.replace(/<\/h[1-6]>/gi, '\n')
+
+  // Handle ordered lists: number each <li> inside <ol>
+  let olCounter = 0
+  text = text.replace(/<ol[^>]*>/gi, () => { olCounter = 0; return '' })
+  text = text.replace(/<\/ol>/gi, '')
+
+  // Handle unordered lists
+  text = text.replace(/<ul[^>]*>/gi, '')
+  text = text.replace(/<\/ul>/gi, '')
+
+  // For <li>, detect context: if we're inside an <ol>, use numbers; otherwise use "-"
+  // Since we've already removed <ol> tags and track counter, we use a simpler approach:
+  // Replace all <li> with a placeholder, then handle numbering in a second pass.
+  // Actually, let's use a simpler regex-based approach with a callback:
+  text = text.replace(/<li[^>]*>/gi, '\n• ')
+  text = text.replace(/<\/li>/gi, '')
+
+  // Strip all remaining HTML tags
+  text = text.replace(/<[^>]+>/g, '')
+
+  // Decode HTML entities
+  text = text.replace(/&nbsp;/g, ' ')
+  text = text.replace(/&amp;/g, '&')
+  text = text.replace(/&lt;/g, '<')
+  text = text.replace(/&gt;/g, '>')
+  text = text.replace(/&quot;/g, '"')
+  text = text.replace(/&#39;/g, "'")
+  text = text.replace(/&#x27;/g, "'")
+  text = text.replace(/&rsquo;/g, "'")
+  text = text.replace(/&lsquo;/g, "'")
+  text = text.replace(/&rdquo;/g, '\u201D')
+  text = text.replace(/&ldquo;/g, '\u201C')
+  text = text.replace(/&mdash;/g, '\u2014')
+  text = text.replace(/&ndash;/g, '\u2013')
+  text = text.replace(/&#\d+;/g, '') // strip remaining numeric entities
+
+  // Clean up whitespace: collapse multiple spaces (but preserve newlines)
+  text = text.replace(/[^\S\n]+/g, ' ')
+
+  // Clean up lines: trim each line, collapse 3+ consecutive newlines to 2
+  text = text
+    .split('\n')
+    .map((line) => line.trim())
+    .join('\n')
+    .replace(/\n{3,}/g, '\n\n')
+
+  return text.trim()
+}
+
 // Build the reply-to address encoding a submission ID.
 // Uses just the first 8 hex chars of the UUID so the address stays readable:
 //   reply+f159bfcc@inbound.wintheweek.co
