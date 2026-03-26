@@ -6,11 +6,14 @@ import { getInitials, avatarGradient } from '@/lib/utils'
 type WeekData = { week: string; sent: number; replied: number; rate: number }
 type EmployeeData = { name: string; team: string | null; sent: number; replied: number; rate: number; missed: number }
 type TeamData = { team: string; sent: number; replied: number; rate: number }
+type SentimentData = { week: string; score: number; label: string }
 
 type Props = {
   weeklyData: WeekData[]
   employeeList: EmployeeData[]
   teamList: TeamData[]
+  sentimentData?: SentimentData[]
+  latestThemes?: string[]
 }
 
 function formatWeekLabel(week: string) {
@@ -36,7 +39,23 @@ function RateBar({ rate }: { rate: number }) {
   )
 }
 
-export function TrendsClient({ weeklyData, employeeList, teamList }: Props) {
+function sentimentColor(score: number) {
+  if (score >= 8) return 'text-accent'
+  if (score >= 6) return 'text-blue-400'
+  if (score >= 4) return 'text-yellow-500'
+  if (score >= 2) return 'text-orange-500'
+  return 'text-red-400'
+}
+
+function sentimentBg(score: number) {
+  if (score >= 8) return 'bg-accent'
+  if (score >= 6) return 'bg-blue-400'
+  if (score >= 4) return 'bg-yellow-500'
+  if (score >= 2) return 'bg-orange-500'
+  return 'bg-red-400'
+}
+
+export function TrendsClient({ weeklyData, employeeList, teamList, sentimentData = [], latestThemes = [] }: Props) {
   const [tab, setTab] = useState<'people' | 'teams'>('people')
 
   // Chart: simple bar chart showing reply rate per week
@@ -123,6 +142,101 @@ export function TrendsClient({ weeklyData, employeeList, teamList }: Props) {
               </>
             )
           })()}
+        </div>
+      )}
+
+      {/* ── Company Sentiment ──────────────────────────────────────────────── */}
+      {sentimentData.length > 0 && (
+        <div className="bg-surface border border-white/[0.07] rounded-xl p-5 sm:p-6">
+          <div className="flex items-center justify-between mb-5">
+            <div>
+              <p className="text-sm font-semibold">Company sentiment</p>
+              <p className="text-xs text-[#71717a] mt-0.5">How the team is feeling, based on AI analysis of replies</p>
+            </div>
+            {sentimentData.length > 0 && (() => {
+              const latest = sentimentData[sentimentData.length - 1]
+              return (
+                <div className="text-right">
+                  <p className={`text-2xl font-bold tracking-tight tabular-nums ${sentimentColor(latest.score)}`}>
+                    {latest.score}/10
+                  </p>
+                  <p className="text-[10px] text-[#71717a] uppercase tracking-wider">{latest.label}</p>
+                </div>
+              )
+            })()}
+          </div>
+
+          {/* Sentiment trend line */}
+          <div className="relative" style={{ height: 120 }}>
+            {/* Y-axis labels */}
+            <div className="absolute left-0 top-0 bottom-5 flex flex-col justify-between text-[9px] text-[#52525b] w-5">
+              <span>10</span>
+              <span>5</span>
+              <span>1</span>
+            </div>
+            {/* Grid lines */}
+            <div className="absolute left-7 right-0 top-0 bottom-5">
+              <div className="absolute top-0 left-0 right-0 border-t border-white/[0.04]" />
+              <div className="absolute top-1/2 left-0 right-0 border-t border-white/[0.04]" />
+              <div className="absolute bottom-0 left-0 right-0 border-t border-white/[0.04]" />
+            </div>
+            {/* Dots and connecting lines */}
+            <div className="absolute left-7 right-0 top-0 bottom-5">
+              <svg className="w-full h-full" preserveAspectRatio="none" viewBox={`0 0 ${Math.max(sentimentData.length - 1, 1)} 9`}>
+                {/* Connecting line */}
+                {sentimentData.length > 1 && (
+                  <polyline
+                    fill="none"
+                    stroke="rgba(255,255,255,0.15)"
+                    strokeWidth="0.15"
+                    points={sentimentData.map((d, i) => `${i},${10 - d.score}`).join(' ')}
+                  />
+                )}
+                {/* Dots */}
+                {sentimentData.map((d, i) => (
+                  <circle
+                    key={d.week}
+                    cx={i}
+                    cy={10 - d.score}
+                    r="0.25"
+                    className={sentimentBg(d.score)}
+                    fill="currentColor"
+                  />
+                ))}
+              </svg>
+            </div>
+            {/* X-axis labels */}
+            <div className="absolute left-7 right-0 bottom-0 flex justify-between">
+              {sentimentData.map((d, i) => (
+                <span
+                  key={d.week}
+                  className={`text-[9px] text-[#52525b] tabular-nums ${i % 2 !== 0 && sentimentData.length > 6 ? 'hidden sm:block' : ''}`}
+                >
+                  {formatWeekLabel(d.week)}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Top Themes ─────────────────────────────────────────────────────── */}
+      {latestThemes.length > 0 && (
+        <div className="bg-surface border border-white/[0.07] rounded-xl p-5 sm:p-6">
+          <div className="mb-3">
+            <p className="text-sm font-semibold">Top themes this week</p>
+            <p className="text-xs text-[#71717a] mt-0.5">Most discussed topics across all replies</p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {latestThemes.map((theme) => (
+              <span
+                key={theme}
+                className="text-xs font-medium px-3 py-1.5 rounded-full bg-accent/10 border border-accent/20 text-accent"
+              >
+                {theme}
+              </span>
+            ))}
+          </div>
         </div>
       )}
 

@@ -100,6 +100,9 @@ export type InsightResult = {
   risk_items: string | null
   bottom_line: string | null
   initiative_tracking: string | null
+  sentiment_score: number | null
+  sentiment_label: string | null
+  themes: string[] | null
 }
 
 export type PriorityInput = {
@@ -164,6 +167,10 @@ ${isSmallOrg ? `Note: This is a smaller team (${replyCount} replies). Scale the 
 
 4. HIGHLIGHTS: Exactly 3 short highlight bullets (one sentence each) calling out the most notable wins. Start each with the person's name.${initiativeSection}
 
+5. COMPANY SENTIMENT: Read the emotional tone across ALL replies. Score the overall company mood on a 1-10 scale (1 = deeply concerned/frustrated, 5 = neutral, 10 = highly energized/optimistic). Also provide a short label like "Energized", "Positive", "Steady", "Mixed", "Concerned", or "Frustrated". Be honest — if people are stressed, the score should reflect that.
+
+6. THEMES: Extract the 3-5 most prominent topics or themes across all replies. These should be short labels (1-3 words each) like "Hiring", "Product launch", "Technical debt", "Client renewals", "Q2 planning". Only include themes that multiple people mentioned or that dominated a reply.
+
 Format your response as JSON exactly like this:
 {
   "cross_functional_themes": "Full text with paragraphs separated by \\n\\n",
@@ -171,6 +178,9 @@ Format your response as JSON exactly like this:
   "bottom_line": "Single paragraph",
   "summary": "A 2-sentence executive summary for the dashboard card — the most compressed version of the bottom line",
   "highlights": ["...", "...", "..."],${initiativeJsonField}
+  "sentiment_score": 7,
+  "sentiment_label": "Positive",
+  "themes": ["Theme 1", "Theme 2", "Theme 3"]
 }
 
 Write in confident, direct prose. No corporate fluff. No "it's worth noting" or "it may be beneficial to consider." Just tell the CEO what's happening and what to do about it.`,

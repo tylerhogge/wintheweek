@@ -13,7 +13,7 @@ async function TrendsContent({ orgId }: { orgId: string }) {
   const now = new Date()
   const twelveWeeksAgo = format(startOfWeek(subWeeks(now, 12), { weekStartsOn: 1 }), 'yyyy-MM-dd')
 
-  const [{ data: submissions }, { data: employees }] = await Promise.all([
+  const [{ data: submissions }, { data: employees }, { data: insights }] = await Promise.all([
     supabase
       .from('submissions')
       .select('id, week_start, replied_at, sent_at, employee_id, employees!inner(name, team, org_id)')
@@ -27,6 +27,12 @@ async function TrendsContent({ orgId }: { orgId: string }) {
       .eq('org_id', orgId)
       .eq('active', true)
       .order('name'),
+    supabase
+      .from('insights')
+      .select('week_start, sentiment_score, sentiment_label, themes')
+      .eq('org_id', orgId)
+      .gte('week_start', twelveWeeksAgo)
+      .order('week_start', { ascending: true }),
   ])
 
   // Group by week for chart data
@@ -89,11 +95,28 @@ async function TrendsContent({ orgId }: { orgId: string }) {
     }))
     .sort((a, b) => a.rate - b.rate)
 
+  // Build sentiment data from insights
+  const sentimentData = (insights ?? [])
+    .filter((i: any) => i.sentiment_score != null)
+    .map((i: any) => ({
+      week: i.week_start,
+      score: i.sentiment_score as number,
+      label: (i.sentiment_label as string) ?? '',
+    }))
+
+  // Collect the most recent week's themes
+  const latestInsight = (insights ?? [])
+    .filter((i: any) => i.themes && (i.themes as string[]).length > 0)
+    .sort((a: any, b: any) => b.week_start.localeCompare(a.week_start))[0]
+  const latestThemes: string[] = latestInsight ? (latestInsight as any).themes : []
+
   return (
     <TrendsClient
       weeklyData={weeklyData}
       employeeList={employeeList}
       teamList={teamList}
+      sentimentData={sentimentData}
+      latestThemes={latestThemes}
     />
   )
 }

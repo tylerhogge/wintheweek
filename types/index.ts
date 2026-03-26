@@ -99,6 +99,9 @@ export type Insight = {
   risk_items: string | null
   bottom_line: string | null
   initiative_tracking: string | null
+  sentiment_score: number | null
+  sentiment_label: string | null
+  themes: string[] | null
   generated_at: string
 }
 

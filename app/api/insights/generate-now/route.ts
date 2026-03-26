@@ -59,7 +59,7 @@ export async function POST(req: Request) {
   }
 
   const weekLabel = formatWeekRange(week_start)
-  let insight: { summary: string; highlights: string[]; cross_functional_themes: string | null; risk_items: string | null; bottom_line: string | null; initiative_tracking: string | null }
+  let insight: { summary: string; highlights: string[]; cross_functional_themes: string | null; risk_items: string | null; bottom_line: string | null; initiative_tracking: string | null; sentiment_score: number | null; sentiment_label: string | null; themes: string[] | null }
 
   try {
     insight = await generateWeeklyInsight(org?.name ?? 'the org', weekLabel, replies, org?.priorities as any)
@@ -81,6 +81,9 @@ export async function POST(req: Request) {
       risk_items: insight.risk_items,
       bottom_line: insight.bottom_line,
       initiative_tracking: insight.initiative_tracking,
+      sentiment_score: insight.sentiment_score,
+      sentiment_label: insight.sentiment_label,
+      themes: insight.themes,
       generated_at: new Date().toISOString(),
     },
     { onConflict: 'org_id,week_start' },
