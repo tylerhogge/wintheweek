@@ -650,7 +650,23 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Could not retrieve email body' }, { status: 500 })
     }
 
-    const rawBody = receivedEmail.text ?? ''
+    let rawBody = receivedEmail.text ?? ''
+    const htmlBody = (receivedEmail as any).html ?? ''
+    if (htmlBody && rawBody.split('\n').filter((l: string) => l.trim()).length <= 2) {
+      rawBody = htmlBody
+        .replace(/<br\s*\/?>/gi, '\n')
+        .replace(/<\/p>/gi, '\n\n')
+        .replace(/<\/div>/gi, '\n')
+        .replace(/<\/li>/gi, '\n')
+        .replace(/<li[^>]*>/gi, '- ')
+        .replace(/<[^>]+>/g, '')
+        .replace(/&nbsp;/g, ' ')
+        .replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&quot;/g, '"')
+        .replace(/&#39;/g, "'")
+    }
     await handleManagerReply(responseId, rawBody).catch(console.error)
     return NextResponse.json({ ok: true, note: 'Manager reply processed' })
   }
@@ -797,7 +813,33 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Could not retrieve email body', detail: fetchErr }, { status: 500 })
   }
 
-  const rawBody = receivedEmail.text ?? ''
+  // Prefer plain text, but fall back to HTML→text if the text version looks
+  // truncated (Outlook mobile sometimes sends a minimal .text alternative).
+  let rawBody = receivedEmail.text ?? ''
+  const htmlBody = (receivedEmail as any).html ?? ''
+
+  console.log('[inbound] text length:', rawBody.length, 'html length:', htmlBody.length)
+  console.log('[inbound] text preview:', JSON.stringify(rawBody.slice(0, 300)))
+
+  if (htmlBody && rawBody.split('\n').filter((l: string) => l.trim()).length <= 2) {
+    // Text version has 2 or fewer non-blank lines but HTML exists — extract from HTML
+    const fromHtml = htmlBody
+      .replace(/<br\s*\/?>/gi, '\n')
+      .replace(/<\/p>/gi, '\n\n')
+      .replace(/<\/div>/gi, '\n')
+      .replace(/<\/li>/gi, '\n')
+      .replace(/<li[^>]*>/gi, '- ')
+      .replace(/<[^>]+>/g, '')
+      .replace(/&nbsp;/g, ' ')
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+    console.log('[inbound] text was short, extracted from HTML:', JSON.stringify(fromHtml.slice(0, 300)))
+    rawBody = fromHtml
+  }
+
   const cleanBody = cleanEmailBody(rawBody)
 
   // Extract threading headers from the employee's reply.
