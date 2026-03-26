@@ -31,13 +31,13 @@ export async function POST(req: Request) {
     .eq('id', org_id)
     .single()
 
-  // Fetch all cleaned responses for this week
+  // Fetch all cleaned responses for this week (excluding hidden ones)
   const { data: submissions } = await supabase
     .from('submissions')
     .select(`
       week_start,
       employees(name, team),
-      responses(body_clean)
+      responses(body_clean, hidden_at)
     `)
     .eq('week_start', week_start)
     .eq('employees.org_id', org_id)
@@ -47,9 +47,10 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true, note: 'No replies to summarize yet' })
   }
 
-  // Shape the data for the AI prompt
-  const replies = (submissions as unknown as { employees: { name: string; team: string | null } | null; responses: { body_clean: string } | null }[])
-    .map((s: { employees: { name: string; team: string | null } | null; responses: { body_clean: string } | null }) => ({
+  // Shape the data for the AI prompt, filtering out hidden responses
+  const replies = (submissions as any[])
+    .filter((s: any) => !s.responses?.hidden_at)
+    .map((s: any) => ({
       name: s.employees?.name ?? 'Unknown',
       team: s.employees?.team ?? null,
       body: s.responses?.body_clean ?? '',

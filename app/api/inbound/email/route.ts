@@ -79,12 +79,13 @@ async function generateAndStoreInsight(orgId: string, weekStart: string) {
 
   const { data: submissions } = await supabase
     .from('submissions')
-    .select('employees(name, team), responses(body_clean)')
+    .select('employees(name, team), responses(body_clean, hidden_at)')
     .eq('week_start', weekStart)
     .eq('employees.org_id', orgId)
     .not('responses', 'is', null)
 
   const replies = ((submissions ?? []) as any[])
+    .filter((s: any) => !s.responses?.hidden_at)
     .map((s: any) => ({
       name: s.employees?.name ?? 'Unknown',
       team: s.employees?.team ?? null,
@@ -152,12 +153,13 @@ async function maybeFireDigest(orgId: string, weekStart: string) {
 
   const { data: submissions } = await supabase
     .from('submissions')
-    .select('employees(name, team), responses(body_clean)')
+    .select('employees(name, team), responses(body_clean, hidden_at)')
     .eq('week_start', weekStart)
     .eq('employees.org_id', orgId)
     .not('responses', 'is', null)
 
   const allReplies = ((submissions ?? []) as any[])
+    .filter((s: any) => !s.responses?.hidden_at)
     .map((s: any) => ({
       name: s.employees?.name ?? 'Unknown',
       team: s.employees?.team ?? null,
@@ -548,7 +550,7 @@ async function handleManagerQuery({
 
   const { data: submissionRows } = await supabase
     .from('submissions')
-    .select('week_start, replied_at, sent_at, employees!inner(name, team, org_id), responses(body_clean)')
+    .select('week_start, replied_at, sent_at, employees!inner(name, team, org_id), responses(body_clean, hidden_at)')
     .eq('employees.org_id', orgId)
     .gte('week_start', weekStartCutoff)
     .not('sent_at', 'is', null)
@@ -567,7 +569,7 @@ async function handleManagerQuery({
     employeeName: s.employees?.name ?? 'Unknown',
     employeeTeam: s.employees?.team ?? null,
     responded: s.replied_at !== null,
-    body: s.responses?.body_clean ?? null,
+    body: s.responses?.hidden_at ? null : (s.responses?.body_clean ?? null),
   }))
 
   // Generate the AI answer

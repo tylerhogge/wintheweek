@@ -25,12 +25,13 @@ async function generateAndStoreInsight(orgId: string, weekStart: string) {
   const { data: org } = await supabase.from('organizations').select('name').eq('id', orgId).single()
   const { data: submissions } = await supabase
     .from('submissions')
-    .select('employees(name, team), responses(body_clean)')
+    .select('employees(name, team), responses(body_clean, hidden_at)')
     .eq('week_start', weekStart)
     .eq('employees.org_id', orgId)
     .not('responses', 'is', null)
 
   const replies = ((submissions ?? []) as any[])
+    .filter((s: any) => !s.responses?.hidden_at)
     .map((s: any) => ({ name: s.employees?.name ?? 'Unknown', team: s.employees?.team ?? null, body: s.responses?.body_clean ?? '' }))
     .filter((r: any) => r.body.trim().length > 0)
 
@@ -66,12 +67,13 @@ async function maybeFireDigest(orgId: string, weekStart: string) {
 
   const { data: submissions } = await supabase
     .from('submissions')
-    .select('employees(name, team), responses(body_clean)')
+    .select('employees(name, team), responses(body_clean, hidden_at)')
     .eq('week_start', weekStart)
     .eq('employees.org_id', orgId)
     .not('responses', 'is', null)
 
   const allReplies = ((submissions ?? []) as any[])
+    .filter((s: any) => !s.responses?.hidden_at)
     .map((s: any) => ({ name: s.employees?.name ?? 'Unknown', team: s.employees?.team ?? null, body: s.responses?.body_clean ?? '' }))
     .filter((r: any) => r.body.trim().length > 0)
 

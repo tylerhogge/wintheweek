@@ -39,12 +39,13 @@ export async function POST(req: Request) {
 
   const { data: submissions } = await service
     .from('submissions')
-    .select('employees(name, team), responses(body_clean)')
+    .select('employees(name, team), responses(body_clean, hidden_at)')
     .eq('week_start', week_start)
     .eq('employees.org_id', orgId)
     .not('responses', 'is', null)
 
   const replies = ((submissions ?? []) as any[])
+    .filter((s: any) => !s.responses?.hidden_at)
     .map((s: any) => ({
       name: s.employees?.name ?? 'Unknown',
       team: s.employees?.team ?? null,
