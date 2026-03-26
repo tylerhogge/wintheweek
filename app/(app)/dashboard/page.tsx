@@ -13,7 +13,7 @@ import { GenerateSummaryBtn } from '@/components/dashboard/generate-summary-btn'
 import type { SubmissionWithDetails, Insight } from '@/types'
 
 interface Props {
-  searchParams: Promise<{ week?: string; team?: string }>
+  searchParams: Promise<{ week?: string; team?: string; filter?: string }>
 }
 
 // ── Streaming data component ──────────────────────────────────────────────────
@@ -23,10 +23,12 @@ async function DashboardContent({
   orgId,
   weekStart,
   team,
+  filter,
 }: {
   orgId: string
   weekStart: string
   team?: string
+  filter?: string
 }) {
   const supabase = await createClient()
 
@@ -68,10 +70,16 @@ async function DashboardContent({
     return s
   })
   const replied = typed.filter((s: SubmissionWithDetails) => s.response !== null)
+  const pending = typed.filter((s: SubmissionWithDetails) => s.response === null)
+
+  // Apply status filter from stat card clicks
+  const visible = filter === 'replied' ? replied
+    : filter === 'pending' ? pending
+    : typed // 'sent' or no filter = show all
 
   return (
     <>
-      <StatsBar total={typed.length} replied={replied.length} weekStart={weekStart} />
+      <StatsBar total={typed.length} replied={replied.length} weekStart={weekStart} activeFilter={filter} team={team} />
 
       {insight
         ? <AISummary insight={insight as Insight} className="mt-5" />
@@ -108,7 +116,7 @@ async function DashboardContent({
       </div>
 
       {/* Replies / Empty state */}
-      {typed.length === 0 ? (
+      {visible.length === 0 && !filter ? (
         <div className="mt-4 bg-surface border border-white/[0.07] rounded-xl p-8 flex flex-col items-center text-center">
           <div className="w-12 h-12 bg-white/[0.04] border border-white/[0.08] rounded-xl flex items-center justify-center mb-4 text-2xl">📬</div>
           <h3 className="text-[15px] font-semibold mb-1">No responses yet</h3>
@@ -134,9 +142,15 @@ async function DashboardContent({
         </div>
       ) : (
         <div className="flex flex-col gap-2">
-          {typed.map((submission: SubmissionWithDetails): React.ReactNode => (
-            <ReplyCard key={submission.id} submission={submission} />
-          ))}
+          {visible.length === 0 ? (
+            <div className="bg-surface border border-white/[0.07] rounded-xl p-8 text-center">
+              <p className="text-sm text-[#71717a]">No {filter === 'replied' ? 'replies' : 'pending submissions'} this week</p>
+            </div>
+          ) : (
+            visible.map((submission: SubmissionWithDetails): React.ReactNode => (
+              <ReplyCard key={submission.id} submission={submission} />
+            ))
+          )}
         </div>
       )}
     </>
@@ -180,7 +194,7 @@ function DashboardContentSkeleton() {
 
 // ── Page shell — renders immediately, zero DB calls ───────────────────────────
 export default async function DashboardPage({ searchParams }: Props) {
-  const [{ week, team }, user, profile] = await Promise.all([
+  const [{ week, team, filter }, user, profile] = await Promise.all([
     searchParams,
     getAuthUser(),
     getProfile(),
@@ -201,7 +215,7 @@ export default async function DashboardPage({ searchParams }: Props) {
 
       {/* Streams in as DB queries resolve — skeleton shows immediately */}
       <Suspense fallback={<DashboardContentSkeleton />}>
-        <DashboardContent orgId={profile.org_id} weekStart={weekStart} team={team} />
+        <DashboardContent orgId={profile.org_id} weekStart={weekStart} team={team} filter={filter} />
       </Suspense>
     </div>
   )
