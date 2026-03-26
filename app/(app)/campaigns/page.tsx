@@ -65,6 +65,11 @@ async function CampaignsContent({
                   <p className="text-xs text-[#71717a] mt-0.5">
                     {FREQUENCY_LABEL[c.frequency]} · {DAY_LABEL[c.send_day]} at {c.send_time} {c.timezone}
                   </p>
+                  <p className="text-xs text-[#52525b] mt-0.5">
+                    → {c.target_teams && c.target_teams.length > 0
+                      ? `Sending to ${c.target_teams.join(', ')}`
+                      : 'Sending to all teams'}
+                  </p>
                 </div>
               </div>
 
