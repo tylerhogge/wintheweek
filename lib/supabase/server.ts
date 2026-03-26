@@ -2,8 +2,10 @@ import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { cache } from 'react'
 
-// Used in Server Components, Server Actions, and Route Handlers
-export async function createClient() {
+// Used in Server Components, Server Actions, and Route Handlers.
+// Wrapped in React.cache so the same client instance is reused across
+// all server components in a single request (avoids repeated cookies() calls).
+export const createClient = cache(async () => {
   const cookieStore = await cookies()
 
   return createServerClient(
@@ -26,7 +28,7 @@ export async function createClient() {
       },
     },
   )
-}
+})
 
 // Service-role client for privileged operations (API routes only — never expose to client)
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
@@ -55,7 +57,7 @@ export const getProfile = cache(async () => {
   const supabase = await createClient()
   const { data } = await supabase
     .from('profiles')
-    .select('id, org_id, name, email, organizations(*)')
+    .select('id, org_id, name, email, organizations(id, name, slug)')
     .eq('id', user.id)
     .single()
   if (!data) return null

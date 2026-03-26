@@ -32,7 +32,7 @@ async function DashboardContent({
 
   let submissionsQuery = supabase
     .from('submissions')
-    .select(`id, campaign_id, employee_id, week_start, sent_at, replied_at, created_at, employee:employees(id, name, email, team, org_id, slack_user_id, active, manager_of_teams, function, created_at), response:responses(id, submission_id, body_raw, body_clean, hidden_at, created_at, manager_replies(id, response_id, body_clean, sender_type, employee_name, created_at))`)
+    .select(`id, week_start, sent_at, replied_at, employee:employees!inner(id, name, email, team), response:responses(id, body_clean, hidden_at, created_at, manager_replies(id, body_clean, sender_type, employee_name, created_at))`)
     .eq('week_start', weekStart)
     .eq('employees.org_id', orgId)
     .order('replied_at', { ascending: false, nullsFirst: false })
