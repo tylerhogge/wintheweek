@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import { RichBodyEditor } from '@/components/rich-body-editor'
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 
@@ -24,7 +25,6 @@ export function NewCampaignForm({ availableTeams }: Props) {
   const [error, setError] = useState<string | null>(null)
   const [selectedTeams, setSelectedTeams] = useState<string[]>([])
   const [showPreview, setShowPreview] = useState(false)
-  const bodyRef = useRef<HTMLTextAreaElement>(null)
 
   const [form, setForm] = useState({
     name: 'Weekly Check-in',
@@ -38,20 +38,6 @@ export function NewCampaignForm({ availableTeams }: Props) {
 
   function update(field: string, value: string | number) {
     setForm((prev) => ({ ...prev, [field]: value }))
-  }
-
-  function insertFirstName() {
-    const textarea = bodyRef.current
-    if (!textarea) return
-    const start = textarea.selectionStart
-    const end = textarea.selectionEnd
-    const text = form.body
-    const newText = text.slice(0, start) + '{{name}}' + text.slice(end)
-    update('body', newText)
-    setTimeout(() => {
-      textarea.focus()
-      textarea.selectionStart = textarea.selectionEnd = start + 8
-    }, 0)
   }
 
   function toggleTeam(team: string) {
@@ -103,32 +89,21 @@ export function NewCampaignForm({ availableTeams }: Props) {
       <div>
         <div className="flex items-center justify-between mb-1.5">
           <label className="block text-xs font-medium text-[#a1a1aa]">Email body</label>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={insertFirstName}
-              className="text-[10px] font-medium px-2 py-0.5 rounded-full border border-accent/30 bg-accent/10 text-accent hover:bg-accent/20 transition-colors"
-            >
-              + First Name
-            </button>
-            <button
-              type="button"
-              onClick={() => setShowPreview(!showPreview)}
-              className="text-[10px] font-medium px-2 py-0.5 rounded-full border border-white/10 text-[#71717a] hover:text-white hover:border-white/20 transition-colors"
-            >
-              {showPreview ? 'Hide preview' : 'Preview'}
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={() => setShowPreview(!showPreview)}
+            className="text-[10px] font-medium px-2 py-0.5 rounded-full border border-white/10 text-[#71717a] hover:text-white hover:border-white/20 transition-colors"
+          >
+            {showPreview ? 'Hide preview' : 'Preview'}
+          </button>
         </div>
-        <textarea
-          ref={bodyRef}
+        <RichBodyEditor
           value={form.body}
-          onChange={(e) => update('body', e.target.value)}
-          required
-          rows={8}
-          className={`${inputCls} resize-y`}
+          onChange={(v) => update('body', v)}
+          className={inputCls}
         />
-        <p className="text-xs text-[#52525b] mt-1">Tip: click <span className="text-accent">+ First Name</span> to insert the employee's name automatically</p>
+        {/* Hidden input for form validation */}
+        <input type="hidden" value={form.body} required />
 
         {showPreview && (
           <div className="mt-3 bg-white rounded-lg p-6 text-black">
