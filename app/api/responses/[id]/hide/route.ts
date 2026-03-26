@@ -49,7 +49,7 @@ export async function PATCH(
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
-  // Soft-delete
+  // Soft-delete the response
   const { error } = await supabase
     .from('responses')
     .update({ hidden_at: new Date().toISOString() })
@@ -59,6 +59,12 @@ export async function PATCH(
     console.error('[hide response] update failed:', error)
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
+
+  // Clear replied_at on the submission so stats show "pending" and nudge works
+  await supabase
+    .from('submissions')
+    .update({ replied_at: null })
+    .eq('id', response.submission_id)
 
   return NextResponse.json({ ok: true })
 }

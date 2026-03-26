@@ -17,14 +17,21 @@ export function ReplyCard({ submission }: Props) {
   const [hidden, setHidden] = useState(false)
   const [confirming, setConfirming] = useState(false)
 
+  const [nudgeFailed, setNudgeFailed] = useState(false)
+
   async function sendNudge() {
     if (nudging || nudgeSent) return
     setNudging(true)
+    setNudgeFailed(false)
     try {
-      await fetch(`/api/submissions/${submission.id}/nudge`, { method: 'POST' })
-      setNudgeSent(true)
+      const res = await fetch(`/api/submissions/${submission.id}/nudge`, { method: 'POST' })
+      if (res.ok) {
+        setNudgeSent(true)
+      } else {
+        setNudgeFailed(true)
+      }
     } catch {
-      // silent
+      setNudgeFailed(true)
     } finally {
       setNudging(false)
     }
@@ -81,7 +88,7 @@ export function ReplyCard({ submission }: Props) {
                   }`}
                 >
                   <Bell className="w-3 h-3" />
-                  {nudgeSent ? 'Nudged ✓' : nudging ? '...' : 'Nudge'}
+                  {nudgeSent ? 'Nudged ✓' : nudgeFailed ? 'Failed' : nudging ? '...' : 'Nudge'}
                 </button>
               </div>
             )}
