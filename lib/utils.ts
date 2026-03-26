@@ -99,7 +99,9 @@ export function cleanEmailBody(raw: string): string {
       consecutiveBlanks++
       if (consecutiveBlanks >= 3) break
       // 2 blanks = likely signature boundary, UNLESS the next non-blank
-      // line looks like content (bullet, number, continuation paragraph)
+      // line looks like content (bullet, number, continuation paragraph).
+      // This is the key heuristic: formatted replies have blanks between
+      // bullets but the next real line starts with a number/bullet.
       if (consecutiveBlanks >= 2) {
         const nextNonBlank = lines.slice(i + 1).find((l) => l.trim())?.trim()
         if (
@@ -137,30 +139,10 @@ export function cleanEmailBody(raw: string): string {
       break
     }
 
-    // Stop at likely signature lines: phone numbers, addresses, URLs
-    if (/^\d{3}[-.\s]?\d{3}[-.\s]?\d{4}/.test(trimmed)) break
-    if (/^\d+\s+\w+\s+(st|street|ave|avenue|way|blvd|rd|road|dr|drive|ln|lane|suite|ste)\b/i.test(trimmed)) break
-
     cleaned.push(line)
   }
 
   // Trim trailing blank lines
-  while (cleaned.length && cleaned[cleaned.length - 1].trim() === '') cleaned.pop()
-
-  // Trim trailing lines that look like a name/title (signature start without delimiter)
-  // e.g. "Jack Cutler\nInvestor\nPelion Venture Partners"
-  // Detect: last few lines are short, no punctuation, look like name/title/company
-  while (cleaned.length > 1) {
-    const last = cleaned[cleaned.length - 1].trim()
-    // Short line with no sentence punctuation — likely a signature line
-    if (last.length > 0 && last.length <= 60 && !/[.!?:,]/.test(last) && !/^\d/.test(last)) {
-      cleaned.pop()
-    } else {
-      break
-    }
-  }
-
-  // Trim trailing blank lines again after signature removal
   while (cleaned.length && cleaned[cleaned.length - 1].trim() === '') cleaned.pop()
 
   return cleaned.join('\n').trim()
