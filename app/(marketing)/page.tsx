@@ -64,7 +64,7 @@ export default function LandingPage() {
               </p>
 
               <WaitlistForm />
-              <p className="text-xs text-[#52525b] mt-3">Free during beta · No credit card required</p>
+              <p className="text-xs text-[#52525b] mt-3">First month free · No credit card required</p>
             </div>
 
             {/* Right: animation */}
@@ -132,46 +132,44 @@ export default function LandingPage() {
       {/* ── PRICING ── */}
       <section id="pricing" className="py-24 max-w-[1080px] mx-auto px-6">
         <p className="text-xs font-semibold tracking-[0.1em] uppercase text-accent mb-4">Pricing</p>
-        <h2 className="text-[clamp(26px,4vw,38px)] font-bold tracking-[-0.03em] leading-[1.15] mb-14">Dead simple. Massive value.</h2>
+        <h2 className="text-[clamp(26px,4vw,38px)] font-bold tracking-[-0.03em] leading-[1.15] mb-4">Dead simple. One plan.</h2>
+        <p className="text-[#a1a1aa] text-sm mb-14">First month free to get your rhythm. No credit card required to start.</p>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {[
-            {
-              name: 'Free', price: '$0', desc: 'Try it with your team', popular: false, cta: 'Join waitlist',
-              features: ['Up to 10 employees', '1 active campaign', 'Weekly reply dashboard', 'Reply tracking & nudges', '30-day history'],
-            },
-            {
-              name: 'Growth', price: '$99', desc: 'For scaling companies', popular: true, cta: 'Join waitlist',
-              features: ['Up to 100 employees', 'Unlimited campaigns', 'AI weekly intelligence briefing', 'Full Slack integration', 'Ask-your-data AI queries', 'Team & function filters', 'Unlimited history'],
-            },
-            {
-              name: 'Premium', price: '$299', desc: 'For larger organizations', popular: false, cta: 'Join waitlist',
-              features: ['Up to 250 employees', 'Everything in Growth', 'Custom send domain', 'Priority support', 'Dedicated onboarding'],
-            },
-            {
-              name: 'Enterprise', price: 'Custom', desc: '250+ employees', popular: false, cta: 'Contact us',
-              features: ['Unlimited employees', 'Everything in Premium', 'SSO & advanced security', 'Custom integrations', 'Dedicated account manager'],
-            },
-          ].map(({ name, price, desc, popular, features, cta }: { name: string; price: string; desc: string; popular: boolean; features: string[]; cta: string }) => (
-            <div key={name} className={`bg-surface border rounded-xl p-7 ${popular ? 'border-accent/40 bg-gradient-to-b from-accent/[0.06] to-surface' : 'border-white/[0.07]'}`}>
-              <div className="flex items-center gap-2 mb-1">
-                <p className="text-[13px] font-semibold">{name}</p>
-                {popular && <span className="text-[10px] font-semibold bg-accent/10 text-accent border border-accent/30 px-2 py-0.5 rounded-full">Popular</span>}
-              </div>
-              <p className="text-xs text-[#71717a] mb-5">{desc}</p>
-              <p className="mb-6"><span className="text-[36px] font-bold tracking-[-0.04em]">{price}</span>{price !== 'Custom' && <span className="text-sm text-[#71717a] ml-1">/ mo</span>}</p>
-              <ul className="space-y-2.5 mb-6">
-                {features.map((f: string) => (
-                  <li key={f} className="text-sm text-[#a1a1aa] flex items-center gap-2">
-                    <span className="text-accent font-bold text-xs">✓</span> {f}
-                  </li>
-                ))}
-              </ul>
-              <Link href={name === 'Enterprise' ? '/contact' : '#waitlist'} className={`block text-center text-sm font-semibold py-2 rounded-md transition-colors ${popular ? 'bg-accent text-black hover:bg-accent/90' : 'border border-white/10 hover:bg-white/[0.04]'}`}>
-                {cta}
-              </Link>
-            </div>
-          ))}
+        <div className="grid sm:grid-cols-2 gap-4 max-w-[680px] mx-auto">
+          {/* Main tier */}
+          <div className="bg-surface border border-accent/40 bg-gradient-to-b from-accent/[0.06] to-surface rounded-xl p-7">
+            <p className="text-[13px] font-semibold mb-1">Win the Week</p>
+            <p className="text-xs text-[#71717a] mb-5">Up to 100 employees</p>
+            <p className="mb-1"><span className="text-[36px] font-bold tracking-[-0.04em]">$299</span><span className="text-sm text-[#71717a] ml-1">/ mo</span></p>
+            <p className="text-xs text-accent mb-6">First month free</p>
+            <ul className="space-y-2.5 mb-6">
+              {['Unlimited campaigns', 'AI weekly CEO briefing', 'Company sentiment & themes', 'Slack integration', 'Ask-your-data AI queries', 'Team & function filters', 'Reply tracking & auto-nudges', 'Unlimited history'].map((f: string) => (
+                <li key={f} className="text-sm text-[#a1a1aa] flex items-center gap-2">
+                  <span className="text-accent font-bold text-xs">✓</span> {f}
+                </li>
+              ))}
+            </ul>
+            <Link href="#waitlist" className="block text-center text-sm font-semibold py-2 rounded-md transition-colors bg-accent text-black hover:bg-accent/90">
+              Get started free
+            </Link>
+          </div>
+
+          {/* Custom tier */}
+          <div className="bg-surface border border-white/[0.07] rounded-xl p-7 flex flex-col">
+            <p className="text-[13px] font-semibold mb-1">Custom</p>
+            <p className="text-xs text-[#71717a] mb-5">100+ employees</p>
+            <p className="mb-6"><span className="text-[36px] font-bold tracking-[-0.04em]">Let&apos;s talk</span></p>
+            <ul className="space-y-2.5 mb-6 flex-1">
+              {['Everything in base plan', 'Custom send domain', 'SSO & advanced security', 'Dedicated onboarding', 'Custom integrations'].map((f: string) => (
+                <li key={f} className="text-sm text-[#a1a1aa] flex items-center gap-2">
+                  <span className="text-accent font-bold text-xs">✓</span> {f}
+                </li>
+              ))}
+            </ul>
+            <Link href="/contact" className="block text-center text-sm font-semibold py-2 rounded-md transition-colors border border-white/10 hover:bg-white/[0.04]">
+              Contact us
+            </Link>
+          </div>
         </div>
       </section>
 
