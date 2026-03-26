@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server'
-import { createClient, createServiceClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/server'
 import { getResend, buildWelcomeEmail } from '@/lib/resend'
+import { requireRole } from '@/lib/rbac'
+import { auditLog } from '@/lib/audit'
+import { checkRateLimit, rateLimitKeyFromUser } from '@/lib/rate-limit'
 
 export async function POST(req: Request) {
   const { name, email, team, function: fn, manager_of_teams } = await req.json()
@@ -9,39 +12,34 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Name and email are required' }, { status: 400 })
   }
 
-  // Get the authenticated user's org
-  const userClient = await createClient()
-  const { data: { user } } = await userClient.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  // Require admin role
+  const auth = await requireRole('admin')
+  if ('error' in auth) return auth.error
+  const { ctx } = auth
 
-  const { data: profile } = await userClient
-    .from('profiles')
-    .select('org_id, name')
-    .eq('id', user.id)
-    .single()
-
-  if (!profile?.org_id) {
-    return NextResponse.json({ error: 'No organization found' }, { status: 400 })
+  // Rate limit: 60 adds per minute per user
+  const rl = checkRateLimit(rateLimitKeyFromUser(ctx.userId, 'team-add'), { limit: 60, windowSeconds: 60 })
+  if (!rl.allowed) {
+    return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 })
   }
 
   // Fetch org name for the welcome email
-  const { data: org } = await userClient
+  const supabase = createServiceClient()
+  const { data: org } = await supabase
     .from('organizations')
     .select('name')
-    .eq('id', profile.org_id)
+    .eq('id', ctx.orgId)
     .single()
 
-  // Use service role to insert (bypasses RLS for INSERT)
-  const supabase = createServiceClient()
-  const { error } = await supabase.from('employees').insert({
-    org_id: profile.org_id,
+  const { data: inserted, error } = await supabase.from('employees').insert({
+    org_id: ctx.orgId,
     name: name.trim(),
     email: email.trim().toLowerCase(),
     team: team?.trim() || null,
     function: fn?.trim() || null,
     active: true,
     manager_of_teams: Array.isArray(manager_of_teams) && manager_of_teams.length > 0 ? manager_of_teams : null,
-  })
+  }).select('id').single()
 
   if (error) {
     if (error.message.includes('duplicate') || error.code === '23505') {
@@ -50,11 +48,21 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
+  // Audit log
+  auditLog({
+    action: 'employee.create',
+    actorId: ctx.userId,
+    orgId: ctx.orgId,
+    targetType: 'employee',
+    targetId: inserted?.id,
+    metadata: { name: name.trim(), email: email.trim().toLowerCase(), team: team?.trim() || null },
+  })
+
   // Send welcome email (non-blocking — don't fail the request if email fails)
   try {
     const { subject, html, text } = buildWelcomeEmail({
       employeeName: name.trim(),
-      adminName: profile.name ?? null,
+      adminName: ctx.name,
       orgName: org?.name ?? 'Your team',
     })
 

@@ -1,8 +1,15 @@
 import { NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { getResend, buildWaitlistConfirmation } from '@/lib/resend'
+import { checkRateLimit, rateLimitKeyFromRequest } from '@/lib/rate-limit'
 
 export async function POST(req: Request) {
+  // Rate limit: 5 signups per minute per IP
+  const rl = checkRateLimit(rateLimitKeyFromRequest(req, 'waitlist'), { limit: 5, windowSeconds: 60 })
+  if (!rl.allowed) {
+    return NextResponse.json({ error: 'Too many requests. Please try again later.' }, { status: 429 })
+  }
+
   const { email } = await req.json()
 
   if (!email || !email.includes('@')) {

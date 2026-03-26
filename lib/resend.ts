@@ -1,4 +1,5 @@
 import { Resend } from 'resend'
+import { escapeHtml } from '@/lib/utils'
 
 // Lazy singleton — only instantiated at request time, not at build time
 let _resend: Resend | null = null
@@ -72,9 +73,9 @@ export function buildDigestEmail({
       (r) => `
     <div style="padding:16px 0; border-bottom:1px solid rgba(255,255,255,0.06);">
       <p style="font-size:13px; font-weight:600; color:#fafafa; margin:0 0 6px;">
-        ${r.name}${r.team ? ` <span style="font-weight:400; color:#71717a;">· ${r.team}</span>` : ''}
+        ${escapeHtml(r.name)}${r.team ? ` <span style="font-weight:400; color:#71717a;">· ${escapeHtml(r.team)}</span>` : ''}
       </p>
-      <p style="font-size:14px; color:#a1a1aa; line-height:1.65; margin:0; white-space:pre-wrap;">${r.body}</p>
+      <p style="font-size:14px; color:#a1a1aa; line-height:1.65; margin:0; white-space:pre-wrap;">${escapeHtml(r.body)}</p>
     </div>`,
     )
     .join('')
@@ -82,10 +83,10 @@ export function buildDigestEmail({
   const summaryHtml = summary
     ? `<div style="background:rgba(34,197,94,0.06); border:1px solid rgba(34,197,94,0.18); border-radius:10px; padding:20px 24px; margin-bottom:28px;">
         <p style="font-size:10px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:#22c55e; margin:0 0 10px;">✦ AI CEO Briefing</p>
-        <p style="font-size:14px; color:#a1a1aa; line-height:1.65; margin:0 0 ${highlights && highlights.length > 0 ? '14px' : '0'};">${summary}</p>
+        <p style="font-size:14px; color:#a1a1aa; line-height:1.65; margin:0 0 ${highlights && highlights.length > 0 ? '14px' : '0'};">${escapeHtml(summary)}</p>
         ${
           highlights && highlights.length > 0
-            ? highlights.map((h) => `<p style="font-size:14px; color:#a1a1aa; margin:6px 0; padding-left:14px; position:relative;">→ ${h}</p>`).join('')
+            ? highlights.map((h) => `<p style="font-size:14px; color:#a1a1aa; margin:6px 0; padding-left:14px; position:relative;">→ ${escapeHtml(h)}</p>`).join('')
             : ''
         }
       </div>`
@@ -178,13 +179,13 @@ export function buildReplyNotification({
 <body>
   <div class="wrap">
     <p class="label">Weekly Check-in</p>
-    <p class="name">${employeeName}</p>
-    <p class="team">${teamLabel.trim() || 'No team'}</p>
+    <p class="name">${escapeHtml(employeeName)}</p>
+    <p class="team">${escapeHtml(teamLabel.trim() || 'No team')}</p>
 
     ${weekProgress ? `<div class="week-bar"><span>This week:</span><span class="count">${weekProgress}</span></div>` : ''}
 
     <div class="reply-box">
-      <p>${replyBody.replace(/\n/g, '<br/>')}</p>
+      <p>${escapeHtml(replyBody).replace(/\n/g, '<br/>')}</p>
     </div>
 
     <p class="cta">Hit <strong>Reply</strong> to respond directly to ${employeeName.split(' ')[0]}. Your reply will be delivered on your behalf and captured in the dashboard.</p>
@@ -262,7 +263,7 @@ export function buildManagerReplyEmail({
     ${managerReplyBody
       .split('\n\n')
       .filter(Boolean)
-      .map((para: string) => `<p>${para.replace(/\n/g, '<br/>')}</p>`)
+      .map((para: string) => `<p>${escapeHtml(para).replace(/\n/g, '<br/>')}</p>`)
       .join('')}
   </div>
 </body>
@@ -335,7 +336,7 @@ export function buildWaitlistConfirmation(email: string): { subject: string; htm
   <div class="wrap">
     <div class="card">
       <h2>You're on the list ✓</h2>
-      <p>Thanks for signing up. We'll reach out to <span class="accent">${email}</span> when a spot opens up.</p>
+      <p>Thanks for signing up. We'll reach out to <span class="accent">${escapeHtml(email)}</span> when a spot opens up.</p>
       <p>In the meantime — if you have questions or want to move up the list, reply to this email.</p>
       <p style="margin-top:24px; font-size:13px; color:#52525b;">— The Win the Week team</p>
     </div>

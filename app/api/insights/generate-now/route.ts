@@ -1,35 +1,36 @@
 /**
  * POST /api/insights/generate-now
  *
- * User-facing version of insight generation. Auth via Supabase session
- * (no CRON_SECRET needed). Auto-resolves org_id from the authenticated user.
+ * User-facing version of insight generation. Auth via Supabase session.
+ * Requires admin role.
  *
  * Body: { week_start: string }
  */
 
 import { NextResponse } from 'next/server'
-import { createClient, createServiceClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/server'
 import { generateWeeklyInsight } from '@/lib/anthropic'
 import { formatWeekRange } from '@/lib/utils'
+import { requireRole } from '@/lib/rbac'
+import { auditLog } from '@/lib/audit'
+import { checkRateLimit, rateLimitKeyFromUser } from '@/lib/rate-limit'
 
 export async function POST(req: Request) {
-  const supabase = await createClient()
-  const { data: { session } } = await supabase.auth.getSession()
-  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const auth = await requireRole('admin')
+  if ('error' in auth) return auth.error
+  const { ctx } = auth
+
+  // Rate limit: 10 generations per hour
+  const rl = checkRateLimit(rateLimitKeyFromUser(ctx.userId, 'insight-gen'), { limit: 10, windowSeconds: 3600 })
+  if (!rl.allowed) {
+    return NextResponse.json({ error: 'Rate limit exceeded. Try again later.' }, { status: 429 })
+  }
 
   const { week_start } = await req.json()
   if (!week_start) return NextResponse.json({ error: 'week_start required' }, { status: 400 })
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('org_id')
-    .eq('id', session.user.id)
-    .single()
-
-  if (!profile?.org_id) return NextResponse.json({ error: 'No org found' }, { status: 404 })
-
   const service = createServiceClient()
-  const orgId = profile.org_id
+  const orgId = ctx.orgId
 
   const { data: org } = await service
     .from('organizations')
@@ -86,6 +87,13 @@ export async function POST(req: Request) {
   )
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  auditLog({
+    action: 'insight.generate',
+    actorId: ctx.userId,
+    orgId,
+    metadata: { week_start, reply_count: replies.length },
+  })
 
   return NextResponse.json({ ok: true, insight })
 }

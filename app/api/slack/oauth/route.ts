@@ -7,6 +7,7 @@ import { NextRequest } from 'next/server'
 import { redirect } from 'next/navigation'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { exchangeSlackCode } from '@/lib/slack'
+import { encrypt } from '@/lib/encryption'
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
@@ -41,7 +42,8 @@ export async function GET(req: NextRequest) {
     .upsert(
       {
         org_id: profile.org_id,
-        access_token: tokenData.access_token,
+        access_token: tokenData.access_token, // Kept for backward compat — will be cleared after encryption migration
+        access_token_encrypted: encrypt(tokenData.access_token),
         team_id: tokenData.team.id,
         team_name: tokenData.team.name,
         bot_user_id: tokenData.bot_user_id,

@@ -4,20 +4,28 @@
  * Sends a test email for a given campaign to a specified address.
  * If the recipient is a registered employee, creates a real submission
  * so that a reply will be tracked on the dashboard.
- * Requires an authenticated session.
+ * Requires admin role.
  */
 
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { getResend, buildCampaignEmail } from '@/lib/resend'
 import { getWeekStart, createInitialThreadIndex } from '@/lib/utils'
 import { format } from 'date-fns'
+import { requireRole } from '@/lib/rbac'
+import { auditLog } from '@/lib/audit'
+import { checkRateLimit, rateLimitKeyFromUser } from '@/lib/rate-limit'
 
 export async function POST(req: Request) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const auth = await requireRole('admin')
+  if ('error' in auth) return auth.error
+  const { ctx } = auth
+
+  // Rate limit: 20 test sends per minute
+  const rl = checkRateLimit(rateLimitKeyFromUser(ctx.userId, 'send-test'), { limit: 20, windowSeconds: 60 })
+  if (!rl.allowed) {
+    return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 })
+  }
 
   const { campaign_id, to_email, to_name } = await req.json()
   if (!campaign_id || !to_email) {
@@ -27,17 +35,11 @@ export async function POST(req: Request) {
   const serviceSupabase = createServiceClient()
 
   // Verify the campaign belongs to the user's org
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('org_id')
-    .eq('id', user.id)
-    .single()
-
-  const { data: campaign } = await supabase
+  const { data: campaign } = await serviceSupabase
     .from('campaigns')
     .select('*')
     .eq('id', campaign_id)
-    .eq('org_id', profile?.org_id)
+    .eq('org_id', ctx.orgId)
     .single()
 
   if (!campaign) {
@@ -48,17 +50,15 @@ export async function POST(req: Request) {
   const weekStart = format(getWeekStart(), 'yyyy-MM-dd')
 
   // If the recipient is a registered employee, create a real submission
-  // so their reply will be tracked on the dashboard
   const { data: employee } = await serviceSupabase
     .from('employees')
     .select('id')
     .eq('email', to_email)
-    .eq('org_id', profile?.org_id)
+    .eq('org_id', ctx.orgId)
     .eq('active', true)
     .single()
 
   if (employee) {
-    // Always create a fresh submission for each test send so replies stack up on the dashboard
     await serviceSupabase.from('submissions').insert({
       campaign_id,
       employee_id: employee.id,
@@ -91,6 +91,15 @@ export async function POST(req: Request) {
     console.error('Test email failed', error)
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
+
+  auditLog({
+    action: 'campaign.send_test',
+    actorId: ctx.userId,
+    orgId: ctx.orgId,
+    targetType: 'campaign',
+    targetId: campaign_id,
+    metadata: { to_email },
+  })
 
   return NextResponse.json({ ok: true, trackedReply: !!employee })
 }

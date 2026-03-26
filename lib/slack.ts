@@ -10,6 +10,22 @@
  */
 
 import * as crypto from 'crypto'
+import { decrypt } from '@/lib/encryption'
+
+/**
+ * Resolve the Slack access token from an integration record.
+ * Prefers encrypted token, falls back to plaintext for legacy rows.
+ */
+export function resolveSlackToken(integration: { access_token?: string | null; access_token_encrypted?: string | null }): string | null {
+  if (integration.access_token_encrypted) {
+    try {
+      return decrypt(integration.access_token_encrypted)
+    } catch (err) {
+      console.error('[slack] Failed to decrypt token, falling back to plaintext:', err)
+    }
+  }
+  return integration.access_token ?? null
+}
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 

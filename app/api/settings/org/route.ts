@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server'
-import { getAuthUser, getProfile, createServiceClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/server'
+import { requireRole } from '@/lib/rbac'
+import { auditLog } from '@/lib/audit'
 
 export async function PATCH(req: Request) {
-  const [user, profile] = await Promise.all([getAuthUser(), getProfile()])
-  if (!user || !profile?.org_id) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+  const auth = await requireRole('admin')
+  if ('error' in auth) return auth.error
+  const { ctx } = auth
 
   const body = await req.json()
   const { name } = body
@@ -18,11 +19,19 @@ export async function PATCH(req: Request) {
   const { error } = await service
     .from('organizations')
     .update({ name: name.trim() })
-    .eq('id', profile.org_id)
+    .eq('id', ctx.orgId)
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
+
+  auditLog({
+    action: 'settings.org_rename',
+    actorId: ctx.userId,
+    orgId: ctx.orgId,
+    targetType: 'organization',
+    metadata: { new_name: name.trim() },
+  })
 
   return NextResponse.json({ ok: true })
 }

@@ -1,13 +1,13 @@
 import { NextResponse } from 'next/server'
-import { createClient, createServiceClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/server'
+import { requireRole } from '@/lib/rbac'
+import { auditLog } from '@/lib/audit'
 
 /**
  * PATCH /api/team/edit
  *
  * Body: { employee_id, name?, email?, team?, function?, manager_of_teams?, active? }
- *
- * Updates any editable fields on an employee record.
- * Only the org admin can do this.
+ * Requires admin role.
  */
 export async function PATCH(req: Request) {
   const body = await req.json()
@@ -17,20 +17,9 @@ export async function PATCH(req: Request) {
     return NextResponse.json({ error: 'employee_id is required' }, { status: 400 })
   }
 
-  // Authenticate the caller
-  const userClient = await createClient()
-  const { data: { user } } = await userClient.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-
-  const { data: profile } = await userClient
-    .from('profiles')
-    .select('org_id')
-    .eq('id', user.id)
-    .single()
-
-  if (!profile?.org_id) {
-    return NextResponse.json({ error: 'No organization found' }, { status: 400 })
-  }
+  const auth = await requireRole('admin')
+  if ('error' in auth) return auth.error
+  const { ctx } = auth
 
   const service = createServiceClient()
 
@@ -41,7 +30,7 @@ export async function PATCH(req: Request) {
     .eq('id', employee_id)
     .single()
 
-  if (!employee || employee.org_id !== profile.org_id) {
+  if (!employee || employee.org_id !== ctx.orgId) {
     return NextResponse.json({ error: 'Employee not found' }, { status: 404 })
   }
 
@@ -73,6 +62,15 @@ export async function PATCH(req: Request) {
     }
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
+
+  auditLog({
+    action: 'employee.update',
+    actorId: ctx.userId,
+    orgId: ctx.orgId,
+    targetType: 'employee',
+    targetId: employee_id,
+    metadata: { fields_changed: Object.keys(update) },
+  })
 
   return NextResponse.json({ ok: true })
 }

@@ -65,6 +65,16 @@ export function avatarGradient(str: string): string {
   return AVATAR_GRADIENTS[Math.abs(hash) % AVATAR_GRADIENTS.length]
 }
 
+// Escape HTML special characters to prevent XSS in email templates
+export function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
 // Strip email reply noise (quoted text, signatures) from an email body
 export function cleanEmailBody(raw: string): string {
   // Remove Resend's [signature_XXXXXXXX] placeholders and inline image refs

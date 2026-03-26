@@ -1,27 +1,22 @@
 import { NextResponse } from 'next/server'
-import { getAuthUser, getProfile } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/server'
+import { requireRole } from '@/lib/rbac'
+import { auditLog } from '@/lib/audit'
 
 /**
  * PATCH /api/responses/:id/hide
  *
  * Soft-deletes a response by setting hidden_at. The response is excluded
  * from the dashboard and AI insight generation but stays in the database.
- * Only the org admin can hide responses.
+ * Requires admin role.
  */
 export async function PATCH(
   _req: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const [user, profile, { id }] = await Promise.all([
-    getAuthUser(),
-    getProfile(),
-    params,
-  ])
-
-  if (!user || !profile?.org_id) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+  const [auth, { id }] = await Promise.all([requireRole('admin'), params])
+  if ('error' in auth) return auth.error
+  const { ctx } = auth
 
   // Use service client to bypass RLS — we verify org ownership manually below
   const supabase = createServiceClient()
@@ -45,7 +40,7 @@ export async function PATCH(
     .single()
 
   const orgId = (submission as any)?.campaigns?.org_id
-  if (orgId !== profile.org_id) {
+  if (orgId !== ctx.orgId) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
@@ -65,6 +60,15 @@ export async function PATCH(
     .from('submissions')
     .update({ replied_at: null })
     .eq('id', response.submission_id)
+
+  auditLog({
+    action: 'response.hide',
+    actorId: ctx.userId,
+    orgId: ctx.orgId,
+    targetType: 'response',
+    targetId: id,
+    metadata: { submission_id: response.submission_id },
+  })
 
   return NextResponse.json({ ok: true })
 }
