@@ -44,13 +44,13 @@ export function TeamMemberLanding({ orgName, employeeName, userEmail }: Props) {
           </div>
 
           <h2 className="text-[20px] font-bold tracking-[-0.03em] mb-2">
-            You're part of {orgName}
+            You're all set!
           </h2>
           <p className="text-sm text-[#a1a1aa] mb-2 leading-relaxed">
-            Hi {employeeName}! Your team lead has added you to <span className="text-white font-medium">{orgName}</span> on Win the Week.
+            Hi {employeeName}! You're a member of <span className="text-white font-medium">{orgName}</span> on Win the Week — and you <span className="text-white font-medium">don't need to log in</span>.
           </p>
           <p className="text-sm text-[#71717a] mb-6 leading-relaxed">
-            You'll receive weekly check-in emails — just reply to share what you got done. No login needed.
+            Just wait for your weekly check-in email and reply from your inbox. That's it — no app, no login, no friction.
           </p>
 
           <div className="bg-white/[0.03] border border-white/[0.07] rounded-lg px-4 py-3 mb-6 text-left">
