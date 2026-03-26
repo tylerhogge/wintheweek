@@ -715,7 +715,7 @@ export async function POST(req: Request) {
     .eq('employee_id', employee.id)
     .is('replied_at', null)
     .not('sent_at', 'is', null)
-    .order('week_start', { ascending: false })
+    .order('sent_at', { ascending: false })
     .limit(1)
     .single()
 
@@ -728,7 +728,7 @@ export async function POST(req: Request) {
       .eq('employee_id', employee.id)
       .not('replied_at', 'is', null)
       .not('sent_at', 'is', null)
-      .order('week_start', { ascending: false })
+      .order('sent_at', { ascending: false })
       .limit(1)
       .single()
 
