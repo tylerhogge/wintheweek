@@ -59,12 +59,26 @@ export async function POST(req: Request) {
     .single()
 
   if (employee) {
-    await serviceSupabase.from('submissions').insert({
-      campaign_id,
-      employee_id: employee.id,
-      week_start: weekStart,
-      sent_at: new Date().toISOString(),
-    })
+    // Only create a submission if one doesn't already exist for this
+    // employee + campaign + week (avoids duplicate dashboard cards from
+    // repeated test sends).
+    const { data: existing } = await serviceSupabase
+      .from('submissions')
+      .select('id')
+      .eq('campaign_id', campaign_id)
+      .eq('employee_id', employee.id)
+      .eq('week_start', weekStart)
+      .limit(1)
+      .maybeSingle()
+
+    if (!existing) {
+      await serviceSupabase.from('submissions').insert({
+        campaign_id,
+        employee_id: employee.id,
+        week_start: weekStart,
+        sent_at: new Date().toISOString(),
+      })
+    }
   }
 
   const { subject, html, text } = buildCampaignEmail({
