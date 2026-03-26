@@ -37,11 +37,14 @@ export function ReplyCard({ submission }: Props) {
     }
   }
 
-  async function hideResponse() {
-    if (!response) return
+  async function hideCard() {
     setHidden(true)
     try {
-      const res = await fetch(`/api/responses/${response.id}/hide`, { method: 'PATCH' })
+      // If there's a response, hide the response; otherwise hide the submission
+      const url = response
+        ? `/api/responses/${response.id}/hide`
+        : `/api/submissions/${submission.id}/hide`
+      const res = await fetch(url, { method: 'PATCH' })
       if (!res.ok) setHidden(false)
     } catch {
       setHidden(false)
@@ -90,6 +93,31 @@ export function ReplyCard({ submission }: Props) {
                   <Bell className="w-3 h-3" />
                   {nudgeSent ? 'Nudged ✓' : nudgeFailed ? 'Failed' : nudging ? '...' : 'Nudge'}
                 </button>
+                {/* Delete pending submission */}
+                {confirming ? (
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={hideCard}
+                      className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20 transition-colors"
+                    >
+                      Remove
+                    </button>
+                    <button
+                      onClick={() => setConfirming(false)}
+                      className="text-[10px] font-medium px-2 py-0.5 rounded-full border border-white/[0.08] text-[#71717a] hover:text-white transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setConfirming(true)}
+                    aria-label="Remove this submission"
+                    className="opacity-0 group-hover:opacity-100 text-[#52525b] hover:text-red-400 transition-all p-1 rounded"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                )}
               </div>
             )}
             {hasReplied && (
@@ -105,7 +133,7 @@ export function ReplyCard({ submission }: Props) {
                 {confirming ? (
                   <div className="flex items-center gap-1.5">
                     <button
-                      onClick={hideResponse}
+                      onClick={hideCard}
                       className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20 transition-colors"
                     >
                       Remove
