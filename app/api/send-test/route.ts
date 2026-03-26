@@ -78,6 +78,19 @@ export async function POST(req: Request) {
         week_start: weekStart,
         sent_at: new Date().toISOString(),
       })
+    } else {
+      // Submission already exists (repeated test send for same week).
+      // Reset it so the employee can reply again without "Already recorded".
+      // 1. Delete old response(s) for this submission
+      await serviceSupabase
+        .from('responses')
+        .delete()
+        .eq('submission_id', existing.id)
+      // 2. Clear replied_at so inbound route finds an unreplied submission
+      await serviceSupabase
+        .from('submissions')
+        .update({ replied_at: null, sent_at: new Date().toISOString() })
+        .eq('id', existing.id)
     }
   }
 
