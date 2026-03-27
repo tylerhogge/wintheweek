@@ -122,7 +122,7 @@ export default function LandingPage() {
       {/* ── PRICING ── */}
       <section id="pricing" className="py-24 max-w-[1080px] mx-auto px-6">
         <p className="text-xs font-semibold tracking-[0.1em] uppercase text-accent mb-4">Pricing</p>
-        <h2 className="text-[clamp(26px,4vw,38px)] font-bold tracking-[-0.03em] leading-[1.15] mb-4">Simple pricing. Big impact.</h2>
+        <h2 className="text-[clamp(26px,4vw,38px)] font-bold tracking-[-0.03em] leading-[1.15] mb-4">Dead simple. Massive value.</h2>
         <p className="text-[#a1a1aa] text-sm mb-14">First month free to get your rhythm. No credit card required to start.</p>
 
         <div className="grid sm:grid-cols-3 gap-4 max-w-[920px] mx-auto">
