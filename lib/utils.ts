@@ -75,7 +75,10 @@ export function escapeHtml(str: string): string {
     .replace(/'/g, '&#39;')
 }
 
-// Strip email reply noise (quoted text, signatures) from an email body
+// Strip email reply noise (quoted text, signatures) from an email body.
+// IMPORTANT: Be conservative. It is far better to keep a signature or some
+// noise than to cut off real content. Only stop at patterns that are
+// *unambiguously* part of the quoted reply chain or email-client boilerplate.
 export function cleanEmailBody(raw: string): string {
   // Remove Resend's [signature_XXXXXXXX] placeholders and inline image refs
   let text = raw.replace(/\[signature_\d+\]/gi, '').replace(/\[cid:[^\]]+\]/gi, '')
@@ -88,35 +91,20 @@ export function cleanEmailBody(raw: string): string {
 
   const lines = text.split('\n')
   const cleaned: string[] = []
-  let consecutiveBlanks = 0
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i]
     const trimmed = line.trim()
 
-    // Track consecutive blank lines.
-    if (trimmed === '') {
-      consecutiveBlanks++
-      if (consecutiveBlanks >= 3) break
-      // 2 blanks = likely signature boundary, UNLESS the next non-blank
-      // line looks like content (bullet, number, continuation paragraph).
-      // This is the key heuristic: formatted replies have blanks between
-      // bullets but the next real line starts with a number/bullet.
-      if (consecutiveBlanks >= 2) {
-        const nextNonBlank = lines.slice(i + 1).find((l) => l.trim())?.trim()
-        if (
-          !nextNonBlank ||
-          !/^[\d•\-\*\(\)]/.test(nextNonBlank)
-        ) {
-          break
-        }
-      }
-    } else {
-      consecutiveBlanks = 0
-    }
-
     // Stop at quoted reply blocks (Gmail / Apple Mail style)
-    if (trimmed.startsWith('> ')) break
+    // Only match if 2+ consecutive lines start with ">", to avoid
+    // cutting off a single ">" used casually in content.
+    if (trimmed.startsWith('> ')) {
+      const nextLine = lines[i + 1]?.trim()
+      if (nextLine !== undefined && (nextLine.startsWith('> ') || nextLine === '')) {
+        break
+      }
+    }
 
     // Stop at "On [date], [name] wrote:" (single or multi-line)
     if (trimmed.startsWith('On ') && (trimmed.endsWith('wrote:') || trimmed.includes(' wrote:'))) break
@@ -130,7 +118,7 @@ export function cleanEmailBody(raw: string): string {
     // Stop at "-----Original Message-----"
     if (/^-{3,}original message-{3,}/i.test(trimmed)) break
 
-    // Stop at bare "--" signature delimiter
+    // Stop at bare "--" signature delimiter (RFC 3676)
     if (trimmed === '--') break
 
     // Stop at Outlook "Sent: Weekday, ..." header line
@@ -145,7 +133,8 @@ export function cleanEmailBody(raw: string): string {
   // Trim trailing blank lines
   while (cleaned.length && cleaned[cleaned.length - 1].trim() === '') cleaned.pop()
 
-  return cleaned.join('\n').trim()
+  // Collapse runs of 3+ blank lines down to 2 (cosmetic, preserves structure)
+  return cleaned.join('\n').replace(/\n{4,}/g, '\n\n\n').trim()
 }
 
 /**
