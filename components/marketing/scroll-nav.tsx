@@ -40,14 +40,11 @@ export function ScrollNav() {
             href={`#${id}`}
             className={`text-sm px-3 py-1.5 rounded-md transition-colors ${
               active === id
-                ? 'text-white'
+                ? 'text-white font-medium'
                 : 'text-[#a1a1aa] hover:text-white'
             }`}
           >
             {label}
-            {active === id && (
-              <span className="block h-px bg-accent mt-0.5 rounded-full" />
-            )}
           </Link>
         </li>
       ))}
