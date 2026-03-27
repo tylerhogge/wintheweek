@@ -5,7 +5,10 @@ import { Bell, Trash2, ChevronDown, CheckCircle2 } from 'lucide-react'
 import { getInitials, avatarGradient } from '@/lib/utils'
 import type { SubmissionWithDetails, ManagerReply } from '@/types'
 
-type Props = { submission: SubmissionWithDetails }
+type Props = {
+  submission: SubmissionWithDetails
+  forceExpanded?: boolean
+}
 
 function statusLabel(status: string | undefined): string {
   switch (status) {
@@ -34,13 +37,30 @@ function getPreview(body: string): string {
   return firstLine.slice(0, 117) + '…'
 }
 
-export function ReplyCard({ submission }: Props) {
+/** Relative time: "2h ago", "3d ago", etc. */
+function relativeTime(dateStr: string): string {
+  const now = Date.now()
+  const then = new Date(dateStr).getTime()
+  const diffMs = now - then
+  const mins = Math.floor(diffMs / 60000)
+  if (mins < 1) return 'just now'
+  if (mins < 60) return `${mins}m ago`
+  const hrs = Math.floor(mins / 60)
+  if (hrs < 24) return `${hrs}h ago`
+  const days = Math.floor(hrs / 24)
+  if (days < 7) return `${days}d ago`
+  // Fall back to short date
+  return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+}
+
+export function ReplyCard({ submission, forceExpanded }: Props) {
   const { employee, response } = submission
   const hasReplied = !!response
   const managerReplies: ManagerReply[] = (response as any)?.manager_replies ?? []
 
-  // Collapsed by default — user clicks to expand
   const [expanded, setExpanded] = useState(false)
+  const isExpanded = forceExpanded || expanded
+
   const [nudgeSent, setNudgeSent] = useState(false)
   const [nudging, setNudging] = useState(false)
   const [hidden, setHidden] = useState(false)
@@ -94,7 +114,7 @@ export function ReplyCard({ submission }: Props) {
         className={`flex items-center gap-3 px-5 py-3.5 ${hasReplied ? 'cursor-pointer select-none' : ''}`}
         onClick={hasReplied ? () => setExpanded(!expanded) : undefined}
       >
-        {/* Green check for replied, gray avatar for pending */}
+        {/* Green check for replied, avatar for pending */}
         {hasReplied ? (
           <CheckCircle2 className="w-5 h-5 text-accent shrink-0" />
         ) : (
@@ -114,8 +134,8 @@ export function ReplyCard({ submission }: Props) {
             )}
           </div>
           {/* Preview line when collapsed */}
-          {hasReplied && !expanded && preview && (
-            <p className="text-[12.5px] text-[#71717a] mt-0.5 truncate">{preview}</p>
+          {hasReplied && !isExpanded && preview && (
+            <p className="text-[12.5px] text-[#a1a1aa] mt-0.5 truncate">{preview}</p>
           )}
         </div>
 
@@ -126,6 +146,11 @@ export function ReplyCard({ submission }: Props) {
               <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full border ${statusStyle(submission.email_status)}`}>
                 {statusLabel(submission.email_status)}
               </span>
+              {submission.sent_at && (
+                <span className="text-[11px] text-[#71717a]">
+                  Sent {relativeTime(submission.sent_at)}
+                </span>
+              )}
               <button
                 onClick={(e) => { e.stopPropagation(); sendNudge() }}
                 disabled={nudging || nudgeSent}
@@ -145,18 +170,16 @@ export function ReplyCard({ submission }: Props) {
           {hasReplied && (
             <>
               {threadCount > 0 && (
-                <span className="text-[10px] text-[#52525b]">
+                <span className="text-[10px] text-[#71717a]">
                   {threadCount} {threadCount === 1 ? 'reply' : 'replies'}
                 </span>
               )}
               {submission.replied_at && (
-                <span className="text-[11px] text-[#52525b]">
-                  {new Date(submission.replied_at).toLocaleString('en-US', {
-                    weekday: 'short', hour: 'numeric', minute: '2-digit',
-                  })}
+                <span className="text-[11px] text-[#71717a]">
+                  {relativeTime(submission.replied_at)}
                 </span>
               )}
-              <ChevronDown className={`w-4 h-4 text-[#52525b] transition-transform ${expanded ? 'rotate-180' : ''}`} />
+              <ChevronDown className={`w-4 h-4 text-[#52525b] transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
             </>
           )}
 
@@ -189,24 +212,21 @@ export function ReplyCard({ submission }: Props) {
       </div>
 
       {/* Expanded content — full reply body + conversation thread */}
-      {hasReplied && expanded && (
+      {hasReplied && isExpanded && (
         <div className="px-5 pb-4 pt-0">
-          {/* Divider */}
           <div className="border-t border-white/[0.06] mb-3" />
 
-          {/* Full reply body */}
           {response.body_clean && (
             <div className="flex items-start gap-3">
               <div className={`w-7 h-7 rounded-full bg-gradient-to-br ${avatarGradient(employee.email)} flex items-center justify-center text-[10px] font-bold text-white shrink-0 mt-0.5`}>
                 {getInitials(employee.name)}
               </div>
-              <p className="text-[13.5px] text-[#a1a1aa] leading-[1.65] whitespace-pre-wrap flex-1 min-w-0">
+              <p className="text-[13.5px] text-[#c4c4cc] leading-[1.65] whitespace-pre-wrap flex-1 min-w-0">
                 {response.body_clean}
               </p>
             </div>
           )}
 
-          {/* Conversation thread (CEO replies + employee follow-ups) */}
           {managerReplies.length > 0 && (
             <div className="mt-3 ml-5 sm:ml-10 flex flex-col gap-2.5">
               {managerReplies.map((mr: ManagerReply) => {
@@ -216,21 +236,15 @@ export function ReplyCard({ submission }: Props) {
                     <div className="flex flex-col items-center self-stretch shrink-0" style={{ width: 20 }}>
                       <div className="w-px flex-1 bg-white/[0.06]" />
                     </div>
-                    <div className={`flex-1 min-w-0 rounded-lg px-3.5 py-2.5 ${
-                      isEmployee
-                        ? 'bg-white/[0.02] border border-white/[0.06]'
-                        : 'bg-white/[0.02] border border-white/[0.06]'
-                    }`}>
+                    <div className="flex-1 min-w-0 rounded-lg px-3.5 py-2.5 bg-white/[0.02] border border-white/[0.06]">
                       <div className="flex items-center gap-2 mb-1">
                         <span className={`text-[11px] font-semibold uppercase tracking-[0.05em] ${
                           isEmployee ? 'text-accent/70' : 'text-[#71717a]'
                         }`}>
                           {isEmployee ? (mr.employee_name?.split(' ')[0] ?? 'Employee') : 'You replied'}
                         </span>
-                        <span className="text-[11px] text-[#3f3f46]">
-                          {new Date(mr.created_at).toLocaleString('en-US', {
-                            weekday: 'short', hour: 'numeric', minute: '2-digit',
-                          })}
+                        <span className="text-[11px] text-[#52525b]">
+                          {relativeTime(mr.created_at)}
                         </span>
                       </div>
                       <p className="text-[13px] text-[#a1a1aa] leading-[1.6] whitespace-pre-wrap">

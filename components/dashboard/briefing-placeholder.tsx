@@ -31,22 +31,22 @@ export function BriefingPlaceholder({ replied, total }: Props) {
         />
       </div>
 
-      <p className="text-[13px] text-[#71717a] leading-relaxed">
+      <p className="text-[13px] text-[#a1a1aa] leading-relaxed">
         {remaining > 0 ? (
           <>
             Your AI-generated CEO briefing will appear here once at least half of your team has replied.{' '}
-            <span className="text-[#a1a1aa]">{remaining} more {remaining === 1 ? 'reply' : 'replies'} needed.</span>
+            <span className="text-[#d4d4d8] font-medium">{remaining} more {remaining === 1 ? 'reply' : 'replies'} needed.</span>
             {' '}The briefing updates with each new reply and finalizes when everyone has responded.
           </>
         ) : (
           <>
-            Enough replies are in to generate your briefing. Click below to generate it now.
+            Enough replies are in to generate your briefing.
             {' '}It will update as more replies come in.
           </>
         )}
       </p>
 
-      <p className="text-[11.5px] text-[#52525b] mt-2">
+      <p className="text-[11.5px] text-[#71717a] mt-2">
         You can also receive this as an email — configure that in{' '}
         <Link href="/settings" className="text-accent/70 hover:text-accent transition-colors">Settings</Link>.
       </p>

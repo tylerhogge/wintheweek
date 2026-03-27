@@ -67,13 +67,31 @@ function extractResponseId(toAddresses: string[]): string | null {
   return null
 }
 
-/** Generate AI insight and store it. Called directly — no HTTP round-trip. */
+/**
+ * Generate AI insight and store it. Called directly — no HTTP round-trip.
+ * Only generates once at least 50% of submissions have replies,
+ * then re-generates on every subsequent reply so the briefing stays fresh.
+ */
 async function generateAndStoreInsight(orgId: string, weekStart: string) {
   const supabase = createServiceClient()
 
+  // Count total submissions and replied submissions for this week
+  const { data: allSubs } = await supabase
+    .from('submissions')
+    .select('id, replied_at, campaigns!inner(org_id)')
+    .eq('week_start', weekStart)
+    .eq('campaigns.org_id', orgId)
+    .is('hidden_at', null)
+
+  const totalSubs = allSubs?.length ?? 0
+  const repliedSubs = allSubs?.filter((s: any) => s.replied_at)?.length ?? 0
+
+  // Don't generate until at least 50% of the team has replied
+  if (totalSubs === 0 || repliedSubs < Math.ceil(totalSubs / 2)) return
+
   const { data: org } = await supabase
     .from('organizations')
-    .select('name')
+    .select('name, priorities')
     .eq('id', orgId)
     .single()
 
@@ -96,7 +114,7 @@ async function generateAndStoreInsight(orgId: string, weekStart: string) {
   if (replies.length === 0) return
 
   const weekLabel = formatWeekRange(weekStart)
-  const insight = await generateWeeklyInsight(org?.name ?? 'the org', weekLabel, replies)
+  const insight = await generateWeeklyInsight(org?.name ?? 'the org', weekLabel, replies, org?.priorities)
 
   await supabase.from('insights').upsert(
     {
@@ -104,6 +122,13 @@ async function generateAndStoreInsight(orgId: string, weekStart: string) {
       week_start: weekStart,
       summary: insight.summary,
       highlights: insight.highlights,
+      cross_functional_themes: insight.cross_functional_themes,
+      risk_items: insight.risk_items,
+      bottom_line: insight.bottom_line,
+      initiative_tracking: insight.initiative_tracking,
+      sentiment_score: insight.sentiment_score,
+      sentiment_label: insight.sentiment_label,
+      themes: insight.themes,
       generated_at: new Date().toISOString(),
     },
     { onConflict: 'org_id,week_start' },
@@ -268,12 +293,14 @@ async function notifyAdmin({
   if (!adminProfile?.email) return
 
   // Fetch week reply counts for context line in notification email
+  // Filter hidden submissions to match what the dashboard shows
   const { data: weekSubs } = await supabase
     .from('submissions')
     .select('replied_at, campaigns!inner(org_id)')
     .eq('week_start', weekStart)
     .eq('campaigns.org_id', orgId)
     .not('sent_at', 'is', null)
+    .is('hidden_at', null)
 
   const weekTotal = weekSubs?.length ?? 0
   const weekReplied = weekSubs?.filter((s: any) => s.replied_at !== null).length ?? 0
@@ -367,13 +394,14 @@ async function notifyManagers({
     if (p.email) adminEmails.add(p.email.toLowerCase())
   }
 
-  // Week reply counts for context
+  // Week reply counts for context (exclude hidden to match dashboard)
   const { data: weekSubs } = await supabase
     .from('submissions')
     .select('replied_at, campaigns!inner(org_id)')
     .eq('week_start', weekStart)
     .eq('campaigns.org_id', orgId)
     .not('sent_at', 'is', null)
+    .is('hidden_at', null)
 
   const weekTotal = weekSubs?.length ?? 0
   const weekReplied = weekSubs?.filter((s: any) => s.replied_at !== null).length ?? 0
