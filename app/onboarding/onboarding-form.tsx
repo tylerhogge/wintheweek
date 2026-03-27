@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { Logo } from '@/components/logo'
 
 type Priority = { name: string; description: string }
 
@@ -75,11 +76,7 @@ export function OnboardingForm() {
 
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 font-semibold text-[15px] tracking-tight mb-10 justify-center">
-          <span className="w-7 h-7 bg-accent rounded-md flex items-center justify-center">
-            <svg className="w-3.5 h-3.5 text-black" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="20 6 9 17 4 12" />
-            </svg>
-          </span>
+          <Logo size={28} />
           Win The Week
         </Link>
 

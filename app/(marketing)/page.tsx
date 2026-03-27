@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { WaitlistForm } from '@/components/marketing/waitlist-form'
 import { DemoAnimation } from '@/components/marketing/demo-animation'
 import { ScrollNav } from '@/components/marketing/scroll-nav'
+import { Logo } from '@/components/logo'
 
 export default function LandingPage() {
   return (
@@ -13,11 +14,7 @@ export default function LandingPage() {
       <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/[0.07] bg-bg/85 backdrop-blur-xl">
         <div className="max-w-[1080px] mx-auto px-6 h-14 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 font-semibold text-[15px] tracking-tight">
-            <span className="w-[26px] h-[26px] bg-accent rounded-md flex items-center justify-center shrink-0">
-              <svg className="w-3.5 h-3.5 text-black" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="20 6 9 17 4 12" />
-              </svg>
-            </span>
+            <Logo size={26} />
             Win The Week
           </Link>
 
@@ -170,11 +167,7 @@ export default function LandingPage() {
       <footer className="border-t border-white/[0.07] py-7 max-w-[1080px] mx-auto px-6">
         <div className="flex items-center justify-between flex-wrap gap-4">
           <Link href="/" className="flex items-center gap-2 font-semibold text-[15px] tracking-tight">
-            <span className="w-[22px] h-[22px] bg-accent rounded-[5px] flex items-center justify-center shrink-0">
-              <svg className="w-3 h-3 text-black" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="20 6 9 17 4 12" />
-              </svg>
-            </span>
+            <Logo size={22} />
             Win The Week
           </Link>
           <div className="flex gap-5">

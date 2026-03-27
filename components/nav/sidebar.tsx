@@ -2,7 +2,8 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Mail, Users, Settings, CheckSquare } from 'lucide-react'
+import { LayoutDashboard, Mail, Users, Settings } from 'lucide-react'
+import { Logo } from '@/components/logo'
 import { cn, getInitials } from '@/lib/utils'
 
 const NAV = [
@@ -29,9 +30,7 @@ export function Sidebar({ profile }: Props) {
       {/* Logo */}
       <div className="h-14 flex items-center px-5 border-b border-white/[0.07]">
         <Link href="/dashboard" className="flex items-center gap-2 font-semibold text-[15px] tracking-tight">
-          <span className="w-6 h-6 bg-accent rounded-[5px] flex items-center justify-center shrink-0">
-            <CheckSquare className="w-3.5 h-3.5 text-black" strokeWidth={2.5} />
-          </span>
+          <Logo size={24} />
           Win The Week
         </Link>
       </div>
