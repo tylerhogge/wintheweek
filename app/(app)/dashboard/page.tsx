@@ -11,7 +11,11 @@ import { StatsBar } from '@/components/dashboard/stats-bar'
 import { ReplyList } from '@/components/dashboard/reply-list'
 import { GenerateSummaryBtn } from '@/components/dashboard/generate-summary-btn'
 import { BriefingPlaceholder } from '@/components/dashboard/briefing-placeholder'
+import { SearchBar } from '@/components/dashboard/search-bar'
 import type { SubmissionWithDetails, Insight } from '@/types'
+
+// Force dynamic rendering — skips static analysis overhead on every request
+export const dynamic = 'force-dynamic'
 
 interface Props {
   searchParams: Promise<{ week?: string; team?: string; filter?: string }>
@@ -43,14 +47,16 @@ async function DashboardContent({
 
   if (team) submissionsQuery = submissionsQuery.eq('employees.team', team)
 
-  const [{ data: submissions }, { data: insight }, { data: teams }] = await Promise.all([
+  // Run all three queries in parallel — no sequential dependencies
+  const [{ data: submissions }, { data: insight }, { data: teamRows }] = await Promise.all([
     submissionsQuery,
     supabase
       .from('insights')
-      .select('id, org_id, week_start, summary, highlights, cross_functional_themes, risk_items, bottom_line, initiative_tracking, generated_at')
+      .select('id, org_id, week_start, summary, highlights, cross_functional_themes, risk_items, bottom_line, initiative_tracking, sentiment_score, sentiment_label, themes, generated_at')
       .eq('org_id', orgId)
       .eq('week_start', weekStart)
-      .single(),
+      .maybeSingle(),
+    // Lightweight query: only the team column from active employees
     supabase
       .from('employees')
       .select('team')
@@ -60,7 +66,7 @@ async function DashboardContent({
   ])
 
   const uniqueTeams = [
-    ...new Set(teams?.map((t: { team: string | null }) => t.team).filter(Boolean)),
+    ...new Set(teamRows?.map((t: { team: string | null }) => t.team).filter(Boolean)),
   ] as string[]
 
   // Treat hidden responses as if they don't exist — card shows "no reply yet"
@@ -205,9 +211,12 @@ export default async function DashboardPage({ searchParams }: Props) {
   return (
     <div>
       {/* Renders immediately — no DB calls needed for this section */}
-      <div className="flex flex-col items-start gap-2 mb-6">
-        <h1 className="text-[22px] font-bold tracking-[-0.04em]">Weekly Digest</h1>
-        <WeekNav weekStart={weekStart} />
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+        <div className="flex flex-col items-start gap-2">
+          <h1 className="text-[22px] font-bold tracking-[-0.04em]">Weekly Digest</h1>
+          <WeekNav weekStart={weekStart} />
+        </div>
+        <SearchBar />
       </div>
 
       {/* Streams in as DB queries resolve — skeleton shows immediately */}

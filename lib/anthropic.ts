@@ -110,11 +110,22 @@ export type PriorityInput = {
   description: string
 }
 
+export type PriorWeekContext = {
+  summary: string | null
+  highlights: string[] | null
+  sentiment_score: number | null
+  sentiment_label: string | null
+  themes: string[] | null
+  bottom_line: string | null
+  week_label: string
+}
+
 export async function generateWeeklyInsight(
   orgName: string,
   weekLabel: string,
   replies: Array<{ name: string; team: string | null; body: string }>,
   priorities?: PriorityInput[] | null,
+  priorWeek?: PriorWeekContext | null,
 ): Promise<InsightResult> {
   const repliesText = replies
     .map((r: { name: string; team: string | null; body: string }): string => `[${r.name}${r.team ? ` · ${r.team}` : ''}]: ${r.body}`)
@@ -125,6 +136,18 @@ export async function generateWeeklyInsight(
   const teams = [...new Set(replies.map(r => r.team).filter(Boolean))]
   const isSmallOrg = replyCount < 8
   const hasPriorities = priorities && priorities.length > 0
+
+  // Build prior-week context for week-over-week comparison
+  let priorWeekBlock = ''
+  if (priorWeek && (priorWeek.summary || priorWeek.bottom_line)) {
+    const parts: string[] = [`\n\nPRIOR WEEK BRIEFING (${priorWeek.week_label}):`]
+    if (priorWeek.bottom_line) parts.push(`Bottom line: ${priorWeek.bottom_line}`)
+    else if (priorWeek.summary) parts.push(`Summary: ${priorWeek.summary}`)
+    if (priorWeek.highlights?.length) parts.push(`Highlights: ${priorWeek.highlights.join(' | ')}`)
+    if (priorWeek.themes?.length) parts.push(`Key themes: ${priorWeek.themes.join(', ')}`)
+    if (priorWeek.sentiment_score != null) parts.push(`Sentiment: ${priorWeek.sentiment_label ?? ''} ${priorWeek.sentiment_score}/10`)
+    priorWeekBlock = parts.join('\n')
+  }
 
   const prioritiesBlock = hasPriorities
     ? `\n\nCEO-DEFINED COMPANY PRIORITIES:\n${priorities.map((p, i) => `${i + 1}. ${p.name}${p.description ? ` — ${p.description}` : ''}`).join('\n')}\n`
@@ -148,7 +171,7 @@ export async function generateWeeklyInsight(
 
 Week: ${weekLabel}
 Total replies: ${replyCount}
-Teams represented: ${teams.length > 0 ? teams.join(', ') : 'No team labels'}${prioritiesBlock}
+Teams represented: ${teams.length > 0 ? teams.join(', ') : 'No team labels'}${prioritiesBlock}${priorWeekBlock}
 
 Individual check-in replies:
 ${repliesText}
@@ -183,6 +206,7 @@ Format your response as JSON exactly like this:
   "themes": ["Theme 1", "Theme 2", "Theme 3"]
 }
 
+${priorWeek ? `\n7. WEEK-OVER-WEEK CONTEXT: You have last week's briefing above. Weave comparisons naturally into your analysis — don't create a separate "vs last week" section. Examples: "Pipeline concerns are now in their third consecutive week", "Sentiment improved from ${priorWeek.sentiment_score}/10 to reflect the team's momentum on shipping", "Unlike last week, no one flagged hiring as a blocker." If a theme disappeared or a new one emerged, note it. If sentiment shifted meaningfully, explain why.\n` : ''}
 Write in confident, direct prose. No corporate fluff. No "it's worth noting" or "it may be beneficial to consider." Just tell the CEO what's happening and what to do about it.`,
       },
     ],

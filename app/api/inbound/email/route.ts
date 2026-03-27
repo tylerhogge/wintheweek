@@ -11,7 +11,7 @@ import { Webhook } from 'svix'
 import { getResend, buildDigestEmail, buildReplyNotification, buildManagerReplyEmail, buildNudgeEmail } from '@/lib/resend'
 import { createServiceClient } from '@/lib/supabase/server'
 import { cleanEmailBody, htmlToPlainText, formatWeekRange } from '@/lib/utils'
-import { generateWeeklyInsight, generateQueryResponse } from '@/lib/anthropic'
+import { generateWeeklyInsight, generateQueryResponse, type PriorWeekContext } from '@/lib/anthropic'
 
 type ResendInboundPayload = {
   type: string
@@ -113,8 +113,25 @@ async function generateAndStoreInsight(orgId: string, weekStart: string) {
 
   if (replies.length === 0) return
 
+  // Fetch prior week's insight for week-over-week comparison
+  const priorDate = new Date(weekStart + 'T00:00:00Z')
+  priorDate.setUTCDate(priorDate.getUTCDate() - 7)
+  const priorWeekStart = priorDate.toISOString().slice(0, 10)
+
+  const { data: priorInsight } = await supabase
+    .from('insights')
+    .select('summary, highlights, sentiment_score, sentiment_label, themes, bottom_line')
+    .eq('org_id', orgId)
+    .eq('week_start', priorWeekStart)
+    .single()
+
+  const priorWeek: PriorWeekContext | null = priorInsight ? {
+    ...priorInsight,
+    week_label: formatWeekRange(priorWeekStart),
+  } : null
+
   const weekLabel = formatWeekRange(weekStart)
-  const insight = await generateWeeklyInsight(org?.name ?? 'the org', weekLabel, replies, org?.priorities)
+  const insight = await generateWeeklyInsight(org?.name ?? 'the org', weekLabel, replies, org?.priorities, priorWeek)
 
   await supabase.from('insights').upsert(
     {

@@ -9,7 +9,7 @@
 
 import { NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
-import { generateWeeklyInsight } from '@/lib/anthropic'
+import { generateWeeklyInsight, type PriorWeekContext } from '@/lib/anthropic'
 import { formatWeekRange } from '@/lib/utils'
 import { requireRole } from '@/lib/rbac'
 import { auditLog } from '@/lib/audit'
@@ -58,11 +58,28 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'No replies to summarize yet' }, { status: 400 })
   }
 
+  // Fetch prior week's insight for week-over-week comparison
+  const priorDate = new Date(week_start + 'T00:00:00Z')
+  priorDate.setUTCDate(priorDate.getUTCDate() - 7)
+  const priorWeekStart = priorDate.toISOString().slice(0, 10)
+
+  const { data: priorInsight } = await service
+    .from('insights')
+    .select('summary, highlights, sentiment_score, sentiment_label, themes, bottom_line')
+    .eq('org_id', orgId)
+    .eq('week_start', priorWeekStart)
+    .single()
+
+  const priorWeek: PriorWeekContext | null = priorInsight ? {
+    ...priorInsight,
+    week_label: formatWeekRange(priorWeekStart),
+  } : null
+
   const weekLabel = formatWeekRange(week_start)
   let insight: { summary: string; highlights: string[]; cross_functional_themes: string | null; risk_items: string | null; bottom_line: string | null; initiative_tracking: string | null; sentiment_score: number | null; sentiment_label: string | null; themes: string[] | null }
 
   try {
-    insight = await generateWeeklyInsight(org?.name ?? 'the org', weekLabel, replies, org?.priorities as any)
+    insight = await generateWeeklyInsight(org?.name ?? 'the org', weekLabel, replies, org?.priorities as any, priorWeek)
   } catch (err: any) {
     console.error('AI generation failed', err)
     return NextResponse.json({
