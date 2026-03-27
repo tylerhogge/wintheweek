@@ -28,7 +28,7 @@ export async function POST(req: Request) {
   }
 
   // Send confirmation email to the user
-  const fromAddr = `Win the Week <${process.env.FROM_EMAIL ?? 'hello@wintheweek.co'}>`
+  const fromAddr = `Win The Week <${process.env.FROM_EMAIL ?? 'hello@wintheweek.co'}>`
   const { subject, html } = buildWaitlistConfirmation(email)
   await getResend().emails.send({
     from: fromAddr,
@@ -44,7 +44,7 @@ export async function POST(req: Request) {
       from: fromAddr,
       to: notifyEmail,
       subject: `New waitlist signup: ${email}`,
-      html: `<p style="font-family:sans-serif;font-size:14px;color:#333;"><strong>${email}</strong> just joined the Win the Week waitlist.</p>`,
+      html: `<p style="font-family:sans-serif;font-size:14px;color:#333;"><strong>${email}</strong> just joined the Win The Week waitlist.</p>`,
     }).catch(() => {}) // Don't fail the signup if notification fails
   }
 

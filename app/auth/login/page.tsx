@@ -56,7 +56,7 @@ export default function LoginPage() {
               <polyline points="20 6 9 17 4 12" />
             </svg>
           </span>
-          Win the Week
+          Win The Week
         </Link>
 
         <div className="bg-surface border border-white/[0.08] rounded-xl p-8">
@@ -81,7 +81,7 @@ export default function LoginPage() {
           ) : (
             <>
               <h2 className="text-[22px] font-bold tracking-[-0.03em] mb-1">Sign in</h2>
-              <p className="text-sm text-[#71717a] mb-6">Welcome back to Win the Week.</p>
+              <p className="text-sm text-[#71717a] mb-6">Welcome back to Win The Week.</p>
 
               {/* Google button — primary */}
               <button

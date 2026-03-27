@@ -32,7 +32,7 @@ export function Sidebar({ profile }: Props) {
           <span className="w-6 h-6 bg-accent rounded-[5px] flex items-center justify-center shrink-0">
             <CheckSquare className="w-3.5 h-3.5 text-black" strokeWidth={2.5} />
           </span>
-          Win the Week
+          Win The Week
         </Link>
       </div>
 

@@ -34,7 +34,7 @@ export async function POST(req: Request) {
   }
 
   const resend = getResend()
-  const fromAddress = `Win the Week <${process.env.FROM_EMAIL ?? 'hello@wintheweek.co'}>`
+  const fromAddress = `Win The Week <${process.env.FROM_EMAIL ?? 'hello@wintheweek.co'}>`
   const replyTo = process.env.REPLY_TO_EMAIL ?? 'updates@wintheweek.co'
   let nudged = 0
 

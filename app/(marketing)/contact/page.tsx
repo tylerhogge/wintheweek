@@ -1,6 +1,6 @@
 import Link from 'next/link'
 
-export const metadata = { title: 'Contact — Win the Week' }
+export const metadata = { title: 'Contact — Win The Week' }
 
 export default function ContactPage() {
   return (
@@ -15,7 +15,7 @@ export default function ContactPage() {
                 <polyline points="20 6 9 17 4 12" />
               </svg>
             </span>
-            Win the Week
+            Win The Week
           </Link>
           <Link href="/auth/login" className="text-sm text-[#a1a1aa] hover:text-white px-3 py-1.5 border border-white/10 rounded-md transition-colors">
             Log in
@@ -64,7 +64,7 @@ export default function ContactPage() {
               },
               {
                 label: 'Feature requests',
-                desc: 'We\'re actively building. If there\'s something Win the Week doesn\'t do that would make it indispensable to you, we want to hear it.',
+                desc: 'We\'re actively building. If there\'s something Win The Week doesn\'t do that would make it indispensable to you, we want to hear it.',
               },
               {
                 label: 'Partnerships & press',
@@ -89,14 +89,14 @@ export default function ContactPage() {
                 <polyline points="20 6 9 17 4 12" />
               </svg>
             </span>
-            Win the Week
+            Win The Week
           </Link>
           <div className="flex gap-5">
             <Link href="/privacy" className="text-sm text-[#71717a] hover:text-[#a1a1aa] transition-colors">Privacy</Link>
             <Link href="/terms" className="text-sm text-[#71717a] hover:text-[#a1a1aa] transition-colors">Terms</Link>
             <Link href="/contact" className="text-sm text-[#a1a1aa] transition-colors">Contact</Link>
           </div>
-          <p className="text-xs text-[#52525b]">© 2026 Win the Week</p>
+          <p className="text-xs text-[#52525b]">© 2026 Win The Week</p>
         </div>
       </footer>
     </div>

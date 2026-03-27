@@ -88,7 +88,7 @@ export function AddMemberModal({ onClose, allTeams = [] }: Props) {
             {/* Email preview */}
             <div className="bg-[#18181b] border border-white/[0.07] rounded-xl p-4 space-y-2">
               <p className="text-[11px] font-semibold tracking-[0.07em] uppercase text-[#52525b]">What they received</p>
-              <p className="text-xs font-medium text-[#71717a]">Subject: <span className="text-[#a1a1aa]">You've been added to Win the Week</span></p>
+              <p className="text-xs font-medium text-[#71717a]">Subject: <span className="text-[#a1a1aa]">You've been added to Win The Week</span></p>
               <div className="border-t border-white/[0.05] pt-3 space-y-1.5">
                 <p className="text-xs text-[#71717a] leading-relaxed">Hey {firstName},</p>
                 <p className="text-xs text-[#71717a] leading-relaxed">

@@ -191,7 +191,7 @@ export function buildReplyNotification({
     <p class="cta">Hit <strong>Reply</strong> to respond directly to ${employeeName.split(' ')[0]}. Your reply will be delivered on your behalf and captured in the dashboard.</p>
     <p class="cta" style="margin-top:12px;"><a href="${dashboardUrl}">View all responses →</a></p>
 
-    <div class="footer">Sent via <a href="https://wintheweek.co" style="color:#a1a1aa;">Win the Week</a></div>
+    <div class="footer">Sent via <a href="https://wintheweek.co" style="color:#a1a1aa;">Win The Week</a></div>
   </div>
 </body>
 </html>`
@@ -227,7 +227,7 @@ export function buildNudgeEmail({
     <p>Just a quick nudge — haven't heard from you yet this week. What did you get done?</p>
     <p>Hit reply and share whatever comes to mind — big wins, small progress, blockers. Takes 30 seconds.</p>
     <p style="color:#52525b; font-size:14px;">— ${senderName}</p>
-    <div class="footer">Sent via <a href="https://wintheweek.co" style="color:#a1a1aa;">Win the Week</a></div>
+    <div class="footer">Sent via <a href="https://wintheweek.co" style="color:#a1a1aa;">Win The Week</a></div>
   </div>
 </body>
 </html>`
@@ -289,7 +289,7 @@ export function buildWelcomeEmail({
 }): { subject: string; html: string; text: string } {
   const firstName = employeeName.split(' ')[0]
   const from = adminName ?? orgName
-  const subject = `You've been added to Win the Week`
+  const subject = `You've been added to Win The Week`
 
   const html = `<!DOCTYPE html>
 <html>
@@ -303,17 +303,17 @@ export function buildWelcomeEmail({
 <body>
   <div class="wrap">
     <p>Hey ${firstName},</p>
-    <p>${from} just added you to <strong>Win the Week</strong> — a simple way to keep the team aligned without meetings or status updates.</p>
+    <p>${from} just added you to <strong>Win The Week</strong> — a simple way to keep the team aligned without meetings or status updates.</p>
     <p>Here's all you need to know:</p>
     <p>Once a week, you'll get a short email asking what you got done. Just hit reply — that's your update. No app to download, no account to create, no extra work.</p>
     <p>Two minutes. Every week. That's it.</p>
-    <p style="color:#52525b; font-size:14px;">— The Win the Week team</p>
-    <div class="footer">Sent via <a href="https://wintheweek.co">Win the Week</a></div>
+    <p style="color:#52525b; font-size:14px;">— The Win The Week team</p>
+    <div class="footer">Sent via <a href="https://wintheweek.co">Win The Week</a></div>
   </div>
 </body>
 </html>`
 
-  const text = `Hey ${firstName},\n\n${from} just added you to Win the Week — a simple way to keep the team aligned without meetings or status updates.\n\nOnce a week, you'll get a short email asking what you got done. Just hit reply — that's your update. No app to download, no account to create, no extra work.\n\nTwo minutes. Every week. That's it.\n\n— The Win the Week team`
+  const text = `Hey ${firstName},\n\n${from} just added you to Win The Week — a simple way to keep the team aligned without meetings or status updates.\n\nOnce a week, you'll get a short email asking what you got done. Just hit reply — that's your update. No app to download, no account to create, no extra work.\n\nTwo minutes. Every week. That's it.\n\n— The Win The Week team`
 
   return { subject, html, text }
 }
@@ -338,7 +338,7 @@ export function buildWaitlistConfirmation(email: string): { subject: string; htm
       <h2>You're on the list ✓</h2>
       <p>Thanks for signing up. We'll reach out to <span class="accent">${escapeHtml(email)}</span> when a spot opens up.</p>
       <p>In the meantime — if you have questions or want to move up the list, reply to this email.</p>
-      <p style="margin-top:24px; font-size:13px; color:#52525b;">— The Win the Week team</p>
+      <p style="margin-top:24px; font-size:13px; color:#52525b;">— The Win The Week team</p>
     </div>
   </div>
 </body>

@@ -128,7 +128,7 @@ export async function POST(req: Request) {
           const replyTo = process.env.REPLY_TO_EMAIL ?? 'updates@wintheweek.co'
           const { subject, html, text } = buildCampaignEmail({ employeeName: employee.name, subject: campaign.subject, body: campaign.body, replyToAddress: replyTo })
           const { data: sendResult, error: emailErr } = await getResend().emails.send({
-            from: `${process.env.FROM_NAME ?? 'Win the Week'} <${process.env.FROM_EMAIL ?? 'updates@wintheweek.co'}>`,
+            from: `${process.env.FROM_NAME ?? 'Win The Week'} <${process.env.FROM_EMAIL ?? 'updates@wintheweek.co'}>`,
             to: employee.email,
             replyTo,
             subject,
@@ -147,7 +147,7 @@ export async function POST(req: Request) {
         const replyTo = process.env.REPLY_TO_EMAIL ?? 'updates@wintheweek.co'
         const { subject, html, text } = buildCampaignEmail({ employeeName: employee.name, subject: campaign.subject, body: campaign.body, replyToAddress: replyTo })
         const { data: sendResult, error: emailErr } = await getResend().emails.send({
-          from: `${process.env.FROM_NAME ?? 'Win the Week'} <${process.env.FROM_EMAIL ?? 'updates@wintheweek.co'}>`,
+          from: `${process.env.FROM_NAME ?? 'Win The Week'} <${process.env.FROM_EMAIL ?? 'updates@wintheweek.co'}>`,
           to: employee.email,
           replyTo,
           subject,

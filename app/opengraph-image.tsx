@@ -1,7 +1,7 @@
 import { ImageResponse } from 'next/og'
 
 export const runtime = 'edge'
-export const alt = 'Win the Week — The CEO\'s Weekly Operating System'
+export const alt = 'Win The Week — The CEO\'s Weekly Operating System'
 export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
 
@@ -38,7 +38,7 @@ export default async function Image() {
             </svg>
           </div>
           <span style={{ color: '#fafafa', fontSize: '28px', fontWeight: 600, letterSpacing: '-0.02em' }}>
-            Win the Week
+            Win The Week
           </span>
         </div>
 

@@ -30,7 +30,7 @@ export function TeamMemberLanding({ orgName, employeeName, userEmail }: Props) {
               <polyline points="20 6 9 17 4 12" />
             </svg>
           </span>
-          Win the Week
+          Win The Week
         </Link>
 
         <div className="bg-surface border border-white/[0.08] rounded-xl p-8 text-center">
@@ -47,7 +47,7 @@ export function TeamMemberLanding({ orgName, employeeName, userEmail }: Props) {
             You're all set!
           </h2>
           <p className="text-sm text-[#a1a1aa] mb-2 leading-relaxed">
-            Hi {employeeName}! You're a member of <span className="text-white font-medium">{orgName}</span> on Win the Week — and you <span className="text-white font-medium">don't need to log in</span>.
+            Hi {employeeName}! You're a member of <span className="text-white font-medium">{orgName}</span> on Win The Week — and you <span className="text-white font-medium">don't need to log in</span>.
           </p>
           <p className="text-sm text-[#71717a] mb-6 leading-relaxed">
             Just wait for your weekly check-in email and reply from your inbox. That's it — no app, no login, no friction.

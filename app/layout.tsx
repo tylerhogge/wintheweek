@@ -12,24 +12,24 @@ const dmSans = DM_Sans({
 
 export const metadata: Metadata = {
   title: {
-    default: 'Win the Week — The CEO\'s Weekly Operating System',
-    template: '%s · Win the Week',
+    default: 'Win The Week — The CEO\'s Weekly Operating System',
+    template: '%s · Win The Week',
   },
   description:
     'Send your team a single weekly email or Slack message. Collect replies. Get an AI-synthesized briefing on what your company accomplished and what you should do about it — without a meeting.',
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? 'https://wintheweek.co'),
   openGraph: {
-    title: 'Win the Week — The CEO\'s Weekly Operating System',
+    title: 'Win The Week — The CEO\'s Weekly Operating System',
     description: 'Send your team one weekly check-in. Get an AI intelligence briefing on what your company accomplished and what it needs from you.',
     url: 'https://wintheweek.co',
-    siteName: 'Win the Week',
+    siteName: 'Win The Week',
     locale: 'en_US',
     type: 'website',
-    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'Win the Week — The CEO\'s Weekly Operating System' }],
+    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'Win The Week — The CEO\'s Weekly Operating System' }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Win the Week — The CEO\'s Weekly Operating System',
+    title: 'Win The Week — The CEO\'s Weekly Operating System',
     description: 'Send your team one weekly check-in. Get an AI intelligence briefing on what your company accomplished and what it needs from you.',
     images: ['/og-image.png'],
   },

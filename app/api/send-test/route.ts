@@ -102,7 +102,7 @@ export async function POST(req: Request) {
   })
 
   const { data: sendResult, error } = await getResend().emails.send({
-    from: `${process.env.FROM_NAME ?? 'Win the Week'} <${process.env.FROM_EMAIL ?? 'updates@wintheweek.co'}>`,
+    from: `${process.env.FROM_NAME ?? 'Win The Week'} <${process.env.FROM_EMAIL ?? 'updates@wintheweek.co'}>`,
     to: to_email,
     replyTo,
     subject,

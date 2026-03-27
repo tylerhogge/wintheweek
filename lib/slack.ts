@@ -1,7 +1,7 @@
 /**
  * lib/slack.ts
  *
- * Slack API helpers for Win the Week:
+ * Slack API helpers for Win The Week:
  *  - OAuth helpers
  *  - Sending DMs (check-ins and nudges)
  *  - Looking up users by email
@@ -269,7 +269,7 @@ export function buildNudgeBlocks(
       elements: [
         {
           type: 'mrkdwn',
-          text: `Nudge from *${senderName}* via Win the Week`,
+          text: `Nudge from *${senderName}* via Win The Week`,
         },
       ],
     },
@@ -318,7 +318,7 @@ export function buildWallOfShameBlocks(
       elements: [
         {
           type: 'mrkdwn',
-          text: 'Reply to the Win the Week check-in email (or Slack DM) to get off this list.',
+          text: 'Reply to the Win The Week check-in email (or Slack DM) to get off this list.',
         },
       ],
     },

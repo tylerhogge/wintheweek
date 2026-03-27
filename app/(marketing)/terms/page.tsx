@@ -1,6 +1,6 @@
 import Link from 'next/link'
 
-export const metadata = { title: 'Terms of Service — Win the Week' }
+export const metadata = { title: 'Terms of Service — Win The Week' }
 
 const LAST_UPDATED = 'March 19, 2026'
 
@@ -17,7 +17,7 @@ export default function TermsPage() {
                 <polyline points="20 6 9 17 4 12" />
               </svg>
             </span>
-            Win the Week
+            Win The Week
           </Link>
           <Link href="/auth/login" className="text-sm text-[#a1a1aa] hover:text-white px-3 py-1.5 border border-white/10 rounded-md transition-colors">
             Log in
@@ -38,11 +38,11 @@ export default function TermsPage() {
           <div className="space-y-10 text-[#a1a1aa] text-[15px] leading-relaxed">
 
             <Section title="Who this applies to">
-              <p>These terms apply to anyone who creates an account on Win the Week or uses the service ("you"). By using Win the Week, you agree to these terms.</p>
+              <p>These terms apply to anyone who creates an account on Win The Week or uses the service ("you"). By using Win The Week, you agree to these terms.</p>
             </Section>
 
-            <Section title="What Win the Week is">
-              <p>Win the Week is a team alignment tool that sends weekly email check-ins to your team and collects their replies in a dashboard. You are responsible for the team members you add and the campaigns you send.</p>
+            <Section title="What Win The Week is">
+              <p>Win The Week is a team alignment tool that sends weekly email check-ins to your team and collects their replies in a dashboard. You are responsible for the team members you add and the campaigns you send.</p>
             </Section>
 
             <Section title="Your account">
@@ -50,15 +50,15 @@ export default function TermsPage() {
             </Section>
 
             <Section title="Your team members">
-              <p>When you add team members to Win the Week, you are responsible for ensuring you have the right to send them emails on behalf of your organization. You must not add email addresses without the recipient's consent. We will honor any unsubscribe or opt-out request from a team member.</p>
+              <p>When you add team members to Win The Week, you are responsible for ensuring you have the right to send them emails on behalf of your organization. You must not add email addresses without the recipient's consent. We will honor any unsubscribe or opt-out request from a team member.</p>
             </Section>
 
             <Section title="Acceptable use">
-              <p>You may not use Win the Week to send spam, harass individuals, violate applicable laws, or circumvent any limitations we impose. We reserve the right to suspend accounts that violate these terms.</p>
+              <p>You may not use Win The Week to send spam, harass individuals, violate applicable laws, or circumvent any limitations we impose. We reserve the right to suspend accounts that violate these terms.</p>
             </Section>
 
             <Section title="Subscription and billing">
-              <p>Win the Week is currently free during beta. When paid plans launch, we will notify you in advance with pricing details. You will always have the option to continue or cancel before being charged.</p>
+              <p>Win The Week is currently free during beta. When paid plans launch, we will notify you in advance with pricing details. You will always have the option to continue or cancel before being charged.</p>
             </Section>
 
             <Section title="Your data">
@@ -66,15 +66,15 @@ export default function TermsPage() {
             </Section>
 
             <Section title="Availability">
-              <p>We aim to keep Win the Week reliable, but we don't guarantee uptime. We may update, modify, or discontinue features at any time. If we ever decide to shut down the service, we will give you at least 30 days notice and help you export your data.</p>
+              <p>We aim to keep Win The Week reliable, but we don't guarantee uptime. We may update, modify, or discontinue features at any time. If we ever decide to shut down the service, we will give you at least 30 days notice and help you export your data.</p>
             </Section>
 
             <Section title="Limitation of liability">
-              <p>Win the Week is provided "as is." To the extent permitted by law, we are not liable for indirect, incidental, or consequential damages arising from your use of the service.</p>
+              <p>Win The Week is provided "as is." To the extent permitted by law, we are not liable for indirect, incidental, or consequential damages arising from your use of the service.</p>
             </Section>
 
             <Section title="Changes to these terms">
-              <p>We may update these terms from time to time. We will notify you of meaningful changes by email. Continued use of Win the Week after changes take effect constitutes acceptance.</p>
+              <p>We may update these terms from time to time. We will notify you of meaningful changes by email. Continued use of Win The Week after changes take effect constitutes acceptance.</p>
             </Section>
 
             <Section title="Contact">
@@ -94,14 +94,14 @@ export default function TermsPage() {
                 <polyline points="20 6 9 17 4 12" />
               </svg>
             </span>
-            Win the Week
+            Win The Week
           </Link>
           <div className="flex gap-5">
             <Link href="/privacy" className="text-sm text-[#71717a] hover:text-[#a1a1aa] transition-colors">Privacy</Link>
             <Link href="/terms" className="text-sm text-[#a1a1aa] transition-colors">Terms</Link>
             <Link href="/contact" className="text-sm text-[#71717a] hover:text-[#a1a1aa] transition-colors">Contact</Link>
           </div>
-          <p className="text-xs text-[#52525b]">© 2026 Win the Week</p>
+          <p className="text-xs text-[#52525b]">© 2026 Win The Week</p>
         </div>
       </footer>
     </div>

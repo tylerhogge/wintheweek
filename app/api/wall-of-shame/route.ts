@@ -128,15 +128,15 @@ export async function POST(req: Request) {
                   'You can send individual nudges from the dashboard.',
                 ]
 
-          const text = `Hi ${adminFirstName},\n\n${bodyLines.join('\n')}\n\n—\nWin the Week`
+          const text = `Hi ${adminFirstName},\n\n${bodyLines.join('\n')}\n\n—\nWin The Week`
           const html = `<div style="font-family:sans-serif;font-size:14px;line-height:1.6;color:#111;max-width:600px">
             <p>Hi ${adminFirstName},</p>
             ${bodyLines.map((l) => l === '' ? '<br>' : `<p style="margin:2px 0">${l}</p>`).join('')}
-            <p>—<br>Win the Week</p>
+            <p>—<br>Win The Week</p>
           </div>`
 
           await resend.emails.send({
-            from: `Win the Week <${fromAddress}>`,
+            from: `Win The Week <${fromAddress}>`,
             to: adminProfile.email,
             subject,
             text,

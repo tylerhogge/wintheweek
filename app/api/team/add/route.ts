@@ -67,7 +67,7 @@ export async function POST(req: Request) {
     })
 
     await getResend().emails.send({
-      from: `${process.env.FROM_NAME ?? 'Win the Week'} <${process.env.FROM_EMAIL ?? 'updates@wintheweek.co'}>`,
+      from: `${process.env.FROM_NAME ?? 'Win The Week'} <${process.env.FROM_EMAIL ?? 'updates@wintheweek.co'}>`,
       to: email.trim().toLowerCase(),
       subject,
       html,

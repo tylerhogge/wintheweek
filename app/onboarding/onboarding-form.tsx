@@ -80,7 +80,7 @@ export function OnboardingForm() {
               <polyline points="20 6 9 17 4 12" />
             </svg>
           </span>
-          Win the Week
+          Win The Week
         </Link>
 
         {step === 'basics' ? (

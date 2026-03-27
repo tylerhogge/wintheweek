@@ -206,7 +206,7 @@ export function DemoAnimation() {
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                 </div>
                 <div>
-                  <p style={{ color: '#fafafa', fontSize: 12, fontWeight: 600 }}>Win the Week</p>
+                  <p style={{ color: '#fafafa', fontSize: 12, fontWeight: 600 }}>Win The Week</p>
                   <p style={{ color: '#71717a', fontSize: 10 }}>hello@wintheweek.co</p>
                 </div>
               </div>

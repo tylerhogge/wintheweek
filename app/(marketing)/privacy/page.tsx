@@ -1,6 +1,6 @@
 import Link from 'next/link'
 
-export const metadata = { title: 'Privacy Policy — Win the Week' }
+export const metadata = { title: 'Privacy Policy — Win The Week' }
 
 const LAST_UPDATED = 'March 19, 2026'
 
@@ -17,7 +17,7 @@ export default function PrivacyPage() {
                 <polyline points="20 6 9 17 4 12" />
               </svg>
             </span>
-            Win the Week
+            Win The Week
           </Link>
           <Link href="/auth/login" className="text-sm text-[#a1a1aa] hover:text-white px-3 py-1.5 border border-white/10 rounded-md transition-colors">
             Log in
@@ -43,7 +43,7 @@ export default function PrivacyPage() {
             </Section>
 
             <Section title="How we use it">
-              <p>We use your information to operate Win the Week — sending check-in emails, displaying replies on your dashboard, and generating AI summaries of team updates. We do not sell your data. We do not share it with third parties except the service providers that help us run the product (email delivery, database hosting, AI processing).</p>
+              <p>We use your information to operate Win The Week — sending check-in emails, displaying replies on your dashboard, and generating AI summaries of team updates. We do not sell your data. We do not share it with third parties except the service providers that help us run the product (email delivery, database hosting, AI processing).</p>
             </Section>
 
             <Section title="Email replies">
@@ -51,7 +51,7 @@ export default function PrivacyPage() {
             </Section>
 
             <Section title="AI processing">
-              <p>Win the Week uses AI to generate summaries and highlights from team replies. This processing happens via Anthropic's Claude API. Reply content is sent to Anthropic for this purpose. Anthropic's privacy policy applies to that processing.</p>
+              <p>Win The Week uses AI to generate summaries and highlights from team replies. This processing happens via Anthropic's Claude API. Reply content is sent to Anthropic for this purpose. Anthropic's privacy policy applies to that processing.</p>
             </Section>
 
             <Section title="Data retention">
@@ -67,7 +67,7 @@ export default function PrivacyPage() {
             </Section>
 
             <Section title="Changes">
-              <p>If we make meaningful changes to this policy, we'll update the date at the top and notify you by email. Continued use of Win the Week after changes take effect constitutes acceptance.</p>
+              <p>If we make meaningful changes to this policy, we'll update the date at the top and notify you by email. Continued use of Win The Week after changes take effect constitutes acceptance.</p>
             </Section>
 
             <Section title="Contact">
@@ -87,14 +87,14 @@ export default function PrivacyPage() {
                 <polyline points="20 6 9 17 4 12" />
               </svg>
             </span>
-            Win the Week
+            Win The Week
           </Link>
           <div className="flex gap-5">
             <Link href="/privacy" className="text-sm text-[#a1a1aa] transition-colors">Privacy</Link>
             <Link href="/terms" className="text-sm text-[#71717a] hover:text-[#a1a1aa] transition-colors">Terms</Link>
             <Link href="/contact" className="text-sm text-[#71717a] hover:text-[#a1a1aa] transition-colors">Contact</Link>
           </div>
-          <p className="text-xs text-[#52525b]">© 2026 Win the Week</p>
+          <p className="text-xs text-[#52525b]">© 2026 Win The Week</p>
         </div>
       </footer>
     </div>

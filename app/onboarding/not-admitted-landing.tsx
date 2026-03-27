@@ -46,7 +46,7 @@ export function NotAdmittedLanding({ userEmail }: Props) {
               <polyline points="20 6 9 17 4 12" />
             </svg>
           </span>
-          Win the Week
+          Win The Week
         </Link>
 
         <div className="bg-surface border border-white/[0.08] rounded-xl p-8 text-center">
@@ -62,7 +62,7 @@ export function NotAdmittedLanding({ userEmail }: Props) {
             We're not quite ready for you yet
           </h2>
           <p className="text-sm text-[#a1a1aa] mb-6 leading-relaxed">
-            Win the Week is currently in beta. Join the waitlist and we'll let you know as soon as your spot opens up.
+            Win The Week is currently in beta. Join the waitlist and we'll let you know as soon as your spot opens up.
           </p>
 
           <button

@@ -80,7 +80,7 @@ async function maybeFireDigest(orgId: string, weekStart: string) {
   const appUrl = 'https://www.wintheweek.co'
   const weekLabel = formatWeekRange(weekStart)
   const resend = getResend()
-  const fromAddress = `Win the Week <${process.env.FROM_EMAIL ?? 'hello@wintheweek.co'}>`
+  const fromAddress = `Win The Week <${process.env.FROM_EMAIL ?? 'hello@wintheweek.co'}>`
 
   // Admin digest: all replies
   const adminEmail = buildDigestEmail({ orgName: org.name, weekLabel, summary: insight?.summary ?? null, highlights: (insight?.highlights as string[] | null) ?? null, replies: allReplies, dashboardUrl: `${appUrl}/dashboard?week=${weekStart}` })
@@ -130,7 +130,7 @@ async function notifyAdmin({ orgId, responseId, employeeName, employeeTeam, repl
   const taggedReplyTo = `${employeeName} <reply+${responseId}@${inboundDomain}>`
   const appUrl = 'https://www.wintheweek.co'
   const emailContent = buildReplyNotification({ adminName: adminProfile.name ?? adminProfile.email.split('@')[0], employeeName, employeeTeam, replyBody, replyToAddress: taggedReplyTo, dashboardUrl: `${appUrl}/dashboard?week=${weekStart}`, weekReplied, weekTotal })
-  await getResend().emails.send({ from: `Win the Week <${process.env.FROM_EMAIL ?? 'hello@wintheweek.co'}>`, to: adminProfile.email, replyTo: taggedReplyTo, subject: emailContent.subject, html: emailContent.html, text: emailContent.text })
+  await getResend().emails.send({ from: `Win The Week <${process.env.FROM_EMAIL ?? 'hello@wintheweek.co'}>`, to: adminProfile.email, replyTo: taggedReplyTo, subject: emailContent.subject, html: emailContent.html, text: emailContent.text })
 }
 
 /**
@@ -183,7 +183,7 @@ async function notifyManagers({ orgId, responseId, employeeName, employeeTeam, r
     })
 
     await getResend().emails.send({
-      from: `Win the Week <${process.env.FROM_EMAIL ?? 'hello@wintheweek.co'}>`,
+      from: `Win The Week <${process.env.FROM_EMAIL ?? 'hello@wintheweek.co'}>`,
       to: manager.email,
       replyTo: taggedReplyTo,
       subject: emailContent.subject,

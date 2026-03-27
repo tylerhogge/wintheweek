@@ -4,6 +4,7 @@
 import Link from 'next/link'
 import { WaitlistForm } from '@/components/marketing/waitlist-form'
 import { DemoAnimation } from '@/components/marketing/demo-animation'
+import { ScrollNav } from '@/components/marketing/scroll-nav'
 
 export default function LandingPage() {
   return (
@@ -17,18 +18,10 @@ export default function LandingPage() {
                 <polyline points="20 6 9 17 4 12" />
               </svg>
             </span>
-            Win the Week
+            Win The Week
           </Link>
 
-          <ul className="hidden md:flex items-center gap-1">
-            {[['#how', 'How it works'], ['#features', 'Features'], ['#pricing', 'Pricing']].map(([href, label]: string[]) => (
-              <li key={href}>
-                <Link href={href} className="text-[#a1a1aa] hover:text-white text-sm px-3 py-1.5 rounded-md transition-colors">
-                  {label}
-                </Link>
-              </li>
-            ))}
-          </ul>
+          <ScrollNav />
 
           <div className="flex items-center gap-2">
             <Link href="/auth/login" className="text-sm text-[#a1a1aa] hover:text-white px-3 py-1.5 border border-white/10 rounded-md transition-colors">
@@ -80,7 +73,7 @@ export default function LandingPage() {
       <section id="how" className="py-24 max-w-[1080px] mx-auto px-6">
         <p className="text-xs font-semibold tracking-[0.1em] uppercase text-accent mb-4">How it works</p>
         <h2 className="text-[clamp(26px,4vw,38px)] font-bold tracking-[-0.03em] leading-[1.15] mb-4">Set it once. Runs every week.</h2>
-        <p className="text-base text-[#a1a1aa] mb-14 max-w-xl">Win the Week handles the sending, collecting, and summarizing. You just read the results.</p>
+        <p className="text-base text-[#a1a1aa] mb-14 max-w-xl">Win The Week handles the sending, collecting, and summarizing. You just read the results.</p>
 
         <div className="grid md:grid-cols-3 gap-4">
           {[
@@ -112,7 +105,7 @@ export default function LandingPage() {
             { icon: '📊', title: 'Sentiment & trends over time', body: 'Track company mood, top themes, and reply rates week over week. AI scores team sentiment from check-in tone — spot morale dips early.' },
           ].map(({ icon, title, body }: { icon: string; title: string; body: string }) => (
             <div key={title} className="bg-surface border border-white/[0.07] rounded-xl p-7 hover:border-white/[0.12] transition-colors h-full">
-              <div className="text-2xl mb-4">
+              <div className="text-2xl mb-4 w-8 h-8 flex items-center justify-center">
                 {icon === 'slack' ? (
                   <svg width="28" height="28" viewBox="0 0 127 127" xmlns="http://www.w3.org/2000/svg">
                     <path d="M27.2 80c0 7.3-5.9 13.2-13.2 13.2C6.7 93.2.8 87.3.8 80c0-7.3 5.9-13.2 13.2-13.2h13.2V80zm6.6 0c0-7.3 5.9-13.2 13.2-13.2 7.3 0 13.2 5.9 13.2 13.2v33c0 7.3-5.9 13.2-13.2 13.2-7.3 0-13.2-5.9-13.2-13.2V80z" fill="#E01E5A"/>
@@ -138,7 +131,7 @@ export default function LandingPage() {
         <div className="grid sm:grid-cols-2 gap-4 max-w-[680px] mx-auto">
           {/* Main tier */}
           <div className="bg-surface border border-accent/40 bg-gradient-to-b from-accent/[0.06] to-surface rounded-xl p-7">
-            <p className="text-[13px] font-semibold mb-1">Win the Week</p>
+            <p className="text-[13px] font-semibold mb-1">Win The Week</p>
             <p className="text-xs text-[#71717a] mb-5">Up to 100 employees</p>
             <p className="mb-1"><span className="text-[36px] font-bold tracking-[-0.04em]">$299</span><span className="text-sm text-[#71717a] ml-1">/ mo</span></p>
             <p className="text-xs text-accent mb-6">First month free</p>
@@ -182,14 +175,14 @@ export default function LandingPage() {
                 <polyline points="20 6 9 17 4 12" />
               </svg>
             </span>
-            Win the Week
+            Win The Week
           </Link>
           <div className="flex gap-5">
             {[['Privacy', '/privacy'], ['Terms', '/terms'], ['Contact', '/contact']].map(([label, href]: string[]) => (
               <Link key={href} href={href} className="text-sm text-[#71717a] hover:text-[#a1a1aa] transition-colors">{label}</Link>
             ))}
           </div>
-          <p className="text-xs text-[#52525b]">© 2026 Win the Week</p>
+          <p className="text-xs text-[#52525b]">© 2026 Win The Week</p>
         </div>
       </footer>
     </div>

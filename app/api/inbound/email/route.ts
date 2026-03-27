@@ -170,7 +170,7 @@ async function maybeFireDigest(orgId: string, weekStart: string) {
   const appUrl = 'https://www.wintheweek.co'
   const weekLabel = formatWeekRange(weekStart)
   const resend = getResend()
-  const fromAddress = `Win the Week <${process.env.FROM_EMAIL ?? 'hello@wintheweek.co'}>`
+  const fromAddress = `Win The Week <${process.env.FROM_EMAIL ?? 'hello@wintheweek.co'}>`
 
   // ── Admin digest: all replies ───────────────────────────────────────────
   const adminEmail = buildDigestEmail({
@@ -310,7 +310,7 @@ async function notifyAdmin({
 
   const resend = getResend()
   await resend.emails.send({
-    from: `Win the Week <${process.env.FROM_EMAIL ?? 'hello@wintheweek.co'}>`,
+    from: `Win The Week <${process.env.FROM_EMAIL ?? 'hello@wintheweek.co'}>`,
     to: adminProfile.email,
     replyTo: taggedReplyTo,
     subject: emailContent.subject,
@@ -382,7 +382,7 @@ async function notifyManagers({
   const taggedReplyTo = `${employeeName} <reply+${responseId}@${inboundDomain}>`
   const appUrl = 'https://www.wintheweek.co'
   const resend = getResend()
-  const fromAddress = `Win the Week <${process.env.FROM_EMAIL ?? 'hello@wintheweek.co'}>`
+  const fromAddress = `Win The Week <${process.env.FROM_EMAIL ?? 'hello@wintheweek.co'}>`
 
   for (const manager of managers) {
     // Skip if manager is the admin (they already got notified via notifyAdmin)
@@ -591,11 +591,11 @@ async function handleManagerQuery({
   const displayName = senderName ? `Hi ${senderName.split(' ')[0]},\n\n` : ''
 
   await resend.emails.send({
-    from: `Win the Week <${fromAddress}>`,
+    from: `Win The Week <${fromAddress}>`,
     to: senderEmail,
     subject: replySubject,
-    text: `${displayName}${answer}\n\n—\nWin the Week`,
-    html: `<div style="font-family:sans-serif;font-size:14px;line-height:1.6;color:#111;max-width:600px">${displayName.replace('\n\n', '<br><br>')}${answer.replace(/\n/g, '<br>')}<br><br>—<br>Win the Week</div>`,
+    text: `${displayName}${answer}\n\n—\nWin The Week`,
+    html: `<div style="font-family:sans-serif;font-size:14px;line-height:1.6;color:#111;max-width:600px">${displayName.replace('\n\n', '<br><br>')}${answer.replace(/\n/g, '<br>')}<br><br>—<br>Win The Week</div>`,
   })
 
   console.log('[manager query] answered and sent to', senderEmail)
