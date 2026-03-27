@@ -7,13 +7,14 @@ import { OrgNameEdit } from '@/components/settings/org-name-edit'
 import { SlackConnect } from '@/components/settings/slack-connect'
 import { ShameSettings } from '@/components/settings/shame-settings'
 import { PrioritiesEditor } from '@/components/settings/priorities-editor'
+import { BillingSection } from '@/components/settings/billing-section'
 import type { Priority } from '@/types'
 
 // ── Heavy data section — streams in while shell renders instantly ──────────
 async function SettingsContent({ orgId, org }: { orgId: string; org: any }) {
   const service = createServiceClient()
   const [orgData, slackData, totalCountData, matchedCountData] = await Promise.all([
-    service.from('organizations').select('digest_notify, notify_on_reply, shame_enabled, shame_channel_id, shame_channel_name, shame_email_enabled, auto_nudge, priorities').eq('id', orgId).single(),
+    service.from('organizations').select('digest_notify, notify_on_reply, shame_enabled, shame_channel_id, shame_channel_name, shame_email_enabled, auto_nudge, priorities, stripe_customer_id, stripe_subscription_id, plan, plan_status, trial_ends_at, current_period_end').eq('id', orgId).single(),
     service.from('slack_integrations').select('team_name').eq('org_id', orgId).single(),
     service.from('employees').select('id', { count: 'exact', head: true }).eq('org_id', orgId).eq('active', true),
     service.from('employees').select('id', { count: 'exact', head: true }).eq('org_id', orgId).eq('active', true).not('slack_user_id', 'is', null),
@@ -27,12 +28,29 @@ async function SettingsContent({ orgId, org }: { orgId: string; org: any }) {
   const shameEmailEnabled = orgData.data?.shame_email_enabled ?? false
   const autoNudge = orgData.data?.auto_nudge ?? false
   const priorities = (orgData.data?.priorities as Priority[] | null) ?? []
+  const stripePlan = orgData.data?.plan ?? null
+  const planStatus = orgData.data?.plan_status ?? null
+  const trialEndsAt = orgData.data?.trial_ends_at ?? null
+  const currentPeriodEnd = orgData.data?.current_period_end ?? null
+  const hasStripeCustomer = !!orgData.data?.stripe_customer_id
   const slackIntegration = slackData.data ?? null
   const totalCount = totalCountData.count ?? 0
   const matchedCount = matchedCountData.count ?? 0
 
   return (
     <>
+      {/* Billing */}
+      <section className="mb-8">
+        <p className="text-xs font-semibold tracking-[0.07em] uppercase text-[#71717a] mb-4">Billing</p>
+        <BillingSection
+          plan={stripePlan}
+          planStatus={planStatus}
+          trialEndsAt={trialEndsAt}
+          currentPeriodEnd={currentPeriodEnd}
+          hasStripeCustomer={hasStripeCustomer}
+        />
+      </section>
+
       {/* CEO Priorities */}
       <section className="mb-8">
         <p className="text-xs font-semibold tracking-[0.07em] uppercase text-[#71717a] mb-4">CEO Priorities</p>

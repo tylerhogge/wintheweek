@@ -11,6 +11,13 @@ export type Organization = {
   digest_notify: boolean
   notify_on_reply: boolean
   priorities: Priority[] | null
+  // Stripe billing
+  stripe_customer_id: string | null
+  stripe_subscription_id: string | null
+  plan: 'trial' | 'pro' | 'growth' | 'enterprise' | null
+  plan_status: 'trialing' | 'active' | 'past_due' | 'canceled' | 'unpaid' | null
+  trial_ends_at: string | null
+  current_period_end: string | null
   created_at: string
 }
 

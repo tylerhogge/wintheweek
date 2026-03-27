@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { WaitlistForm } from '@/components/marketing/waitlist-form'
 import { DemoAnimation } from '@/components/marketing/demo-animation'
 import { ScrollNav } from '@/components/marketing/scroll-nav'
+import { PricingCTA } from '@/components/marketing/pricing-cta'
 import { Logo } from '@/components/logo'
 
 export default function LandingPage() {
@@ -139,9 +140,7 @@ export default function LandingPage() {
                 </li>
               ))}
             </ul>
-            <Link href="#waitlist" className="block text-center text-sm font-semibold py-2 rounded-md transition-colors border border-white/10 hover:bg-white/[0.04]">
-              Get started free
-            </Link>
+            <PricingCTA plan="pro" />
           </div>
 
           {/* Growth */}
@@ -160,9 +159,7 @@ export default function LandingPage() {
                 </li>
               ))}
             </ul>
-            <Link href="#waitlist" className="block text-center text-sm font-semibold py-2 rounded-md transition-colors bg-accent text-black hover:bg-accent/90">
-              Get started free
-            </Link>
+            <PricingCTA plan="growth" variant="accent" />
           </div>
 
           {/* Enterprise */}
