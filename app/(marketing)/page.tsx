@@ -98,16 +98,16 @@ export default function LandingPage() {
         <div className="grid md:grid-cols-3 gap-4">
           {[
             { icon: '📬', title: 'Zero-friction check-ins', body: 'Employees reply directly to the email — or Slack. No app download, no login, no portal. Just hit Reply and type.' },
-            { icon: '✦', title: 'AI CEO briefing', body: 'AI synthesizes every check-in into a CEO briefing with company sentiment scoring, top themes, and risk flags. Know how your team is feeling — not just what they\'re doing.' },
+            { icon: '✦', iconClass: 'text-3xl', title: 'AI CEO briefing', body: 'AI synthesizes every check-in into a CEO briefing with company sentiment scoring, top themes, and risk flags. Know how your team is feeling — not just what they\'re doing.' },
             { icon: 'slack', title: 'Slack integration', body: 'Run your company on Slack? No problem. Check-ins delivered as DMs, replies collected automatically — your team never leaves Slack.' },
             { icon: '🔔', title: 'Auto-nudges & accountability', body: 'Automatic reminders for people who haven\'t replied. See who responded and who didn\'t — no awkward follow-ups.' },
             { icon: '💬', title: 'Ask your data anything', body: 'Email a question and get an AI-powered answer based on your team\'s check-in data. Like having a chief of staff on call.' },
             { icon: '📊', title: 'Sentiment & trends over time', body: 'Track company mood, top themes, and reply rates week over week. AI scores team sentiment from check-in tone — spot morale dips early.' },
-          ].map(({ icon, title, body }: { icon: string; title: string; body: string }) => (
+          ].map(({ icon, iconClass, title, body }: { icon: string; iconClass?: string; title: string; body: string }) => (
             <div key={title} className="bg-surface border border-white/[0.07] rounded-xl p-7 hover:border-white/[0.12] transition-colors h-full">
-              <div className="text-2xl mb-4 w-8 h-8 flex items-center justify-center">
+              <div className={`${iconClass ?? 'text-2xl'} mb-4 w-8 h-8 flex items-center justify-center`}>
                 {icon === 'slack' ? (
-                  <svg width="28" height="28" viewBox="0 0 127 127" xmlns="http://www.w3.org/2000/svg">
+                  <svg width="24" height="24" viewBox="0 0 127 127" xmlns="http://www.w3.org/2000/svg">
                     <path d="M27.2 80c0 7.3-5.9 13.2-13.2 13.2C6.7 93.2.8 87.3.8 80c0-7.3 5.9-13.2 13.2-13.2h13.2V80zm6.6 0c0-7.3 5.9-13.2 13.2-13.2 7.3 0 13.2 5.9 13.2 13.2v33c0 7.3-5.9 13.2-13.2 13.2-7.3 0-13.2-5.9-13.2-13.2V80z" fill="#E01E5A"/>
                     <path d="M47 27c-7.3 0-13.2-5.9-13.2-13.2C33.8 6.5 39.7.6 47 .6c7.3 0 13.2 5.9 13.2 13.2V27H47zm0 6.7c7.3 0 13.2 5.9 13.2 13.2 0 7.3-5.9 13.2-13.2 13.2H13.9C6.6 60.1.7 54.2.7 46.9c0-7.3 5.9-13.2 13.2-13.2H47z" fill="#36C5F0"/>
                     <path d="M99.9 46.9c0-7.3 5.9-13.2 13.2-13.2 7.3 0 13.2 5.9 13.2 13.2 0 7.3-5.9 13.2-13.2 13.2H99.9V46.9zm-6.6 0c0 7.3-5.9 13.2-13.2 13.2-7.3 0-13.2-5.9-13.2-13.2V13.8C66.9 6.5 72.8.6 80.1.6c7.3 0 13.2 5.9 13.2 13.2v33.1z" fill="#2EB67D"/>
