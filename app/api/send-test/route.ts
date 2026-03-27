@@ -101,7 +101,7 @@ export async function POST(req: Request) {
     replyToAddress: replyTo,
   })
 
-  const { error } = await getResend().emails.send({
+  const { data: sendResult, error } = await getResend().emails.send({
     from: `${process.env.FROM_NAME ?? 'Win the Week'} <${process.env.FROM_EMAIL ?? 'updates@wintheweek.co'}>`,
     to: to_email,
     replyTo,
@@ -117,6 +117,25 @@ export async function POST(req: Request) {
   if (error) {
     console.error('Test email failed', error)
     return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+
+  // Store Resend email ID for delivery tracking
+  if (employee && sendResult?.id) {
+    const { data: sub } = await serviceSupabase
+      .from('submissions')
+      .select('id')
+      .eq('campaign_id', campaign_id)
+      .eq('employee_id', employee.id)
+      .eq('week_start', weekStart)
+      .limit(1)
+      .maybeSingle()
+
+    if (sub) {
+      await serviceSupabase
+        .from('submissions')
+        .update({ resend_email_id: sendResult.id, email_status: 'sent' })
+        .eq('id', sub.id)
+    }
   }
 
   auditLog({

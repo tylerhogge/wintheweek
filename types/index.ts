@@ -67,6 +67,7 @@ export type Submission = {
   week_start: string  // ISO date, always the Monday of that week
   sent_at: string | null
   replied_at: string | null
+  email_status: 'sent' | 'delivered' | 'opened' | 'bounced' | 'complained'
   created_at: string
 }
 

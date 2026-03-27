@@ -7,6 +7,26 @@ import type { SubmissionWithDetails, ManagerReply } from '@/types'
 
 type Props = { submission: SubmissionWithDetails }
 
+function statusLabel(status: string | undefined): string {
+  switch (status) {
+    case 'opened': return 'Opened'
+    case 'delivered': return 'Delivered'
+    case 'bounced': return 'Bounced'
+    case 'complained': return 'Marked spam'
+    default: return 'No reply yet'
+  }
+}
+
+function statusStyle(status: string | undefined): string {
+  switch (status) {
+    case 'opened': return 'text-amber-400 border-amber-400/20 bg-amber-400/[0.06]'
+    case 'delivered': return 'text-blue-400 border-blue-400/20 bg-blue-400/[0.06]'
+    case 'bounced': return 'text-red-400 border-red-400/20 bg-red-400/[0.06]'
+    case 'complained': return 'text-red-400 border-red-400/20 bg-red-400/[0.06]'
+    default: return 'text-[#52525b] border-white/[0.06]'
+  }
+}
+
 export function ReplyCard({ submission }: Props) {
   const { employee, response } = submission
   const hasReplied = !!response
@@ -77,8 +97,8 @@ export function ReplyCard({ submission }: Props) {
             )}
             {!hasReplied && (
               <div className="ml-auto flex items-center gap-2">
-                <span className="text-[10px] font-medium text-[#52525b] border border-white/[0.06] px-2 py-0.5 rounded-full">
-                  No reply yet
+                <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full border ${statusStyle(submission.email_status)}`}>
+                  {statusLabel(submission.email_status)}
                 </span>
                 <button
                   onClick={sendNudge}

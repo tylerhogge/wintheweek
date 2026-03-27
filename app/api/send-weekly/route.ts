@@ -105,6 +105,7 @@ export async function POST(req: Request) {
       }
 
       let sendError: string | null = null
+      let resendEmailId: string | null = null
 
       if (employee.slack_user_id) {
         // ── Slack delivery ──────────────────────────────────────────────────
@@ -126,7 +127,7 @@ export async function POST(req: Request) {
           sendError = null
           const replyTo = process.env.REPLY_TO_EMAIL ?? 'updates@wintheweek.co'
           const { subject, html, text } = buildCampaignEmail({ employeeName: employee.name, subject: campaign.subject, body: campaign.body, replyToAddress: replyTo })
-          const { error: emailErr } = await getResend().emails.send({
+          const { data: sendResult, error: emailErr } = await getResend().emails.send({
             from: `${process.env.FROM_NAME ?? 'Win the Week'} <${process.env.FROM_EMAIL ?? 'updates@wintheweek.co'}>`,
             to: employee.email,
             replyTo,
@@ -139,12 +140,13 @@ export async function POST(req: Request) {
             },
           })
           if (emailErr) sendError = emailErr.message
+          else resendEmailId = sendResult?.id ?? null
         }
       } else {
         // ── Email delivery (default) ────────────────────────────────────────
         const replyTo = process.env.REPLY_TO_EMAIL ?? 'updates@wintheweek.co'
         const { subject, html, text } = buildCampaignEmail({ employeeName: employee.name, subject: campaign.subject, body: campaign.body, replyToAddress: replyTo })
-        const { error: emailErr } = await getResend().emails.send({
+        const { data: sendResult, error: emailErr } = await getResend().emails.send({
           from: `${process.env.FROM_NAME ?? 'Win the Week'} <${process.env.FROM_EMAIL ?? 'updates@wintheweek.co'}>`,
           to: employee.email,
           replyTo,
@@ -157,6 +159,7 @@ export async function POST(req: Request) {
           },
         })
         if (emailErr) sendError = emailErr.message
+        else resendEmailId = sendResult?.id ?? null
       }
 
       if (sendError) {
@@ -165,7 +168,11 @@ export async function POST(req: Request) {
       } else {
         await supabase
           .from('submissions')
-          .update({ sent_at: new Date().toISOString() })
+          .update({
+            sent_at: new Date().toISOString(),
+            email_status: 'sent',
+            ...(resendEmailId && { resend_email_id: resendEmailId }),
+          })
           .eq('id', submission.id)
         results.sent++
       }
