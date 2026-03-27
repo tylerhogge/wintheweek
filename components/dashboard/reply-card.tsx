@@ -26,7 +26,7 @@ function statusStyle(status: string | undefined): string {
     case 'delivered': return 'text-blue-400 border-blue-400/20 bg-blue-400/[0.06]'
     case 'bounced': return 'text-red-400 border-red-400/20 bg-red-400/[0.06]'
     case 'complained': return 'text-red-400 border-red-400/20 bg-red-400/[0.06]'
-    default: return 'text-[#52525b] border-white/[0.06]'
+    default: return 'text-[#a1a1aa] border-white/[0.06]'
   }
 }
 
@@ -128,14 +128,14 @@ export function ReplyCard({ submission, forceExpanded }: Props) {
           <div className="flex items-center gap-2">
             <span className="text-[13.5px] font-semibold tracking-[-0.01em]">{employee.name}</span>
             {employee.team && (
-              <span className="text-[10px] font-medium text-[#71717a] border border-white/[0.08] px-2 py-0.5 rounded-full bg-white/[0.03]">
+              <span className="text-[10px] font-medium text-[#a1a1aa] border border-white/[0.08] px-2 py-0.5 rounded-full bg-white/[0.03]">
                 {employee.team}
               </span>
             )}
           </div>
           {/* Preview line when collapsed */}
           {hasReplied && !isExpanded && preview && (
-            <p className="text-[12.5px] text-[#a1a1aa] mt-0.5 truncate">{preview}</p>
+            <p className="text-[12.5px] text-[#d4d4d8] mt-0.5 truncate">{preview}</p>
           )}
         </div>
 
@@ -147,7 +147,7 @@ export function ReplyCard({ submission, forceExpanded }: Props) {
                 {statusLabel(submission.email_status)}
               </span>
               {submission.sent_at && (
-                <span className="text-[11px] text-[#71717a]">
+                <span className="text-[11px] text-[#a1a1aa]">
                   Sent {relativeTime(submission.sent_at)}
                 </span>
               )}
@@ -158,7 +158,7 @@ export function ReplyCard({ submission, forceExpanded }: Props) {
                 className={`flex items-center gap-1 text-[11px] font-medium px-2.5 py-1 rounded-full border transition-all ${
                   nudgeSent
                     ? 'text-[#22c55e] border-[#22c55e]/30 bg-[#22c55e]/[0.06]'
-                    : 'text-[#71717a] border-white/[0.08] hover:text-white hover:border-white/20'
+                    : 'text-[#a1a1aa] border-white/[0.08] hover:text-white hover:border-white/20'
                 }`}
               >
                 <Bell className="w-3 h-3" />
@@ -170,16 +170,16 @@ export function ReplyCard({ submission, forceExpanded }: Props) {
           {hasReplied && (
             <>
               {threadCount > 0 && (
-                <span className="text-[10px] text-[#71717a]">
+                <span className="text-[10px] text-[#a1a1aa]">
                   {threadCount} {threadCount === 1 ? 'reply' : 'replies'}
                 </span>
               )}
               {submission.replied_at && (
-                <span className="text-[11px] text-[#71717a]">
+                <span className="text-[11px] text-[#a1a1aa]">
                   {relativeTime(submission.replied_at)}
                 </span>
               )}
-              <ChevronDown className={`w-4 h-4 text-[#52525b] transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+              <ChevronDown className={`w-4 h-4 text-[#a1a1aa] transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
             </>
           )}
 
@@ -194,7 +194,7 @@ export function ReplyCard({ submission, forceExpanded }: Props) {
               </button>
               <button
                 onClick={() => setConfirming(false)}
-                className="text-[10px] font-medium px-2 py-0.5 rounded-full border border-white/[0.08] text-[#71717a] hover:text-white transition-colors"
+                className="text-[10px] font-medium px-2 py-0.5 rounded-full border border-white/[0.08] text-[#a1a1aa] hover:text-white transition-colors"
               >
                 Cancel
               </button>
@@ -203,7 +203,7 @@ export function ReplyCard({ submission, forceExpanded }: Props) {
             <button
               onClick={(e) => { e.stopPropagation(); setConfirming(true) }}
               aria-label="Remove this submission"
-              className="opacity-0 group-hover:opacity-100 text-[#52525b] hover:text-red-400 transition-all p-1 rounded"
+              className="opacity-0 group-hover:opacity-100 text-[#71717a] hover:text-red-400 transition-all p-1 rounded"
             >
               <Trash2 className="w-3.5 h-3.5" />
             </button>
@@ -221,7 +221,7 @@ export function ReplyCard({ submission, forceExpanded }: Props) {
               <div className={`w-7 h-7 rounded-full bg-gradient-to-br ${avatarGradient(employee.email)} flex items-center justify-center text-[10px] font-bold text-white shrink-0 mt-0.5`}>
                 {getInitials(employee.name)}
               </div>
-              <p className="text-[13.5px] text-[#c4c4cc] leading-[1.65] whitespace-pre-wrap flex-1 min-w-0">
+              <p className="text-[13.5px] text-[#e4e4e7] leading-[1.65] whitespace-pre-wrap flex-1 min-w-0">
                 {response.body_clean}
               </p>
             </div>
@@ -243,11 +243,11 @@ export function ReplyCard({ submission, forceExpanded }: Props) {
                         }`}>
                           {isEmployee ? (mr.employee_name?.split(' ')[0] ?? 'Employee') : 'You replied'}
                         </span>
-                        <span className="text-[11px] text-[#52525b]">
+                        <span className="text-[11px] text-[#71717a]">
                           {relativeTime(mr.created_at)}
                         </span>
                       </div>
-                      <p className="text-[13px] text-[#a1a1aa] leading-[1.6] whitespace-pre-wrap">
+                      <p className="text-[13px] text-[#d4d4d8] leading-[1.6] whitespace-pre-wrap">
                         {mr.body_clean}
                       </p>
                     </div>

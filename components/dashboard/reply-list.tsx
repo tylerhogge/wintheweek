@@ -58,7 +58,7 @@ export function ReplyList({ replied, pending, filter }: Props) {
         {showReplied && showPending && hasReplied && hasPending && (
           <div className="flex items-center gap-3 my-1 px-1">
             <div className="flex-1 border-t border-white/[0.06]" />
-            <span className="text-[11px] text-[#52525b] font-medium shrink-0">
+            <span className="text-[11px] text-[#a1a1aa] font-medium shrink-0">
               Waiting on {pending.length} {pending.length === 1 ? 'reply' : 'replies'}
             </span>
             <div className="flex-1 border-t border-white/[0.06]" />
