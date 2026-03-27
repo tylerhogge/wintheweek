@@ -125,15 +125,36 @@ export default function LandingPage() {
         <h2 className="text-[clamp(26px,4vw,38px)] font-bold tracking-[-0.03em] leading-[1.15] mb-4">Dead simple. One plan.</h2>
         <p className="text-[#a1a1aa] text-sm mb-14">First month free to get your rhythm. No credit card required to start.</p>
 
-        <div className="grid sm:grid-cols-2 gap-4 max-w-[680px] mx-auto">
-          {/* Main tier */}
-          <div className="bg-surface border border-accent/40 bg-gradient-to-b from-accent/[0.06] to-surface rounded-xl p-7">
-            <p className="text-[13px] font-semibold mb-1">Win The Week</p>
+        <div className="grid sm:grid-cols-3 gap-4 max-w-[920px] mx-auto">
+          {/* Pro */}
+          <div className="bg-surface border border-white/[0.07] rounded-xl p-7 flex flex-col">
+            <p className="text-[13px] font-semibold mb-1">Pro</p>
             <p className="text-xs text-[#71717a] mb-5">Up to 100 employees</p>
-            <p className="mb-1"><span className="text-[36px] font-bold tracking-[-0.04em]">$299</span><span className="text-sm text-[#71717a] ml-1">/ mo</span></p>
+            <p className="mb-1"><span className="text-[36px] font-bold tracking-[-0.04em]">$199</span><span className="text-sm text-[#71717a] ml-1">/ mo</span></p>
             <p className="text-xs text-accent mb-6">First month free</p>
-            <ul className="space-y-2.5 mb-6">
+            <ul className="space-y-2.5 mb-6 flex-1">
               {['Unlimited campaigns', 'AI weekly CEO briefing', 'Company sentiment & themes', 'Slack integration', 'Ask-your-data AI queries', 'Team & function filters', 'Reply tracking & auto-nudges', 'Unlimited history'].map((f: string) => (
+                <li key={f} className="text-sm text-[#a1a1aa] flex items-center gap-2">
+                  <span className="text-accent font-bold text-xs">✓</span> {f}
+                </li>
+              ))}
+            </ul>
+            <Link href="#waitlist" className="block text-center text-sm font-semibold py-2 rounded-md transition-colors border border-white/10 hover:bg-white/[0.04]">
+              Get started free
+            </Link>
+          </div>
+
+          {/* Growth */}
+          <div className="bg-surface border border-accent/40 bg-gradient-to-b from-accent/[0.06] to-surface rounded-xl p-7 flex flex-col">
+            <div className="flex items-center gap-2 mb-1">
+              <p className="text-[13px] font-semibold">Growth</p>
+              <span className="text-[10px] font-semibold bg-accent/10 text-accent border border-accent/30 px-2 py-0.5 rounded-full">Popular</span>
+            </div>
+            <p className="text-xs text-[#71717a] mb-5">Up to 500 employees</p>
+            <p className="mb-1"><span className="text-[36px] font-bold tracking-[-0.04em]">$399</span><span className="text-sm text-[#71717a] ml-1">/ mo</span></p>
+            <p className="text-xs text-accent mb-6">First month free</p>
+            <ul className="space-y-2.5 mb-6 flex-1">
+              {['Everything in Pro', 'Custom send domain', 'Priority support', 'Dedicated onboarding', 'Advanced analytics'].map((f: string) => (
                 <li key={f} className="text-sm text-[#a1a1aa] flex items-center gap-2">
                   <span className="text-accent font-bold text-xs">✓</span> {f}
                 </li>
@@ -144,13 +165,13 @@ export default function LandingPage() {
             </Link>
           </div>
 
-          {/* Custom tier */}
+          {/* Enterprise */}
           <div className="bg-surface border border-white/[0.07] rounded-xl p-7 flex flex-col">
-            <p className="text-[13px] font-semibold mb-1">Custom</p>
-            <p className="text-xs text-[#71717a] mb-5">100+ employees</p>
+            <p className="text-[13px] font-semibold mb-1">Enterprise</p>
+            <p className="text-xs text-[#71717a] mb-5">500+ employees</p>
             <p className="mb-6"><span className="text-[36px] font-bold tracking-[-0.04em]">Let&apos;s talk</span></p>
             <ul className="space-y-2.5 mb-6 flex-1">
-              {['Everything in base plan', 'Custom send domain', 'SSO & advanced security', 'Dedicated onboarding', 'Custom integrations'].map((f: string) => (
+              {['Everything in Growth', 'SSO & advanced security', 'Custom integrations', 'Dedicated account manager', 'SLA & uptime guarantee'].map((f: string) => (
                 <li key={f} className="text-sm text-[#a1a1aa] flex items-center gap-2">
                   <span className="text-accent font-bold text-xs">✓</span> {f}
                 </li>
