@@ -79,7 +79,7 @@ export function ShameSettings({
           >
             <span
               className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${
-                autoNudge ? 'translate-x-5' : 'translate-x-0.5'
+                autoNudge ? 'translate-x-[22px]' : 'translate-x-0.5'
               }`}
             />
           </button>
@@ -111,7 +111,7 @@ export function ShameSettings({
           >
             <span
               className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${
-                slackEnabled && slackConnected ? 'translate-x-5' : 'translate-x-0.5'
+                slackEnabled && slackConnected ? 'translate-x-[22px]' : 'translate-x-0.5'
               }`}
             />
           </button>
@@ -170,7 +170,7 @@ export function ShameSettings({
           >
             <span
               className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${
-                emailEnabled ? 'translate-x-5' : 'translate-x-0.5'
+                emailEnabled ? 'translate-x-[22px]' : 'translate-x-0.5'
               }`}
             />
           </button>
