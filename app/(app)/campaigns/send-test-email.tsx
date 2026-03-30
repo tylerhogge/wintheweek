@@ -28,7 +28,7 @@ export default function SendTestEmail({
   // Personalize preview body with first name
   const firstName = defaultName?.split(' ')[0] ?? 'Sarah'
   const previewBody = selectedCampaign?.body?.replace(/\{\{name\}\}/g, firstName) ?? ''
-  const previewSubject = selectedCampaign?.subject ?? ''
+  const previewSubject = `[TEST] ${selectedCampaign?.subject ?? ''}`
 
   async function handleSend() {
     setSending(true)
