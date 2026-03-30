@@ -65,7 +65,7 @@ export function ShameSettings({
           <div className="flex-1">
             <p className="text-sm font-medium">Auto-nudge</p>
             <p className="text-xs text-[#71717a] mt-0.5">
-              Automatically nudge non-respondents ~48 hours before the Wall of Shame fires. A friendly reminder to reply.
+              Monday at 7 AM — a friendly reminder to anyone who hasn&apos;t replied yet. Gives them 3 hours before the Wall of Shame fires.
             </p>
             <button onClick={() => setPreviewNudge(true)} className="flex items-center gap-1 text-[11px] text-accent hover:text-accent/80 mt-1.5 transition-colors">
               <Eye className="w-3 h-3" /> See preview
@@ -93,7 +93,7 @@ export function ShameSettings({
           <div className="flex-1">
             <p className="text-sm font-medium">Post to Slack channel</p>
             <p className="text-xs text-[#71717a] mt-0.5">
-              Every Monday morning, post who hasn&apos;t replied to a channel.
+              Monday at 10 AM — post who still hasn&apos;t replied to a Slack channel.
               {!slackConnected && (
                 <span className="text-[#52525b]"> Connect Slack above first.</span>
               )}
@@ -156,7 +156,7 @@ export function ShameSettings({
           <div className="flex-1">
             <p className="text-sm font-medium">Weekly email report</p>
             <p className="text-xs text-[#71717a] mt-0.5">
-              Email you a list of non-respondents every Monday morning, regardless of Slack.
+              Monday at 10 AM — email you a list of non-respondents, regardless of Slack.
             </p>
             <button onClick={() => setPreviewEmail(true)} className="flex items-center gap-1 text-[11px] text-accent hover:text-accent/80 mt-1.5 transition-colors">
               <Eye className="w-3 h-3" /> See preview

@@ -97,7 +97,7 @@ async function SettingsContent({ orgId, org }: { orgId: string; org: any }) {
           <div className="mb-4">
             <p className="text-sm font-medium">Wall of Shame</p>
             <p className="text-xs text-[#71717a] mt-0.5">
-              Every Monday morning, automatically report who hasn't replied to the weekly check-in.
+              After the Friday check-in goes out, hold your team accountable with nudges and reports on Monday.
             </p>
           </div>
           <ShameSettings
