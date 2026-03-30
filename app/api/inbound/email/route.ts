@@ -337,31 +337,51 @@ async function notifyAdmin({
     weekTotal,
   })
 
-  // Threading: use a deterministic Message-ID based on the response ID so that
-  // follow-up notifications (and the CEO's own replies) all reference the same
-  // anchor and Gmail groups them into one thread.
-  const anchorMessageId = `<notify-${responseId}@wintheweek.co>`
+  // Threading: Gmail ignores custom Message-ID headers set via ESPs like Resend.
+  // Instead, we capture the actual Resend message ID from the first notification
+  // and store it on the response row. Follow-ups reference that real ID so Gmail
+  // groups the entire conversation into one thread.
   const headers: Record<string, string> = {}
 
+  let subject = emailContent.subject
+
   if (isFollowUp) {
-    // Follow-up: thread onto the original notification
-    headers['In-Reply-To'] = anchorMessageId
-    headers['References'] = anchorMessageId
-  } else {
-    // First notification: set the anchor Message-ID
-    headers['Message-ID'] = anchorMessageId
+    // Look up the Resend ID from the first notification
+    const { data: resp } = await supabase
+      .from('responses')
+      .select('notify_resend_id')
+      .eq('id', responseId)
+      .single()
+
+    if (resp?.notify_resend_id) {
+      // Resend's SMTP Message-ID format: <{id}@resend.dev>
+      const realMessageId = `<${resp.notify_resend_id}@resend.dev>`
+      headers['In-Reply-To'] = realMessageId
+      headers['References'] = realMessageId
+    }
+
+    // Gmail expects Re: prefix on follow-ups
+    subject = `Re: ${emailContent.subject}`
   }
 
   const resend = getResend()
-  await resend.emails.send({
+  const { data: sendResult } = await resend.emails.send({
     from: `Win The Week <${process.env.FROM_EMAIL ?? 'hello@wintheweek.co'}>`,
     to: adminProfile.email,
     replyTo: taggedReplyTo,
-    subject: emailContent.subject,
+    subject,
     html: emailContent.html,
     text: emailContent.text,
-    headers,
+    headers: Object.keys(headers).length > 0 ? headers : undefined,
   })
+
+  // Store the Resend message ID on the first notification so follow-ups can thread
+  if (!isFollowUp && sendResult?.id) {
+    await supabase
+      .from('responses')
+      .update({ notify_resend_id: sendResult.id })
+      .eq('id', responseId)
+  }
 }
 
 /**
