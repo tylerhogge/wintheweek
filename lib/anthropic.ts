@@ -162,7 +162,7 @@ export async function generateWeeklyInsight(
     : `\n  "initiative_tracking": null,`
 
   const message = await anthropic.messages.create({
-    model: 'claude-sonnet-4-5-20250620',
+    model: 'claude-sonnet-4-5-20250929',
     max_tokens: 4096,
     messages: [
       {
