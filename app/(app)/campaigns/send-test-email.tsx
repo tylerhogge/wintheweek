@@ -1,6 +1,8 @@
 'use client'
 
 import { useState } from 'react'
+import { Eye } from 'lucide-react'
+import { PreviewModal } from '@/components/settings/preview-modal'
 import type { Campaign } from '@/types'
 
 export default function SendTestEmail({
@@ -17,8 +19,16 @@ export default function SendTestEmail({
   const [email, setEmail] = useState(defaultEmail)
   const [sending, setSending] = useState(false)
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle')
+  const [previewOpen, setPreviewOpen] = useState(false)
+
+  const selectedCampaign = campaigns.find((c) => c.id === campaignId) ?? campaigns[0]
 
   if (campaigns.length === 0) return null
+
+  // Personalize preview body with first name
+  const firstName = defaultName?.split(' ')[0] ?? 'Sarah'
+  const previewBody = selectedCampaign?.body?.replace(/\{\{name\}\}/g, firstName) ?? ''
+  const previewSubject = selectedCampaign?.subject ?? ''
 
   async function handleSend() {
     setSending(true)
@@ -89,6 +99,13 @@ export default function SendTestEmail({
             </div>
           </div>
 
+          <button
+            onClick={() => setPreviewOpen(true)}
+            className="flex items-center gap-1.5 text-[11px] text-[#22c55e] hover:text-[#22c55e]/80 transition-colors"
+          >
+            <Eye className="w-3 h-3" /> See preview
+          </button>
+
           {status === 'success' && (
             <p className="text-xs text-[#22c55e] bg-[#22c55e]/10 border border-[#22c55e]/20 px-3 py-2 rounded-md">
               ✓ Test email sent — check your inbox
@@ -101,6 +118,18 @@ export default function SendTestEmail({
           )}
         </div>
       )}
+
+      <PreviewModal open={previewOpen} onClose={() => setPreviewOpen(false)} title="Campaign email preview">
+        <div className="bg-white rounded-lg p-6 text-[#111] text-sm leading-relaxed">
+          <p className="font-medium text-xs text-[#a1a1aa] mb-4 uppercase tracking-wider">Subject: {previewSubject}</p>
+          {previewBody.split('\n\n').map((para, i) => (
+            <p key={i} className="mb-3" dangerouslySetInnerHTML={{ __html: para.replace(/\n/g, '<br/>') }} />
+          ))}
+        </div>
+        <p className="text-[11px] text-[#52525b] mt-3">
+          This is personalized with the recipient&apos;s first name. {'{{name}}'} becomes their name.
+        </p>
+      </PreviewModal>
     </div>
   )
 }
