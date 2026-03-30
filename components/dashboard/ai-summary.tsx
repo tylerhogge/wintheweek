@@ -32,7 +32,7 @@ function Section({ title, content }: { title: string; content: string }) {
 }
 
 export function AISummary({ insight, className }: Props) {
-  const [expanded, setExpanded] = useState(false)
+  const [expanded, setExpanded] = useState(true)
   if (!insight.summary) return null
 
   const hasFullBriefing = insight.cross_functional_themes || insight.risk_items || insight.bottom_line || insight.initiative_tracking
