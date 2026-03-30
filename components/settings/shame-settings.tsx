@@ -78,7 +78,7 @@ export function ShameSettings({
             }`}
           >
             <span
-              className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${
+              className={`absolute left-0 top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${
                 autoNudge ? 'translate-x-[22px]' : 'translate-x-0.5'
               }`}
             />
@@ -110,7 +110,7 @@ export function ShameSettings({
             }`}
           >
             <span
-              className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${
+              className={`absolute left-0 top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${
                 slackEnabled && slackConnected ? 'translate-x-[22px]' : 'translate-x-0.5'
               }`}
             />
@@ -169,7 +169,7 @@ export function ShameSettings({
             }`}
           >
             <span
-              className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${
+              className={`absolute left-0 top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${
                 emailEnabled ? 'translate-x-[22px]' : 'translate-x-0.5'
               }`}
             />
