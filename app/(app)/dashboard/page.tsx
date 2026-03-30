@@ -12,6 +12,7 @@ import { ReplyList } from '@/components/dashboard/reply-list'
 import { GenerateSummaryBtn } from '@/components/dashboard/generate-summary-btn'
 import { BriefingPlaceholder } from '@/components/dashboard/briefing-placeholder'
 import { SearchBar } from '@/components/dashboard/search-bar'
+import { OnboardingChecklist } from '@/components/dashboard/onboarding-checklist'
 import type { SubmissionWithDetails, Insight } from '@/types'
 
 // Force dynamic rendering — skips static analysis overhead on every request
@@ -47,8 +48,8 @@ async function DashboardContent({
 
   if (team) submissionsQuery = submissionsQuery.eq('employees.team', team)
 
-  // Run all three queries in parallel — no sequential dependencies
-  const [{ data: submissions }, { data: insight }, { data: teamRows }] = await Promise.all([
+  // Run all queries in parallel — no sequential dependencies
+  const [{ data: submissions }, { data: insight }, { data: teamRows }, { count: employeeCount }, { count: campaignCount }, { count: sentCount }, { data: slackRow }, { data: orgSettings }] = await Promise.all([
     submissionsQuery,
     supabase
       .from('insights')
@@ -63,7 +64,20 @@ async function DashboardContent({
       .eq('org_id', orgId)
       .eq('active', true)
       .not('team', 'is', null),
+    // Onboarding checklist queries (lightweight count-only)
+    supabase.from('employees').select('id', { count: 'exact', head: true }).eq('org_id', orgId).eq('active', true),
+    supabase.from('campaigns').select('id', { count: 'exact', head: true }).eq('org_id', orgId).eq('active', true),
+    supabase.from('submissions').select('id, employees!inner(org_id)', { count: 'exact', head: true }).eq('employees.org_id', orgId).not('sent_at', 'is', null),
+    supabase.from('slack_integrations').select('id').eq('org_id', orgId).maybeSingle(),
+    supabase.from('organizations').select('shame_enabled, auto_nudge').eq('id', orgId).single(),
   ])
+
+  const hasTeam = (employeeCount ?? 0) > 0
+  const hasCampaign = (campaignCount ?? 0) > 0
+  const hasSentFirst = (sentCount ?? 0) > 0
+  const hasSlack = !!slackRow
+  const hasShame = !!(orgSettings?.shame_enabled || orgSettings?.auto_nudge)
+  const allComplete = hasTeam && hasCampaign && hasSentFirst && hasSlack && hasShame
 
   const uniqueTeams = [
     ...new Set(teamRows?.map((t: { team: string | null }) => t.team).filter(Boolean)),
@@ -86,6 +100,19 @@ async function DashboardContent({
 
   return (
     <>
+      {/* Onboarding checklist — shown until all setup steps are complete */}
+      {!allComplete && (
+        <div className="mb-5">
+          <OnboardingChecklist
+            hasTeam={hasTeam}
+            hasCampaign={hasCampaign}
+            hasSentFirst={hasSentFirst}
+            hasSlack={hasSlack}
+            hasShame={hasShame}
+          />
+        </div>
+      )}
+
       <StatsBar total={typed.length} replied={replied.length} weekStart={weekStart} activeFilter={filter} team={team} />
 
       {/* AI Briefing: show full briefing, generate button, or placeholder */}

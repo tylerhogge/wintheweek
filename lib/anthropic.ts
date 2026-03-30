@@ -84,7 +84,7 @@ MANAGER'S QUESTION: ${question}
 Answer the question directly and concisely. Be specific — use names, teams, and data from the check-ins above. Keep your reply under 350 words. Write in plain text suitable for an email: no markdown bold (**), no ## headers. Simple prose paragraphs or short numbered/bulleted lists are fine where they help clarity. If you can't answer well from the available data, say so briefly.`,
       },
     ],
-  })
+  }, { timeout: 30000 })
 
   const content = message.content[0]
   if (content.type !== 'text') throw new Error('Unexpected response from Claude')
@@ -210,7 +210,7 @@ ${priorWeek ? `\n7. WEEK-OVER-WEEK CONTEXT: You have last week's briefing above.
 Write in confident, direct prose. No corporate fluff. No "it's worth noting" or "it may be beneficial to consider." Just tell the CEO what's happening and what to do about it.`,
       },
     ],
-  })
+  }, { timeout: 55000 })
 
   const content = message.content[0]
   if (content.type !== 'text') throw new Error('Unexpected response from Claude')

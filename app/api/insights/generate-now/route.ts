@@ -35,18 +35,35 @@ export async function POST(req: Request) {
   const service = createServiceClient()
   const orgId = ctx.orgId
 
-  const { data: org } = await service
-    .from('organizations')
-    .select('name, priorities')
-    .eq('id', orgId)
-    .single()
+  // Fetch prior week date upfront for the query
+  const priorDate = new Date(week_start + 'T00:00:00Z')
+  priorDate.setUTCDate(priorDate.getUTCDate() - 7)
+  const priorWeekStart = priorDate.toISOString().slice(0, 10)
 
-  const { data: submissions } = await service
-    .from('submissions')
-    .select('employees(name, team), responses(body_clean, hidden_at)')
-    .eq('week_start', week_start)
-    .eq('employees.org_id', orgId)
-    .not('responses', 'is', null)
+  // Execute all three queries in parallel
+  const [orgResult, submissionsResult, priorInsightResult] = await Promise.all([
+    service
+      .from('organizations')
+      .select('name, priorities')
+      .eq('id', orgId)
+      .single(),
+    service
+      .from('submissions')
+      .select('employees(name, team), responses(body_clean, hidden_at)')
+      .eq('week_start', week_start)
+      .eq('employees.org_id', orgId)
+      .not('responses', 'is', null),
+    service
+      .from('insights')
+      .select('summary, highlights, sentiment_score, sentiment_label, themes, bottom_line')
+      .eq('org_id', orgId)
+      .eq('week_start', priorWeekStart)
+      .single(),
+  ])
+
+  const { data: org } = orgResult
+  const { data: submissions } = submissionsResult
+  const { data: priorInsight } = priorInsightResult
 
   const replies = ((submissions ?? []) as any[])
     .filter((s: any) => !s.responses?.hidden_at)
@@ -60,18 +77,6 @@ export async function POST(req: Request) {
   if (replies.length === 0) {
     return NextResponse.json({ error: 'No replies to summarize yet' }, { status: 400 })
   }
-
-  // Fetch prior week's insight for week-over-week comparison
-  const priorDate = new Date(week_start + 'T00:00:00Z')
-  priorDate.setUTCDate(priorDate.getUTCDate() - 7)
-  const priorWeekStart = priorDate.toISOString().slice(0, 10)
-
-  const { data: priorInsight } = await service
-    .from('insights')
-    .select('summary, highlights, sentiment_score, sentiment_label, themes, bottom_line')
-    .eq('org_id', orgId)
-    .eq('week_start', priorWeekStart)
-    .single()
 
   const priorWeek: PriorWeekContext | null = priorInsight ? {
     ...priorInsight,

@@ -80,11 +80,12 @@ export async function POST(req: Request) {
 
     const alreadySent = new Set(existingSubmissions?.map((s) => s.employee_id) ?? [])
 
-    for (const employee of employees) {
+    // Helper function: process a single employee
+    async function processEmployee(employee: NonNullable<typeof employees>[number]) {
       // Skip if already sent this week (idempotency)
       if (alreadySent.has(employee.id)) {
         results.skipped++
-        continue
+        return
       }
 
       // Create the submission record
@@ -101,7 +102,7 @@ export async function POST(req: Request) {
       if (subErr || !submission) {
         console.error('Failed to create submission', subErr)
         results.failed++
-        continue
+        return
       }
 
       let sendError: string | null = null
@@ -176,6 +177,12 @@ export async function POST(req: Request) {
           .eq('id', submission.id)
         results.sent++
       }
+    }
+
+    // Process employees in batches of 10
+    for (let i = 0; i < employees.length; i += 10) {
+      const batch = employees.slice(i, i + 10)
+      await Promise.all(batch.map(processEmployee))
     }
   }
 
