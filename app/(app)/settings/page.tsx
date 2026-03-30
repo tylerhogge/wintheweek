@@ -90,27 +90,6 @@ async function SettingsContent({ orgId, org }: { orgId: string; org: any }) {
         </div>
       </section>
 
-      {/* Wall of Shame */}
-      <section className="mb-8">
-        <p className="text-xs font-semibold tracking-[0.07em] uppercase text-[#71717a] mb-4">Accountability</p>
-        <div className="bg-surface border border-white/[0.07] rounded-xl p-5">
-          <div className="mb-4">
-            <p className="text-sm font-medium">Wall of Shame</p>
-            <p className="text-xs text-[#71717a] mt-0.5">
-              After the Friday check-in goes out, hold your team accountable with nudges and reports on Monday.
-            </p>
-          </div>
-          <ShameSettings
-            slackConnected={!!slackIntegration}
-            initialSlackEnabled={shameEnabled}
-            initialChannelId={shameChannelId}
-            initialChannelName={shameChannelName}
-            initialEmailEnabled={shameEmailEnabled}
-            initialAutoNudge={autoNudge}
-          />
-        </div>
-      </section>
-
       {/* Email settings */}
       <section className="mb-8">
         <p className="text-xs font-semibold tracking-[0.07em] uppercase text-[#71717a] mb-4">Email</p>
@@ -147,6 +126,27 @@ async function SettingsContent({ orgId, org }: { orgId: string; org: any }) {
             </div>
             <ReplyNotifyToggle initialValue={notifyOnReply} />
           </div>
+        </div>
+      </section>
+
+      {/* Wall of Shame */}
+      <section className="mb-8">
+        <p className="text-xs font-semibold tracking-[0.07em] uppercase text-[#71717a] mb-4">Accountability</p>
+        <div className="bg-surface border border-white/[0.07] rounded-xl p-5">
+          <div className="mb-4">
+            <p className="text-sm font-medium">Wall of Shame</p>
+            <p className="text-xs text-[#71717a] mt-0.5">
+              After the Friday check-in goes out, hold your team accountable with nudges and reports on Monday.
+            </p>
+          </div>
+          <ShameSettings
+            slackConnected={!!slackIntegration}
+            initialSlackEnabled={shameEnabled}
+            initialChannelId={shameChannelId}
+            initialChannelName={shameChannelName}
+            initialEmailEnabled={shameEmailEnabled}
+            initialAutoNudge={autoNudge}
+          />
         </div>
       </section>
     </>
