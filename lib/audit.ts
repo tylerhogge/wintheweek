@@ -24,6 +24,9 @@ export type AuditAction =
   | 'insight.generate'
   | 'data.export'
   | 'data.delete'
+  | 'cron.auto_nudge'
+  | 'cron.wall_of_shame'
+  | 'cron.send_weekly'
 
 export async function auditLog({
   action,
