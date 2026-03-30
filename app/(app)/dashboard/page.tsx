@@ -90,7 +90,7 @@ async function DashboardContent({
 
       {/* AI Briefing: show full briefing, generate button, or placeholder */}
       <div className="mt-5">
-        {insight ? (
+        {insight && replied.length > 0 ? (
           <AISummary insight={insight as Insight} />
         ) : replied.length >= Math.ceil(typed.length / 2) && typed.length > 0 ? (
           <GenerateSummaryBtn weekStart={weekStart} />
