@@ -72,16 +72,31 @@ export function AISummary({ insight, className }: Props) {
         )}
       </div>
 
-      {/* Always show: bottom line or summary */}
-      <p className="text-sm text-[#c4c4cc] leading-relaxed">
-        {insight.bottom_line || insight.summary}
-      </p>
+      {/* Executive Summary — always at the top */}
+      {insight.summary && (
+        <div className="mb-3">
+          <h3 className="text-[11px] font-semibold tracking-[0.08em] uppercase text-accent/80 mb-2">
+            Executive Summary
+          </h3>
+          <p className="text-sm text-[#e4e4e7] leading-relaxed">{insight.summary}</p>
+        </div>
+      )}
 
-      {/* Highlights — always visible */}
+      {/* Bottom Line */}
+      {insight.bottom_line && (
+        <div className="mb-3">
+          <h3 className="text-[11px] font-semibold tracking-[0.08em] uppercase text-accent/80 mb-2">
+            Bottom Line
+          </h3>
+          <p className="text-sm text-[#e4e4e7] leading-relaxed">{insight.bottom_line}</p>
+        </div>
+      )}
+
+      {/* Highlights */}
       {insight.highlights && insight.highlights.length > 0 && (
         <ul className="flex flex-col gap-1.5 mt-3 pt-3 border-t border-white/[0.06]">
           {insight.highlights.map((h: string, i: number) => (
-            <li key={i} className="flex items-start gap-2 text-sm text-[#a1a1aa]">
+            <li key={i} className="flex items-start gap-2 text-sm text-[#d4d4d8]">
               <span className="text-accent font-bold text-xs mt-0.5 shrink-0">→</span>
               {h}
             </li>
@@ -114,14 +129,6 @@ export function AISummary({ insight, className }: Props) {
           )}
           {insight.initiative_tracking && (
             <Section title="Initiative Tracking" content={insight.initiative_tracking} />
-          )}
-          {insight.bottom_line && insight.summary && (
-            <div>
-              <h3 className="text-[11px] font-semibold tracking-[0.08em] uppercase text-accent/80 mb-2">
-                Executive Summary
-              </h3>
-              <p className="text-sm text-[#a1a1aa] leading-relaxed">{insight.summary}</p>
-            </div>
           )}
         </div>
       )}
