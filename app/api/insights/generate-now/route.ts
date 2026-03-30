@@ -15,6 +15,9 @@ import { requireRole } from '@/lib/rbac'
 import { auditLog } from '@/lib/audit'
 import { checkRateLimit, rateLimitKeyFromUser } from '@/lib/rate-limit'
 
+// AI generation via Claude can take 15-30s — extend Vercel's default 10s timeout
+export const maxDuration = 60
+
 export async function POST(req: Request) {
   const auth = await requireRole('admin')
   if ('error' in auth) return auth.error

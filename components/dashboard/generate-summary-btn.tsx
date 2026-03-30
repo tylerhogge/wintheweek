@@ -8,10 +8,12 @@ type Props = { weekStart: string }
 
 export function GenerateSummaryBtn({ weekStart }: Props) {
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const router = useRouter()
 
   async function generate() {
     setLoading(true)
+    setError(null)
     try {
       const res = await fetch('/api/insights/generate-now', {
         method: 'POST',
@@ -19,12 +21,15 @@ export function GenerateSummaryBtn({ weekStart }: Props) {
         body: JSON.stringify({ week_start: weekStart }),
       })
       if (!res.ok) {
-        const data = await res.json()
-        console.error('[generate-summary]', data.detail ?? data.error ?? 'Failed to generate')
+        const data = await res.json().catch(() => ({}))
+        const msg = data.detail ?? data.error ?? `Failed (${res.status})`
+        setError(msg)
+        console.error('[generate-summary]', msg)
       } else {
         router.refresh() // re-fetch server data so AISummary shows up
       }
-    } catch (err) {
+    } catch (err: any) {
+      setError(err?.message ?? 'Network error')
       console.error('[generate-summary]', err)
     } finally {
       setLoading(false)
@@ -41,6 +46,9 @@ export function GenerateSummaryBtn({ weekStart }: Props) {
         <Sparkles className={`w-3.5 h-3.5 ${loading ? 'animate-pulse text-accent' : ''}`} />
         {loading ? 'Generating AI summary…' : 'Generate AI summary'}
       </button>
+      {error && (
+        <p className="text-xs text-red-400 mt-2">{error}</p>
+      )}
     </div>
   )
 }

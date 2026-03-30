@@ -666,6 +666,9 @@ async function handleManagerQuery({
   console.log('[manager query] answered and sent to', senderEmail)
 }
 
+// Inbound emails trigger AI generation which calls Claude — needs extended timeout
+export const maxDuration = 60
+
 export async function POST(req: Request) {
   // ── Verify Resend webhook signature (Svix) ────────────────────────────
   const webhookSecret = process.env.RESEND_WEBHOOK_SECRET
