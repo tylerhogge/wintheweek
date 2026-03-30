@@ -29,9 +29,20 @@ export function OnboardingChecklist({
   hasShame,
   onDismiss,
 }: Props) {
-  const [dismissed, setDismissed] = useState(false)
+  const [dismissed, setDismissed] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('wtw-checklist-dismissed') === '1'
+    }
+    return false
+  })
   const [isExpanded, setIsExpanded] = useState(true)
   const [showCelebration, setShowCelebration] = useState(false)
+
+  function dismiss() {
+    setDismissed(true)
+    localStorage.setItem('wtw-checklist-dismissed', '1')
+    onDismiss?.()
+  }
 
   const items: ChecklistItem[] = [
     {
@@ -80,8 +91,7 @@ export function OnboardingChecklist({
     if (isComplete && !showCelebration) {
       setShowCelebration(true)
       const timer = setTimeout(() => {
-        setDismissed(true)
-        onDismiss?.()
+        dismiss()
       }, 3000)
       return () => clearTimeout(timer)
     }
@@ -136,8 +146,7 @@ export function OnboardingChecklist({
             <button
               onClick={(e) => {
                 e.stopPropagation()
-                setDismissed(true)
-                onDismiss?.()
+                dismiss()
               }}
               className="rounded-lg p-1.5 text-zinc-400 hover:bg-white/[0.05] hover:text-zinc-200 transition-colors"
               aria-label="Dismiss checklist"
