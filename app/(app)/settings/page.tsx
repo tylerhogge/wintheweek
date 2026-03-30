@@ -133,7 +133,7 @@ async function SettingsContent({ orgId, org }: { orgId: string; org: any }) {
             <div>
               <p className="text-sm font-medium">Email me the weekly CEO briefing</p>
               <p className="text-xs text-[#71717a] mt-0.5">
-                Get the AI briefing + all replies emailed to you once everyone has responded
+                Monday at 5 PM — get the AI briefing + all replies emailed to you at end of day.
               </p>
             </div>
             <DigestToggle initialValue={digestNotify} />

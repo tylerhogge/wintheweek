@@ -344,10 +344,7 @@ export async function POST(req: Request) {
     weekStart,
   }).catch((err) => console.error('[Slack inbound] notifyManagers failed:', err))
 
-  Promise.all([
-    generateAndStoreInsight(orgId, weekStart),
-    maybeFireDigest(orgId, weekStart),
-  ]).catch(console.error)
+  generateAndStoreInsight(orgId, weekStart).catch(console.error)
 
   return NextResponse.json({ ok: true })
 }

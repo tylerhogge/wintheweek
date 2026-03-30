@@ -959,10 +959,7 @@ export async function POST(req: Request) {
     }
 
     // Must be awaited — Vercel kills un-awaited promises after the response is sent
-    await Promise.all([
-      generateAndStoreInsight(orgId, weekStart).catch((err) => console.error('[generateAndStoreInsight]', err)),
-      maybeFireDigest(orgId, weekStart).catch((err) => console.error('[maybeFireDigest]', err)),
-    ])
+    await generateAndStoreInsight(orgId, weekStart).catch((err) => console.error('[generateAndStoreInsight]', err))
   }
 
   return NextResponse.json({ ok: true })
