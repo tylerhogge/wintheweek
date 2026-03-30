@@ -1,11 +1,12 @@
 /**
  * POST /api/auto-nudge
  *
- * Called by Vercel Cron every Saturday at 2pm UTC (~48h before Wall of Shame).
+ * Called by Vercel Cron every Monday at 1pm UTC (7 AM MDT).
  * Sends a friendly nudge email to employees who haven't replied yet this week.
+ * Fires first thing Monday morning before the Wall of Shame goes out at 10 AM.
  *
  * Only nudges if:
- *  - The org has wall_of_shame enabled (they care about accountability)
+ *  - The org has auto_nudge enabled
  *  - The employee was sent a check-in this week but hasn't replied
  */
 
