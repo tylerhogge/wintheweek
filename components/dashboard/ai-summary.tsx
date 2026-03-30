@@ -54,11 +54,11 @@ export function AISummary({ insight, className }: Props) {
       <div className="flex items-center justify-between mb-2.5">
         <div className="flex items-center gap-3">
           <p className="text-[10px] font-semibold tracking-[0.08em] uppercase text-accent flex items-center gap-1.5">
-            <span>✦</span> AI Weekly Briefing
+            <span>✦</span> CEO Briefing
           </p>
           {insight.sentiment_score != null && (
             <span className={`text-[10px] font-semibold ${sentimentColor(insight.sentiment_score)}`}>
-              {insight.sentiment_label ?? 'Mood'} {insight.sentiment_score}/10
+              Sentiment: {insight.sentiment_label ?? 'Mood'} {insight.sentiment_score}/10
             </span>
           )}
         </div>
