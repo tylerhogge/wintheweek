@@ -10,7 +10,7 @@
  */
 
 import { NextResponse } from 'next/server'
-import { stripe, PLANS, type PlanKey } from '@/lib/stripe'
+import { getStripe, PLANS, type PlanKey } from '@/lib/stripe'
 import { createServiceClient } from '@/lib/supabase/server'
 import { requireRole } from '@/lib/rbac'
 
@@ -39,7 +39,7 @@ export async function POST(req: Request) {
   let customerId = org.stripe_customer_id
 
   if (!customerId) {
-    const customer = await stripe.customers.create({
+    const customer = await getStripe().customers.create({
       email: ctx.email,
       name: org.name ?? undefined,
       metadata: { org_id: org.id },
@@ -54,7 +54,7 @@ export async function POST(req: Request) {
 
   // Create Checkout session with 30-day trial
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://www.wintheweek.co'
-  const session = await stripe.checkout.sessions.create({
+  const session = await getStripe().checkout.sessions.create({
     customer: customerId,
     mode: 'subscription',
     line_items: [{ price: planConfig.priceId, quantity: 1 }],

@@ -12,7 +12,7 @@
 
 import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
-import { stripe, planFromPriceId } from '@/lib/stripe'
+import { getStripe, planFromPriceId } from '@/lib/stripe'
 import { createServiceClient } from '@/lib/supabase/server'
 
 export async function POST(req: Request) {
@@ -25,7 +25,7 @@ export async function POST(req: Request) {
 
   let event: Stripe.Event
   try {
-    event = stripe.webhooks.constructEvent(body, sig, process.env.STRIPE_WEBHOOK_SECRET!)
+    event = getStripe().webhooks.constructEvent(body, sig, process.env.STRIPE_WEBHOOK_SECRET!)
   } catch (err: any) {
     console.error('Stripe webhook signature verification failed:', err.message)
     return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
@@ -42,7 +42,7 @@ export async function POST(req: Request) {
       if (!orgId || !session.subscription) break
 
       // Fetch the full subscription to get trial/period details
-      const subscription = await stripe.subscriptions.retrieve(session.subscription as string)
+      const subscription = await getStripe().subscriptions.retrieve(session.subscription as string)
       const priceId = subscription.items.data[0]?.price?.id
       const resolvedPlan = plan ?? planFromPriceId(priceId ?? '') ?? 'pro'
 

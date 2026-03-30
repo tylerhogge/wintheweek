@@ -935,11 +935,11 @@ export async function POST(req: Request) {
       }).catch((err) => console.error('[notifyManagers]', err))
     }
 
-    // These are slower and optional — keep them as background work
-    Promise.all([
-      generateAndStoreInsight(orgId, weekStart),
-      maybeFireDigest(orgId, weekStart),
-    ]).catch(console.error)
+    // Must be awaited — Vercel kills un-awaited promises after the response is sent
+    await Promise.all([
+      generateAndStoreInsight(orgId, weekStart).catch((err) => console.error('[generateAndStoreInsight]', err)),
+      maybeFireDigest(orgId, weekStart).catch((err) => console.error('[maybeFireDigest]', err)),
+    ])
   }
 
   return NextResponse.json({ ok: true })

@@ -1,6 +1,14 @@
 import Stripe from 'stripe'
 
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
+// Lazy-init: Stripe SDK must NOT be instantiated at module scope because
+// STRIPE_SECRET_KEY isn't available during `next build` on Vercel.
+let _stripe: Stripe | null = null
+export function getStripe(): Stripe {
+  if (!_stripe) {
+    _stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
+  }
+  return _stripe
+}
 
 // Plan configuration — maps our internal plan names to Stripe Price IDs
 export const PLANS = {

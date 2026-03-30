@@ -7,7 +7,7 @@
  */
 
 import { NextResponse } from 'next/server'
-import { stripe } from '@/lib/stripe'
+import { getStripe } from '@/lib/stripe'
 import { createServiceClient } from '@/lib/supabase/server'
 import { requireRole } from '@/lib/rbac'
 
@@ -28,7 +28,7 @@ export async function POST() {
   }
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://www.wintheweek.co'
-  const session = await stripe.billingPortal.sessions.create({
+  const session = await getStripe().billingPortal.sessions.create({
     customer: org.stripe_customer_id,
     return_url: `${appUrl}/settings`,
   })
