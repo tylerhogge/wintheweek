@@ -41,7 +41,7 @@ function TrendBarsIcon({ className }: { className?: string }) {
 const NAV = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard', anim: 'group-hover:animate-icon-bounce'  },
   { href: '/team',      icon: Users,           label: 'Team',      anim: 'group-hover:animate-icon-wiggle'  },
-  { href: '/campaigns', icon: MailIcon,        label: 'Emails',    anim: ''                                 },
+  { href: '/campaigns', icon: MailIcon,        label: 'Emails',    anim: 'group-hover:animate-icon-send'    },
   { href: '/trends',    icon: TrendBarsIcon,   label: 'Trends',    anim: ''                                 },
   { href: '/settings',  icon: Settings,        label: 'Settings',  anim: 'group-hover:animate-icon-spin'    },
 ]

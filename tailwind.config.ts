@@ -64,6 +64,13 @@ const config: Config = {
           '0%, 100%': { transform: 'scaleY(1)' },
           '50%':      { transform: 'scaleY(0.3)' },
         },
+        'icon-send': {
+          '0%':   { transform: 'translate(0, 0) rotate(0deg)', opacity: '1' },
+          '40%':  { transform: 'translate(3px, -3px) rotate(-12deg)', opacity: '1' },
+          '70%':  { transform: 'translate(8px, -8px) rotate(-12deg)', opacity: '0' },
+          '71%':  { transform: 'translate(-6px, 6px) rotate(0deg)', opacity: '0' },
+          '100%': { transform: 'translate(0, 0) rotate(0deg)', opacity: '1' },
+        },
         'icon-spin': {
           '0%':   { transform: 'rotate(0deg)' },
           '100%': { transform: 'rotate(120deg)' },
@@ -74,6 +81,7 @@ const config: Config = {
         'icon-bounce': 'icon-bounce 0.4s ease-in-out',
         'icon-wiggle': 'icon-wiggle 0.5s ease-in-out',
         'icon-tilt':      'icon-tilt 0.4s ease-in-out',
+        'icon-send':      'icon-send 0.6s ease-in-out',
         'icon-spin':      'icon-spin 0.4s ease-in-out',
         'icon-mail-open': 'icon-mail-open 0.5s ease-in-out forwards',
         'icon-bar-1':     'icon-bar-1 0.6s ease-in-out',
