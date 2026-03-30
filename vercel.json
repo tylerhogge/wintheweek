@@ -6,11 +6,11 @@
     },
     {
       "path": "/api/auto-nudge",
-      "schedule": "0 13 * * 1"
+      "schedule": "0 15 * * 1"
     },
     {
       "path": "/api/wall-of-shame",
-      "schedule": "0 16 * * 1"
+      "schedule": "0 19 * * 1"
     }
   ]
 }
