@@ -15,7 +15,7 @@ function planLabel(plan: string | null): string {
   switch (plan) {
     case 'starter': return 'Starter'
     case 'pro': return 'Pro (Legacy)'
-    case 'business': return 'Business'
+    case 'core': return 'Core'
     case 'growth': return 'Growth (Legacy)'
     case 'enterprise': return 'Enterprise'
     case 'trial': return 'Free Trial'
@@ -61,7 +61,7 @@ export function BillingSection({ plan, planStatus, trialEndsAt, currentPeriodEnd
     }
   }
 
-  async function startCheckout(selectedPlan: 'starter' | 'business') {
+  async function startCheckout(selectedPlan: 'starter' | 'core') {
     setLoadingCheckout(selectedPlan)
     try {
       const res = await fetch('/api/billing/checkout', {
@@ -128,30 +128,30 @@ export function BillingSection({ plan, planStatus, trialEndsAt, currentPeriodEnd
               Starter · $99/mo
             </button>
             <button
-              onClick={() => startCheckout('business')}
+              onClick={() => startCheckout('core')}
               disabled={!!loadingCheckout}
               className="flex items-center justify-center gap-2 text-sm font-semibold px-4 py-2 rounded-lg bg-accent text-black hover:bg-accent/90 transition-colors"
             >
-              {loadingCheckout === 'business' ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-              Business · $299/mo
+              {loadingCheckout === 'core' ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+              Core · $299/mo
             </button>
           </div>
         </div>
       )}
 
-      {/* Upgrade from Starter to Business */}
+      {/* Upgrade from Starter to Core */}
       {(plan === 'starter' || plan === 'pro') && isSubscribed && (
         <div className="px-5 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <p className="text-sm font-medium">Need more capacity?</p>
-            <p className="text-xs text-[#71717a] mt-0.5">Upgrade to Business for up to 500 employees, custom domain, and priority support.</p>
+            <p className="text-xs text-[#71717a] mt-0.5">Upgrade to Core for up to 500 employees, custom domain, and priority support.</p>
           </div>
           <button
             onClick={openPortal}
             disabled={loadingPortal}
             className="text-[12px] font-semibold text-accent hover:text-accent/80 transition-colors shrink-0"
           >
-            Upgrade to Business →
+            Upgrade to Core →
           </button>
         </div>
       )}

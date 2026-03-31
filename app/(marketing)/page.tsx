@@ -143,10 +143,10 @@ export default function LandingPage() {
             <PricingCTA plan="starter" />
           </div>
 
-          {/* Business */}
+          {/* Core */}
           <div className="bg-surface border border-accent/40 bg-gradient-to-b from-accent/[0.06] to-surface rounded-xl p-7 flex flex-col">
             <div className="flex items-center gap-2 mb-1">
-              <p className="text-[13px] font-semibold">Business</p>
+              <p className="text-[13px] font-semibold">Core</p>
               <span className="text-[10px] font-semibold bg-accent/10 text-accent border border-accent/30 px-2 py-0.5 rounded-full">Popular</span>
             </div>
             <p className="text-xs text-[#71717a] mb-5">Up to 500 employees</p>
@@ -159,7 +159,7 @@ export default function LandingPage() {
                 </li>
               ))}
             </ul>
-            <PricingCTA plan="business" variant="accent" />
+            <PricingCTA plan="core" variant="accent" />
           </div>
 
           {/* Enterprise */}
@@ -168,7 +168,7 @@ export default function LandingPage() {
             <p className="text-xs text-[#71717a] mb-5">500+ employees</p>
             <p className="mb-6"><span className="text-[36px] font-bold tracking-[-0.04em]">Let&apos;s talk</span></p>
             <ul className="space-y-2.5 mb-6 flex-1">
-              {['Everything in Business', 'SSO & advanced security', 'Custom integrations', 'Dedicated account manager', 'SLA & uptime guarantee'].map((f: string) => (
+              {['Everything in Core', 'SSO & advanced security', 'Custom integrations', 'Dedicated account manager', 'SLA & uptime guarantee'].map((f: string) => (
                 <li key={f} className="text-sm text-[#a1a1aa] flex items-center gap-2">
                   <span className="text-accent font-bold text-xs">✓</span> {f}
                 </li>

@@ -2,7 +2,7 @@
  * POST /api/billing/checkout
  *
  * Creates a Stripe Checkout session for a new subscription.
- * Body: { plan: 'starter' | 'business' }
+ * Body: { plan: 'starter' | 'core' }
  *
  * If the org already has a Stripe customer, reuses it.
  * Includes a 30-day free trial on the subscription.
@@ -21,7 +21,7 @@ export async function POST(req: Request) {
 
   const { plan } = await req.json()
   if (!plan || !PLANS[plan as PlanKey]) {
-    return NextResponse.json({ error: 'Invalid plan. Must be "starter" or "business".' }, { status: 400 })
+    return NextResponse.json({ error: 'Invalid plan. Must be "starter" or "core".' }, { status: 400 })
   }
 
   const planConfig = PLANS[plan as PlanKey]

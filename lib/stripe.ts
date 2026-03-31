@@ -18,9 +18,9 @@ export const PLANS = {
     employeeLimit: 50,
     monthlyPrice: 99,
   },
-  business: {
-    name: 'Business',
-    priceId: process.env.STRIPE_PRICE_BUSINESS!,
+  core: {
+    name: 'Core',
+    priceId: process.env.STRIPE_PRICE_CORE!,
     employeeLimit: 500,
     monthlyPrice: 299,
   },
