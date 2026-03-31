@@ -83,32 +83,36 @@ export async function POST(req: Request) {
 
     if (!openSubmissions || openSubmissions.length === 0) continue
 
-    for (const sub of openSubmissions) {
-      const emp = (sub as any).employees
-      if (!emp?.email) continue
+    // Batch emails in groups of 10 (like send-weekly)
+    for (let i = 0; i < openSubmissions.length; i += 10) {
+      const batch = openSubmissions.slice(i, i + 10)
+      await Promise.all(batch.map(async (sub) => {
+        const emp = (sub as any).employees
+        if (!emp?.email) return
 
-      const { subject, html, text } = buildNudgeEmail({
-        employeeName: emp.name,
-        senderName,
-        replyToAddress: replyTo,
-      })
+        const { subject, html, text } = buildNudgeEmail({
+          employeeName: emp.name,
+          senderName,
+          replyToAddress: replyTo,
+        })
 
-      const { error } = await resend.emails.send({
-        from: fromAddress,
-        to: emp.email,
-        replyTo,
-        subject,
-        html,
-        text,
-      })
+        const { error } = await resend.emails.send({
+          from: fromAddress,
+          to: emp.email,
+          replyTo,
+          subject,
+          html,
+          text,
+        })
 
-      if (error) {
-        console.error(`[auto-nudge] Failed to nudge ${emp.email}:`, error)
-        errors.push(`${emp.email}: ${(error as any).message ?? error}`)
-      } else {
-        nudged++
-        console.log(`[auto-nudge] Sent nudge to ${emp.email}`)
-      }
+        if (error) {
+          console.error(`[auto-nudge] Failed to nudge ${emp.email}:`, error)
+          errors.push(`${emp.email}: ${(error as any).message ?? error}`)
+        } else {
+          nudged++
+          console.log(`[auto-nudge] Sent nudge to ${emp.email}`)
+        }
+      }))
     }
   }
 

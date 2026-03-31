@@ -267,7 +267,7 @@ export function TrendsClient({ weeklyData, employeeList, teamList, sentimentData
         </div>
 
         {tab === 'people' ? (
-          <div className="bg-surface border border-white/[0.07] rounded-xl overflow-hidden">
+          <div className="bg-surface border border-white/[0.07] rounded-xl overflow-hidden overflow-x-auto">
             <div className="px-5 py-3 border-b border-white/[0.07] grid grid-cols-[1.5fr_1fr_60px] sm:grid-cols-[2fr_1.2fr_1fr_100px] text-xs font-medium text-[#71717a] uppercase tracking-[0.06em]">
               <span>Name</span>
               <span className="hidden sm:block">Team</span>
@@ -300,7 +300,7 @@ export function TrendsClient({ weeklyData, employeeList, teamList, sentimentData
             )}
           </div>
         ) : (
-          <div className="bg-surface border border-white/[0.07] rounded-xl overflow-hidden">
+          <div className="bg-surface border border-white/[0.07] rounded-xl overflow-hidden overflow-x-auto">
             <div className="px-5 py-3 border-b border-white/[0.07] grid grid-cols-[2fr_1fr_80px] text-xs font-medium text-[#71717a] uppercase tracking-[0.06em]">
               <span>Team</span>
               <span>Reply rate</span>

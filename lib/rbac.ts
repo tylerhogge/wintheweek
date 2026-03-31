@@ -30,7 +30,10 @@ export async function requireRole(
     return { error: NextResponse.json({ error: 'Unauthorized' }, { status: 401 }) }
   }
 
-  const role = (profile as any).role ?? 'admin' // default for existing users
+  const role = (profile as any).role
+  if (!role || !['admin', 'member'].includes(role)) {
+    return { error: NextResponse.json({ error: 'Invalid or missing user role' }, { status: 403 }) }
+  }
   if (requiredRole === 'admin' && role !== 'admin') {
     return { error: NextResponse.json({ error: 'Forbidden: admin role required' }, { status: 403 }) }
   }

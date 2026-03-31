@@ -25,6 +25,9 @@ export function buildCampaignEmail({
   const firstName = employeeName.split(' ')[0]
   const personalisedBody = body.replace(/\{\{name\}\}/g, firstName)
 
+  // Escape HTML in the body to prevent XSS in emails
+  const safeBody = escapeHtml(personalisedBody)
+
   const html = `<!DOCTYPE html>
 <html>
 <head>
@@ -38,7 +41,7 @@ export function buildCampaignEmail({
 </head>
 <body>
   <div class="wrap">
-    ${personalisedBody
+    ${safeBody
       .split('\n\n')
       .map((p: string): string => `<p>${p.replace(/\n/g, '<br/>')}</p>`)
       .join('')}

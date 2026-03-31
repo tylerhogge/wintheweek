@@ -29,8 +29,9 @@ export function encrypt(plaintext: string): string {
   const key = getKey()
   if (!key) {
     if (process.env.NODE_ENV === 'production') {
-      console.warn('[encryption] ENCRYPTION_KEY not set — storing in plaintext')
+      throw new Error('[encryption] ENCRYPTION_KEY is required in production')
     }
+    // Dev only — allow plaintext for local development
     return plaintext
   }
 

@@ -159,7 +159,7 @@ export function NewCampaignForm({ availableTeams }: Props) {
       <div className="bg-surface border border-white/[0.07] rounded-xl p-5 space-y-4">
         <p className="text-sm font-semibold tracking-tight">Schedule</p>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Field label="Frequency">
             <select value={form.frequency} onChange={(e) => update('frequency', e.target.value)} className={selectCls}>
               <option value="weekly">Every week</option>

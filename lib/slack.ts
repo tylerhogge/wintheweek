@@ -18,13 +18,14 @@ import { decrypt } from '@/lib/encryption'
  */
 export function resolveSlackToken(integration: { access_token?: string | null; access_token_encrypted?: string | null }): string | null {
   if (integration.access_token_encrypted) {
-    try {
-      return decrypt(integration.access_token_encrypted)
-    } catch (err) {
-      console.error('[slack] Failed to decrypt token, falling back to plaintext:', err)
-    }
+    return decrypt(integration.access_token_encrypted)
   }
-  return integration.access_token ?? null
+  // Legacy rows without encrypted token — log warning but allow
+  if (integration.access_token) {
+    console.warn('[slack] Using unencrypted token — re-authorize Slack to encrypt')
+    return integration.access_token
+  }
+  return null
 }
 
 // ── Types ─────────────────────────────────────────────────────────────────────

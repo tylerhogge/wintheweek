@@ -230,7 +230,7 @@ export function AppShell({ profile, children }: Props) {
         </header>
 
         {/* Page content — responsive padding, bottom padding on mobile for nav bar */}
-        <main className="flex-1 max-w-[1040px] w-full mx-auto px-4 py-6 pb-24 md:px-8 md:py-8 md:pb-8">
+        <main className="flex-1 max-w-[1040px] w-full mx-auto px-4 py-6 pb-20 md:px-8 md:py-8 md:pb-8">
           {children}
         </main>
 

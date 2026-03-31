@@ -181,7 +181,7 @@ export function ImportModal({ onClose }: Props) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={onClose}>
       <div
-        className="bg-[#111113] border border-white/[0.1] rounded-2xl shadow-2xl w-full max-w-xl mx-4 max-h-[85vh] overflow-y-auto"
+        className="bg-[#111113] border border-white/[0.1] rounded-2xl shadow-2xl w-full max-w-xl max-sm:max-w-[95vw] mx-4 max-h-[85vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}

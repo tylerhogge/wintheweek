@@ -62,7 +62,7 @@ export function AddMemberModal({ onClose, allTeams = [] }: Props) {
         className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center px-4"
         onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
       >
-        <div className="w-full max-w-[440px] bg-[#111113] border border-white/[0.1] rounded-2xl shadow-2xl">
+        <div className="w-full max-w-[440px] max-sm:max-w-[95vw] bg-[#111113] border border-white/[0.1] rounded-2xl shadow-2xl">
           <div className="px-6 py-5 border-b border-white/[0.07] flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span className="w-5 h-5 rounded-full bg-accent/20 flex items-center justify-center">
@@ -124,7 +124,7 @@ export function AddMemberModal({ onClose, allTeams = [] }: Props) {
       className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center px-4"
       onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
     >
-      <div className="w-full max-w-[440px] bg-[#111113] border border-white/[0.1] rounded-2xl shadow-2xl">
+      <div className="w-full max-w-[440px] max-sm:max-w-[95vw] bg-[#111113] border border-white/[0.1] rounded-2xl shadow-2xl">
 
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-white/[0.07]">
@@ -141,7 +141,7 @@ export function AddMemberModal({ onClose, allTeams = [] }: Props) {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-medium text-[#a1a1aa] mb-1.5">
                 Full name <span className="text-red-400">*</span>
@@ -171,7 +171,7 @@ export function AddMemberModal({ onClose, allTeams = [] }: Props) {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-medium text-[#a1a1aa] mb-1.5">Team</label>
               <input
