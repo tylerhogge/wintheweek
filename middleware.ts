@@ -75,7 +75,7 @@ export async function middleware(request: NextRequest) {
   supabaseResponse.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload')
   supabaseResponse.headers.set(
     'Content-Security-Policy',
-    "default-src 'self'; script-src 'self' https://va.vercel-scripts.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://*.supabase.co; font-src 'self'; connect-src 'self' https://*.supabase.co https://va.vercel-scripts.com; frame-ancestors 'none';",
+    "default-src 'self'; script-src 'self' 'unsafe-inline' https://va.vercel-scripts.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://*.supabase.co; font-src 'self'; connect-src 'self' https://*.supabase.co https://va.vercel-scripts.com; frame-ancestors 'none';",
   )
 
   return supabaseResponse
