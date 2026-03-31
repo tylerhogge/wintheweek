@@ -12,17 +12,17 @@ export function getStripe(): Stripe {
 
 // Plan configuration — maps our internal plan names to Stripe Price IDs
 export const PLANS = {
-  pro: {
-    name: 'Pro',
-    priceId: process.env.STRIPE_PRICE_PRO!,
-    employeeLimit: 100,
-    monthlyPrice: 199,
+  starter: {
+    name: 'Starter',
+    priceId: process.env.STRIPE_PRICE_STARTER!,
+    employeeLimit: 50,
+    monthlyPrice: 99,
   },
-  growth: {
-    name: 'Growth',
-    priceId: process.env.STRIPE_PRICE_GROWTH!,
+  business: {
+    name: 'Business',
+    priceId: process.env.STRIPE_PRICE_BUSINESS!,
     employeeLimit: 500,
-    monthlyPrice: 399,
+    monthlyPrice: 299,
   },
 } as const
 

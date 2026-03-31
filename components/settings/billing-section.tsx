@@ -13,8 +13,10 @@ type Props = {
 
 function planLabel(plan: string | null): string {
   switch (plan) {
-    case 'pro': return 'Pro'
-    case 'growth': return 'Growth'
+    case 'starter': return 'Starter'
+    case 'pro': return 'Pro (Legacy)'
+    case 'business': return 'Business'
+    case 'growth': return 'Growth (Legacy)'
     case 'enterprise': return 'Enterprise'
     case 'trial': return 'Free Trial'
     default: return 'Free Beta'
@@ -59,7 +61,7 @@ export function BillingSection({ plan, planStatus, trialEndsAt, currentPeriodEnd
     }
   }
 
-  async function startCheckout(selectedPlan: 'pro' | 'growth') {
+  async function startCheckout(selectedPlan: 'starter' | 'business') {
     setLoadingCheckout(selectedPlan)
     try {
       const res = await fetch('/api/billing/checkout', {
@@ -118,38 +120,38 @@ export function BillingSection({ plan, planStatus, trialEndsAt, currentPeriodEnd
           </p>
           <div className="flex flex-col sm:flex-row gap-2">
             <button
-              onClick={() => startCheckout('pro')}
+              onClick={() => startCheckout('starter')}
               disabled={!!loadingCheckout}
               className="flex items-center justify-center gap-2 text-sm font-semibold px-4 py-2 rounded-lg border border-white/[0.1] hover:bg-white/[0.04] transition-colors"
             >
-              {loadingCheckout === 'pro' ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-              Pro · $199/mo
+              {loadingCheckout === 'starter' ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+              Starter · $99/mo
             </button>
             <button
-              onClick={() => startCheckout('growth')}
+              onClick={() => startCheckout('business')}
               disabled={!!loadingCheckout}
               className="flex items-center justify-center gap-2 text-sm font-semibold px-4 py-2 rounded-lg bg-accent text-black hover:bg-accent/90 transition-colors"
             >
-              {loadingCheckout === 'growth' ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-              Growth · $399/mo
+              {loadingCheckout === 'business' ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+              Business · $299/mo
             </button>
           </div>
         </div>
       )}
 
-      {/* Upgrade from Pro to Growth */}
-      {plan === 'pro' && isSubscribed && (
+      {/* Upgrade from Starter to Business */}
+      {(plan === 'starter' || plan === 'pro') && isSubscribed && (
         <div className="px-5 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <p className="text-sm font-medium">Need more capacity?</p>
-            <p className="text-xs text-[#71717a] mt-0.5">Upgrade to Growth for up to 500 employees, custom domain, and priority support.</p>
+            <p className="text-xs text-[#71717a] mt-0.5">Upgrade to Business for up to 500 employees, custom domain, and priority support.</p>
           </div>
           <button
             onClick={openPortal}
             disabled={loadingPortal}
             className="text-[12px] font-semibold text-accent hover:text-accent/80 transition-colors shrink-0"
           >
-            Upgrade to Growth →
+            Upgrade to Business →
           </button>
         </div>
       )}

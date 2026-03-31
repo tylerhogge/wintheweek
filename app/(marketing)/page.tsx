@@ -127,11 +127,11 @@ export default function LandingPage() {
         <p className="text-[#a1a1aa] text-sm mb-8 md:mb-14">First month free to get your rhythm. No credit card required to start.</p>
 
         <div className="grid sm:grid-cols-3 gap-4 max-w-[920px] mx-auto">
-          {/* Pro */}
+          {/* Starter */}
           <div className="bg-surface border border-white/[0.07] rounded-xl p-7 flex flex-col">
-            <p className="text-[13px] font-semibold mb-1">Pro</p>
-            <p className="text-xs text-[#71717a] mb-5">Up to 100 employees</p>
-            <p className="mb-1"><span className="text-[36px] font-bold tracking-[-0.04em]">$199</span><span className="text-sm text-[#71717a] ml-1">/ mo</span></p>
+            <p className="text-[13px] font-semibold mb-1">Starter</p>
+            <p className="text-xs text-[#71717a] mb-5">Up to 50 employees</p>
+            <p className="mb-1"><span className="text-[36px] font-bold tracking-[-0.04em]">$99</span><span className="text-sm text-[#71717a] ml-1">/ mo</span></p>
             <p className="text-xs text-accent mb-6">First month free</p>
             <ul className="space-y-2.5 mb-6 flex-1">
               {['Unlimited campaigns', 'AI weekly CEO briefing', 'Company sentiment & themes', 'Slack integration', 'Ask-your-data AI queries', 'Team & function filters', 'Reply tracking & auto-nudges', 'Unlimited history'].map((f: string) => (
@@ -140,26 +140,26 @@ export default function LandingPage() {
                 </li>
               ))}
             </ul>
-            <PricingCTA plan="pro" />
+            <PricingCTA plan="starter" />
           </div>
 
-          {/* Growth */}
+          {/* Business */}
           <div className="bg-surface border border-accent/40 bg-gradient-to-b from-accent/[0.06] to-surface rounded-xl p-7 flex flex-col">
             <div className="flex items-center gap-2 mb-1">
-              <p className="text-[13px] font-semibold">Growth</p>
+              <p className="text-[13px] font-semibold">Business</p>
               <span className="text-[10px] font-semibold bg-accent/10 text-accent border border-accent/30 px-2 py-0.5 rounded-full">Popular</span>
             </div>
             <p className="text-xs text-[#71717a] mb-5">Up to 500 employees</p>
-            <p className="mb-1"><span className="text-[36px] font-bold tracking-[-0.04em]">$399</span><span className="text-sm text-[#71717a] ml-1">/ mo</span></p>
+            <p className="mb-1"><span className="text-[36px] font-bold tracking-[-0.04em]">$299</span><span className="text-sm text-[#71717a] ml-1">/ mo</span></p>
             <p className="text-xs text-accent mb-6">First month free</p>
             <ul className="space-y-2.5 mb-6 flex-1">
-              {['Everything in Pro', 'Custom send domain', 'Priority support', 'Dedicated onboarding', 'Advanced analytics'].map((f: string) => (
+              {['Everything in Starter', 'Custom send domain', 'Priority support', 'Dedicated onboarding', 'Advanced analytics'].map((f: string) => (
                 <li key={f} className="text-sm text-[#a1a1aa] flex items-center gap-2">
                   <span className="text-accent font-bold text-xs">✓</span> {f}
                 </li>
               ))}
             </ul>
-            <PricingCTA plan="growth" variant="accent" />
+            <PricingCTA plan="business" variant="accent" />
           </div>
 
           {/* Enterprise */}
@@ -168,7 +168,7 @@ export default function LandingPage() {
             <p className="text-xs text-[#71717a] mb-5">500+ employees</p>
             <p className="mb-6"><span className="text-[36px] font-bold tracking-[-0.04em]">Let&apos;s talk</span></p>
             <ul className="space-y-2.5 mb-6 flex-1">
-              {['Everything in Growth', 'SSO & advanced security', 'Custom integrations', 'Dedicated account manager', 'SLA & uptime guarantee'].map((f: string) => (
+              {['Everything in Business', 'SSO & advanced security', 'Custom integrations', 'Dedicated account manager', 'SLA & uptime guarantee'].map((f: string) => (
                 <li key={f} className="text-sm text-[#a1a1aa] flex items-center gap-2">
                   <span className="text-accent font-bold text-xs">✓</span> {f}
                 </li>

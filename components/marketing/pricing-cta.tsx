@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Loader2 } from 'lucide-react'
 
 type Props = {
-  plan: 'pro' | 'growth'
+  plan: 'starter' | 'business'
   variant?: 'default' | 'accent'
   label?: string
 }

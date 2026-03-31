@@ -65,9 +65,11 @@ export async function isOrgAllowed(orgId: string): Promise<boolean> {
  */
 export function getEmployeeLimit(plan: string | null): number {
   switch (plan) {
-    case 'pro': return 100
-    case 'growth': return 500
+    case 'starter': return 50
+    case 'pro': return 100       // legacy — grandfathered
+    case 'business': return 500
+    case 'growth': return 500    // legacy — grandfathered
     case 'enterprise': return Infinity
-    default: return Infinity // beta = unlimited
+    default: return Infinity     // beta = unlimited
   }
 }
