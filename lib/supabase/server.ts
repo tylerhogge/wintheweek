@@ -45,10 +45,15 @@ export function createServiceClient() {
 // This eliminates repeated auth.getUser() + profile round-trips when both
 // the layout and a page component need the same data.
 
+// getAuthUser: reads the session JWT from the cookie (zero network calls),
+// then fetches the profile in parallel. The middleware already verifies auth
+// for protected routes, so we trust the session here for speed.
+// NOTE: Do NOT use getSession() for anything that gates data access or
+// writes — use getUser() in those API routes for server-verified identity.
 export const getAuthUser = cache(async () => {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  return user ?? null
+  const { data: { session } } = await supabase.auth.getSession()
+  return session?.user ?? null
 })
 
 export const getProfile = cache(async () => {
