@@ -23,8 +23,6 @@ interface Props {
 }
 
 // ── Streaming data component ──────────────────────────────────────────────────
-// Runs on the server and streams HTML to the browser as soon as it resolves.
-// The page shell (header + week nav) renders instantly without waiting for this.
 async function DashboardContent({
   orgId,
   weekStart,
@@ -48,8 +46,9 @@ async function DashboardContent({
 
   if (team) submissionsQuery = submissionsQuery.eq('employees.team', team)
 
-  // Run all queries in parallel — no sequential dependencies
-  const [{ data: submissions }, { data: insight }, { data: teamRows }, { count: employeeCount }, { count: campaignCount }, { count: sentCount }, { data: slackRow }, { data: orgSettings }] = await Promise.all([
+  // Three core queries — the minimum needed for every dashboard render.
+  // Onboarding checklist uses a single org column instead of 5 count queries.
+  const [{ data: submissions }, { data: insight }, { data: orgRow }] = await Promise.all([
     submissionsQuery,
     supabase
       .from('insights')
@@ -57,31 +56,59 @@ async function DashboardContent({
       .eq('org_id', orgId)
       .eq('week_start', weekStart)
       .maybeSingle(),
-    // Lightweight query: only the team column from active employees
     supabase
+      .from('organizations')
+      .select('shame_enabled, auto_nudge, onboarding_complete')
+      .eq('id', orgId)
+      .single(),
+  ])
+
+  // Extract unique teams from submissions already fetched (no extra query)
+  const teamSet = new Set<string>()
+  for (const s of (submissions ?? []) as any[]) {
+    const t = s.employee?.team
+    if (t) teamSet.add(t)
+  }
+
+  // If we don't have submissions for this week, also check for teams from employees
+  // (only when needed — when there are no submissions to derive teams from)
+  let uniqueTeams = [...teamSet].sort()
+  if (uniqueTeams.length === 0) {
+    const { data: teamRows } = await supabase
       .from('employees')
       .select('team')
       .eq('org_id', orgId)
       .eq('active', true)
-      .not('team', 'is', null),
-    // Onboarding checklist queries (lightweight count-only)
-    supabase.from('employees').select('id', { count: 'exact', head: true }).eq('org_id', orgId).eq('active', true),
-    supabase.from('campaigns').select('id', { count: 'exact', head: true }).eq('org_id', orgId).eq('active', true),
-    supabase.from('submissions').select('id, employees!inner(org_id)', { count: 'exact', head: true }).eq('employees.org_id', orgId).not('sent_at', 'is', null),
-    supabase.from('slack_integrations').select('id').eq('org_id', orgId).maybeSingle(),
-    supabase.from('organizations').select('shame_enabled, auto_nudge').eq('id', orgId).single(),
-  ])
+      .not('team', 'is', null)
+    uniqueTeams = [...new Set(teamRows?.map((t: { team: string | null }) => t.team).filter(Boolean))] as string[]
+  }
 
-  const hasTeam = (employeeCount ?? 0) > 0
-  const hasCampaign = (campaignCount ?? 0) > 0
-  const hasSentFirst = (sentCount ?? 0) > 0
-  const hasSlack = !!slackRow
-  const hasShame = !!(orgSettings?.shame_enabled || orgSettings?.auto_nudge)
-  const allComplete = hasTeam && hasCampaign && hasSentFirst && hasSlack && hasShame
+  const onboardingComplete = (orgRow as any)?.onboarding_complete ?? false
 
-  const uniqueTeams = [
-    ...new Set(teamRows?.map((t: { team: string | null }) => t.team).filter(Boolean)),
-  ] as string[]
+  // Only run onboarding queries if not yet complete
+  let hasTeam = true, hasCampaign = true, hasSentFirst = true, hasSlack = true, hasShame = true
+  let allComplete = onboardingComplete
+
+  if (!onboardingComplete) {
+    const [{ count: employeeCount }, { count: campaignCount }, { count: sentCount }, { data: slackRow }] = await Promise.all([
+      supabase.from('employees').select('id', { count: 'exact', head: true }).eq('org_id', orgId).eq('active', true),
+      supabase.from('campaigns').select('id', { count: 'exact', head: true }).eq('org_id', orgId).eq('active', true),
+      supabase.from('submissions').select('id, employees!inner(org_id)', { count: 'exact', head: true }).eq('employees.org_id', orgId).not('sent_at', 'is', null),
+      supabase.from('slack_integrations').select('id').eq('org_id', orgId).maybeSingle(),
+    ])
+
+    hasTeam = (employeeCount ?? 0) > 0
+    hasCampaign = (campaignCount ?? 0) > 0
+    hasSentFirst = (sentCount ?? 0) > 0
+    hasSlack = !!slackRow
+    hasShame = !!(orgRow?.shame_enabled || orgRow?.auto_nudge)
+    allComplete = hasTeam && hasCampaign && hasSentFirst && hasSlack && hasShame
+
+    // Persist completion so future loads skip these queries entirely
+    if (allComplete) {
+      supabase.from('organizations').update({ onboarding_complete: true }).eq('id', orgId).then(() => {})
+    }
+  }
 
   // Treat hidden responses as if they don't exist — card shows "no reply yet"
   const typed = ((submissions ?? []) as unknown as SubmissionWithDetails[]).map((s) => {
