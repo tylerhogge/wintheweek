@@ -20,6 +20,7 @@ export function WeekNav({ weekStart }: Props) {
       <Link
         href={`/dashboard?week=${prev}`}
         prefetch={true}
+        scroll={true}
         className="w-7 h-7 flex items-center justify-center border border-white/10 rounded-md hover:bg-white/[0.05] transition-colors text-[#71717a] hover:text-white"
         aria-label="Previous week"
       >
@@ -43,6 +44,7 @@ export function WeekNav({ weekStart }: Props) {
         <Link
           href={`/dashboard?week=${next}`}
           prefetch={true}
+          scroll={true}
           className="w-7 h-7 flex items-center justify-center border border-white/10 rounded-md hover:bg-white/[0.05] transition-colors text-[#71717a] hover:text-white"
           aria-label="Next week"
         >
@@ -55,6 +57,7 @@ export function WeekNav({ weekStart }: Props) {
         <Link
           href={`/dashboard?week=${currentWeek}`}
           prefetch={true}
+          scroll={true}
           className="ml-1 text-[11px] text-[#71717a] hover:text-white border border-white/10 px-2.5 h-7 flex items-center rounded-md transition-colors"
         >
           Today
