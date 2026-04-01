@@ -13,7 +13,6 @@ import { GenerateSummaryBtn } from '@/components/dashboard/generate-summary-btn'
 import { BriefingPlaceholder } from '@/components/dashboard/briefing-placeholder'
 import { SearchBar } from '@/components/dashboard/search-bar'
 import { OnboardingChecklist } from '@/components/dashboard/onboarding-checklist'
-import { BriefingChat } from '@/components/dashboard/briefing-chat'
 import type { SubmissionWithDetails, Insight } from '@/types'
 
 // Force dynamic rendering — skips static analysis overhead on every request
@@ -119,18 +118,13 @@ async function DashboardContent({
       {/* AI Briefing: show full briefing, generate button, or placeholder */}
       <div className="mt-5">
         {insight && replied.length > 0 ? (
-          <AISummary insight={insight as Insight} />
+          <AISummary insight={insight as Insight} weekStart={weekStart} />
         ) : replied.length >= Math.ceil(typed.length / 2) && typed.length > 0 ? (
           <GenerateSummaryBtn weekStart={weekStart} />
         ) : typed.length > 0 ? (
           <BriefingPlaceholder replied={replied.length} total={typed.length} />
         ) : null}
       </div>
-
-      {/* Briefing chat */}
-      {insight && replied.length > 0 && (
-        <BriefingChat weekStart={weekStart} hasInsight={!!insight?.summary} />
-      )}
 
       {/* Team filter chips */}
       <div className="flex items-center gap-2 mt-6 mb-4 flex-wrap">
