@@ -54,6 +54,29 @@ export function buildCampaignEmail({
   return { subject, html, text }
 }
 
+/**
+ * Helper to convert **bold** markdown syntax to <strong> tags
+ */
+function markdownBoldToStrong(text: string): string {
+  return text.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+}
+
+/**
+ * Helper to split text on double newlines and convert to HTML paragraphs
+ */
+function paragraphsToHtml(text: string | null): string {
+  if (!text) return ''
+  return text
+    .split('\n\n')
+    .filter(Boolean)
+    .map((para) => {
+      const escaped = escapeHtml(para)
+      const withBold = markdownBoldToStrong(escaped)
+      return `<p style="font-size:14px; color:#a1a1aa; line-height:1.65; margin:0 0 14px;">${withBold}</p>`
+    })
+    .join('')
+}
+
 export function buildDigestEmail({
   orgName,
   weekLabel,
@@ -61,6 +84,14 @@ export function buildDigestEmail({
   highlights,
   replies,
   dashboardUrl,
+  bottomLine,
+  crossFunctionalThemes,
+  riskItems,
+  initiativeTracking,
+  sentimentScore,
+  sentimentLabel,
+  themes,
+  replyToAddress,
 }: {
   orgName: string
   weekLabel: string
@@ -68,8 +99,110 @@ export function buildDigestEmail({
   highlights: string[] | null
   replies: { name: string; team: string | null; body: string }[]
   dashboardUrl: string
+  bottomLine?: string | null
+  crossFunctionalThemes?: string | null
+  riskItems?: string | null
+  initiativeTracking?: string | null
+  sentimentScore?: number | null
+  sentimentLabel?: string | null
+  themes?: string[] | null
+  replyToAddress?: string | null
 }): { subject: string; html: string; text: string } {
-  const subject = `${orgName} — Weekly Digest: ${weekLabel}`
+  const subject = `${orgName} — CEO Briefing: ${weekLabel}`
+
+  // Determine sentiment color
+  let sentimentColor = '#a1a1aa'
+  let sentimentBgColor = 'rgba(255,255,255,0.03)'
+  if (sentimentScore !== null && sentimentScore !== undefined) {
+    if (sentimentScore >= 8) {
+      sentimentColor = '#22c55e'
+      sentimentBgColor = 'rgba(34,197,94,0.1)'
+    } else if (sentimentScore >= 6) {
+      sentimentColor = '#3b82f6'
+      sentimentBgColor = 'rgba(59,130,246,0.1)'
+    } else if (sentimentScore >= 4) {
+      sentimentColor = '#eab308'
+      sentimentBgColor = 'rgba(234,179,8,0.1)'
+    } else if (sentimentScore >= 2) {
+      sentimentColor = '#f97316'
+      sentimentBgColor = 'rgba(249,115,22,0.1)'
+    } else {
+      sentimentColor = '#ef4444'
+      sentimentBgColor = 'rgba(239,68,68,0.1)'
+    }
+  }
+
+  const sentimentHtml =
+    sentimentScore !== null && sentimentScore !== undefined
+      ? `<div style="background:${sentimentBgColor}; border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:12px 16px; margin-bottom:24px; display:inline-block;">
+          <p style="font-size:12px; font-weight:600; letter-spacing:0.05em; text-transform:uppercase; color:${sentimentColor}; margin:0;">Team Sentiment: ${sentimentScore}/10 ${sentimentLabel ? `— ${sentimentLabel}` : ''}</p>
+        </div>`
+      : ''
+
+  // Bottom line (key takeaway) — prominent box
+  const bottomLineHtml = bottomLine
+    ? `<div style="background:rgba(34,197,94,0.08); border:2px solid #22c55e; border-radius:10px; padding:20px 24px; margin-bottom:28px;">
+        <p style="font-size:10px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:#22c55e; margin:0 0 8px;">Bottom Line</p>
+        <p style="font-size:14px; color:#fafafa; line-height:1.65; margin:0; font-weight:500;">${escapeHtml(bottomLine)}</p>
+      </div>`
+    : ''
+
+  // Executive Summary
+  const summaryHtml = summary
+    ? `<div style="margin-bottom:28px;">
+        <p style="font-size:10px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:#22c55e; margin:0 0 12px;">Executive Summary</p>
+        <p style="font-size:14px; color:#a1a1aa; line-height:1.65; margin:0 0 ${highlights && highlights.length > 0 ? '14px' : '0'};">${escapeHtml(summary)}</p>
+        ${
+          highlights && highlights.length > 0
+            ? highlights.map((h) => `<p style="font-size:14px; color:#a1a1aa; margin:6px 0; padding-left:14px; position:relative;">→ ${escapeHtml(h)}</p>`).join('')
+            : ''
+        }
+      </div>`
+    : ''
+
+  // Cross-functional themes
+  const themesHtml = crossFunctionalThemes
+    ? `<div style="margin-bottom:28px;">
+        <p style="font-size:10px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:#22c55e; margin:0 0 12px;">Cross-Functional Themes</p>
+        ${paragraphsToHtml(crossFunctionalThemes)}
+      </div>`
+    : ''
+
+  // Risk & Decision Items
+  const risksHtml = riskItems
+    ? `<div style="margin-bottom:28px;">
+        <p style="font-size:10px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:#22c55e; margin:0 0 12px;">Risk & Decision Items</p>
+        ${paragraphsToHtml(riskItems)}
+      </div>`
+    : ''
+
+  // Initiative tracking
+  const initiativeHtml = initiativeTracking
+    ? `<div style="margin-bottom:28px;">
+        <p style="font-size:10px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:#22c55e; margin:0 0 12px;">Initiative Tracking</p>
+        ${paragraphsToHtml(initiativeTracking)}
+      </div>`
+    : ''
+
+  // Theme tags/pills
+  const tagsHtml =
+    themes && themes.length > 0
+      ? `<div style="margin-bottom:28px;">
+          ${themes
+            .map(
+              (t) =>
+                `<span style="display:inline-block; background:rgba(34,197,94,0.15); color:#22c55e; padding:6px 12px; border-radius:6px; font-size:12px; font-weight:500; margin-right:8px; margin-bottom:8px;">${escapeHtml(t)}</span>`,
+            )
+            .join('')}
+        </div>`
+      : ''
+
+  // Call-to-action for questions (only if replyToAddress provided)
+  const ctaBoxHtml = replyToAddress
+    ? `<div style="background:rgba(34,197,94,0.06); border:1px solid rgba(34,197,94,0.18); border-radius:10px; padding:20px 24px; margin-bottom:28px;">
+        <p style="font-size:14px; color:#a1a1aa; line-height:1.65; margin:0;">💬 <strong>Have a question?</strong> Reply to this email and I'll answer using your team's data.</p>
+      </div>`
+    : ''
 
   const repliesHtml = replies
     .map(
@@ -82,18 +215,6 @@ export function buildDigestEmail({
     </div>`,
     )
     .join('')
-
-  const summaryHtml = summary
-    ? `<div style="background:rgba(34,197,94,0.06); border:1px solid rgba(34,197,94,0.18); border-radius:10px; padding:20px 24px; margin-bottom:28px;">
-        <p style="font-size:10px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:#22c55e; margin:0 0 10px;">✦ AI CEO Briefing</p>
-        <p style="font-size:14px; color:#a1a1aa; line-height:1.65; margin:0 0 ${highlights && highlights.length > 0 ? '14px' : '0'};">${escapeHtml(summary)}</p>
-        ${
-          highlights && highlights.length > 0
-            ? highlights.map((h) => `<p style="font-size:14px; color:#a1a1aa; margin:6px 0; padding-left:14px; position:relative;">→ ${escapeHtml(h)}</p>`).join('')
-            : ''
-        }
-      </div>`
-    : ''
 
   const html = `<!DOCTYPE html>
 <html>
@@ -108,27 +229,89 @@ export function buildDigestEmail({
 <body>
   <div class="wrap">
     <div class="card">
-      <h2>Weekly Digest</h2>
+      <h2>Your CEO Briefing</h2>
       <p class="sub">${weekLabel} · ${orgName}</p>
+      ${sentimentHtml}
+      ${bottomLineHtml}
       ${summaryHtml}
-      <div>${repliesHtml}</div>
+      ${themesHtml}
+      ${risksHtml}
+      ${initiativeHtml}
+      ${tagsHtml}
+      ${ctaBoxHtml}
       <a href="${dashboardUrl}" class="cta">View on Dashboard →</a>
+      <div>${repliesHtml}</div>
     </div>
   </div>
 </body>
 </html>`
 
-  const text = [
-    `Weekly Digest — ${weekLabel}`,
+  // Build text version
+  const textSections = [
+    `Your CEO Briefing — ${weekLabel}`,
     '',
-    summary ? `AI CEO Briefing:\n${summary}` : '',
-    '',
-    ...replies.map((r) => `${r.name}${r.team ? ` (${r.team})` : ''}:\n${r.body}`),
-    '',
-    `View on dashboard: ${dashboardUrl}`,
   ]
-    .filter((l) => l !== undefined)
-    .join('\n')
+
+  if (sentimentScore !== null && sentimentScore !== undefined) {
+    textSections.push(`Team Sentiment: ${sentimentScore}/10 ${sentimentLabel ? `— ${sentimentLabel}` : ''}`)
+    textSections.push('')
+  }
+
+  if (bottomLine) {
+    textSections.push(`BOTTOM LINE`)
+    textSections.push(bottomLine)
+    textSections.push('')
+  }
+
+  if (summary) {
+    textSections.push(`EXECUTIVE SUMMARY`)
+    textSections.push(summary)
+    if (highlights && highlights.length > 0) {
+      highlights.forEach((h) => textSections.push(`• ${h}`))
+    }
+    textSections.push('')
+  }
+
+  if (crossFunctionalThemes) {
+    textSections.push(`CROSS-FUNCTIONAL THEMES`)
+    textSections.push(crossFunctionalThemes)
+    textSections.push('')
+  }
+
+  if (riskItems) {
+    textSections.push(`RISK & DECISION ITEMS`)
+    textSections.push(riskItems)
+    textSections.push('')
+  }
+
+  if (initiativeTracking) {
+    textSections.push(`INITIATIVE TRACKING`)
+    textSections.push(initiativeTracking)
+    textSections.push('')
+  }
+
+  if (themes && themes.length > 0) {
+    textSections.push(`THEMES: ${themes.join(', ')}`)
+    textSections.push('')
+  }
+
+  if (replyToAddress) {
+    textSections.push(`Have a question? Reply to this email and I'll answer using your team's data.`)
+    textSections.push('')
+  }
+
+  textSections.push(`---`)
+  textSections.push('')
+
+  replies.forEach((r) => {
+    textSections.push(`${r.name}${r.team ? ` (${r.team})` : ''}:`)
+    textSections.push(r.body)
+    textSections.push('')
+  })
+
+  textSections.push(`View on dashboard: ${dashboardUrl}`)
+
+  const text = textSections.filter((line) => line !== undefined).join('\n')
 
   return { subject, html, text }
 }

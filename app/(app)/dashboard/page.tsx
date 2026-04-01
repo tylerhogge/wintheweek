@@ -13,6 +13,7 @@ import { GenerateSummaryBtn } from '@/components/dashboard/generate-summary-btn'
 import { BriefingPlaceholder } from '@/components/dashboard/briefing-placeholder'
 import { SearchBar } from '@/components/dashboard/search-bar'
 import { OnboardingChecklist } from '@/components/dashboard/onboarding-checklist'
+import { BriefingChat } from '@/components/dashboard/briefing-chat'
 import type { SubmissionWithDetails, Insight } from '@/types'
 
 // Force dynamic rendering — skips static analysis overhead on every request
@@ -125,6 +126,11 @@ async function DashboardContent({
           <BriefingPlaceholder replied={replied.length} total={typed.length} />
         ) : null}
       </div>
+
+      {/* Briefing chat */}
+      {insight && replied.length > 0 && (
+        <BriefingChat weekStart={weekStart} hasInsight={!!insight?.summary} />
+      )}
 
       {/* Team filter chips */}
       <div className="flex items-center gap-2 mt-6 mb-4 flex-wrap">

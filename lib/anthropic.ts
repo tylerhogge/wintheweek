@@ -91,6 +91,63 @@ Answer the question directly and concisely. Be specific — use names, teams, an
   return content.text.trim()
 }
 
+// ── Briefing chat response generation ───────────────────────────────────────
+
+export async function generateBriefingChatResponse(
+  orgName: string,
+  weekLabel: string,
+  question: string,
+  insight: InsightResult,
+  replies: Array<{ name: string; team: string | null; body: string }>,
+): Promise<string> {
+  // Build brief roster for context
+  const teams = [...new Set(replies.map(r => r.team).filter(Boolean))]
+  const repliesText = replies
+    .map((r: { name: string; team: string | null; body: string }): string => `[${r.name}${r.team ? ` · ${r.team}` : ''}]: ${r.body}`)
+    .join('\n\n')
+
+  // Build briefing context block
+  const briefingParts: string[] = [
+    `EXECUTIVE SUMMARY: ${insight.summary}`,
+  ]
+  if (insight.bottom_line) briefingParts.push(`BOTTOM LINE: ${insight.bottom_line}`)
+  if (insight.highlights?.length) briefingParts.push(`HIGHLIGHTS:\n${insight.highlights.map(h => `- ${h}`).join('\n')}`)
+  if (insight.cross_functional_themes) briefingParts.push(`CROSS-FUNCTIONAL THEMES:\n${insight.cross_functional_themes}`)
+  if (insight.risk_items) briefingParts.push(`RISK & DECISION ITEMS:\n${insight.risk_items}`)
+  if (insight.initiative_tracking) briefingParts.push(`INITIATIVE TRACKING:\n${insight.initiative_tracking}`)
+  if (insight.themes?.length) briefingParts.push(`KEY THEMES: ${insight.themes.join(', ')}`)
+  if (insight.sentiment_score != null) briefingParts.push(`COMPANY SENTIMENT: ${insight.sentiment_label ?? 'Neutral'} (${insight.sentiment_score}/10)`)
+
+  const message = await anthropic.messages.create({
+    model: 'claude-haiku-4-5-20251001',
+    max_tokens: 1024,
+    messages: [
+      {
+        role: 'user',
+        content: `You are an assistant helping a CEO understand their weekly briefing for ${orgName} (week of ${weekLabel}).
+
+BRIEFING CONTEXT:
+${briefingParts.join('\n\n')}
+
+RAW CHECK-IN REPLIES (for additional context):
+${repliesText}
+
+---
+
+CEO'S QUESTION: ${question}
+
+---
+
+Answer the CEO's question directly and concisely. Draw on the briefing analysis, the raw replies, and the themes identified. Be specific — use names, teams, and concrete data. Keep your reply under 300 words. Write in confident, clear prose suitable for a busy executive. No markdown, no headers, just direct answers.`,
+      },
+    ],
+  }, { timeout: 30000 })
+
+  const content = message.content[0]
+  if (content.type !== 'text') throw new Error('Unexpected response from Claude')
+  return content.text.trim()
+}
+
 // ── AI insight generation ────────────────────────────────────────────────────
 
 export type InsightResult = {

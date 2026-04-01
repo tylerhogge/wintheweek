@@ -177,7 +177,7 @@ async function maybeFireDigest(orgId: string, weekStart: string) {
 
   const { data: insight } = await supabase
     .from('insights')
-    .select('id, summary, highlights, digest_sent_at')
+    .select('id, summary, highlights, cross_functional_themes, risk_items, bottom_line, initiative_tracking, sentiment_score, sentiment_label, themes, digest_sent_at')
     .eq('org_id', orgId)
     .eq('week_start', weekStart)
     .single()
@@ -222,6 +222,14 @@ async function maybeFireDigest(orgId: string, weekStart: string) {
     highlights: (insight?.highlights as string[] | null) ?? null,
     replies: allReplies,
     dashboardUrl: `${appUrl}/dashboard?week=${weekStart}`,
+    bottomLine: insight?.bottom_line ?? null,
+    crossFunctionalThemes: insight?.cross_functional_themes ?? null,
+    riskItems: insight?.risk_items ?? null,
+    initiativeTracking: insight?.initiative_tracking ?? null,
+    sentimentScore: insight?.sentiment_score ?? null,
+    sentimentLabel: insight?.sentiment_label ?? null,
+    themes: (insight?.themes as string[] | null) ?? null,
+    replyToAddress: 'updates@wintheweek.co',
   })
 
   await resend.emails.send({
@@ -258,6 +266,14 @@ async function maybeFireDigest(orgId: string, weekStart: string) {
         highlights: null,
         replies: teamReplies,
         dashboardUrl: `${appUrl}/dashboard?week=${weekStart}`,
+        bottomLine: null,
+        crossFunctionalThemes: null,
+        riskItems: null,
+        initiativeTracking: null,
+        sentimentScore: null,
+        sentimentLabel: null,
+        themes: null,
+        replyToAddress: null,
       })
 
       await resend.emails.send({

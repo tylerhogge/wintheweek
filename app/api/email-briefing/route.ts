@@ -167,6 +167,14 @@ export async function POST(req: Request) {
         highlights: (insight?.highlights as string[] | null) ?? null,
         replies,
         dashboardUrl: `${appUrl}/dashboard?week=${weekStart}`,
+        bottomLine: insight?.bottom_line ?? null,
+        crossFunctionalThemes: insight?.cross_functional_themes ?? null,
+        riskItems: insight?.risk_items ?? null,
+        initiativeTracking: insight?.initiative_tracking ?? null,
+        sentimentScore: insight?.sentiment_score ?? null,
+        sentimentLabel: insight?.sentiment_label ?? null,
+        themes: (insight?.themes as string[] | null) ?? null,
+        replyToAddress: 'updates@wintheweek.co',
       })
 
       await getResend().emails.send({
