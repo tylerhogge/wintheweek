@@ -153,7 +153,7 @@ export default function LandingPage() {
             <p className="mb-1"><span className="text-[36px] font-bold tracking-[-0.04em]">$299</span><span className="text-sm text-[#71717a] ml-1">/ mo</span></p>
             <p className="text-xs text-accent mb-6">First month free</p>
             <ul className="space-y-2.5 mb-6 flex-1">
-              {['Everything in Starter', 'Up to 500 employees', 'Custom send domain', 'Sentiment & response trends', 'Manager-level dashboards', 'Priority support & onboarding'].map((f: string) => (
+              {['Everything in Starter', 'Up to 500 employees', 'Manager-level dashboards', 'Sentiment & response trends', 'Custom send domain', 'Priority support & onboarding'].map((f: string) => (
                 <li key={f} className="text-sm text-[#a1a1aa] flex items-center gap-2">
                   <span className="text-accent font-bold text-xs">✓</span> {f}
                 </li>
