@@ -26,7 +26,7 @@ export default function LandingPage() {
               Log in
             </Link>
             <Link href="#waitlist" className="text-sm font-semibold bg-white text-black px-4 py-1.5 rounded-md hover:bg-white/90 transition-colors">
-              Get started
+              Join the waitlist
             </Link>
           </div>
         </div>
