@@ -73,12 +73,19 @@ export async function POST(req: Request) {
     const employeeIds = employees.map((e) => e.id)
     const { data: existingSubmissions } = await supabase
       .from('submissions')
-      .select('employee_id')
+      .select('employee_id, sent_at, id')
       .eq('campaign_id', campaign.id)
       .eq('week_start', weekStart)
       .in('employee_id', employeeIds)
 
-    const alreadySent = new Set(existingSubmissions?.map((s) => s.employee_id) ?? [])
+    // Only skip employees whose email was actually sent (sent_at is set)
+    const alreadySent = new Set(
+      (existingSubmissions ?? []).filter((s) => s.sent_at !== null).map((s) => s.employee_id)
+    )
+    // Track unsent submissions that need retry (row exists but sent_at is null)
+    const unsentSubmissions = new Map(
+      (existingSubmissions ?? []).filter((s) => s.sent_at === null).map((s) => [s.employee_id, s.id])
+    )
 
     // Helper function: process a single employee
     async function processEmployee(employee: NonNullable<typeof employees>[number]) {
@@ -88,21 +95,27 @@ export async function POST(req: Request) {
         return
       }
 
-      // Create the submission record
-      const { data: submission, error: subErr } = await supabase
-        .from('submissions')
-        .insert({
-          campaign_id: campaign.id,
-          employee_id: employee.id,
-          week_start: weekStart,
-        })
-        .select('id')
-        .single()
+      // Reuse existing submission row if it exists (retry), otherwise create new
+      let submissionId: string
+      if (unsentSubmissions.has(employee.id)) {
+        submissionId = unsentSubmissions.get(employee.id)!
+      } else {
+        const { data: submission, error: subErr } = await supabase
+          .from('submissions')
+          .insert({
+            campaign_id: campaign.id,
+            employee_id: employee.id,
+            week_start: weekStart,
+          })
+          .select('id')
+          .single()
 
-      if (subErr || !submission) {
-        console.error('Failed to create submission', subErr)
-        results.failed++
-        return
+        if (subErr || !submission) {
+          console.error('Failed to create submission', subErr)
+          results.failed++
+          return
+        }
+        submissionId = submission.id
       }
 
       let sendError: string | null = null
@@ -174,15 +187,14 @@ export async function POST(req: Request) {
             email_status: 'sent',
             ...(resendEmailId && { resend_email_id: resendEmailId }),
           })
-          .eq('id', submission.id)
+          .eq('id', submissionId)
         results.sent++
       }
     }
 
-    // Process employees in batches of 10
-    for (let i = 0; i < employees.length; i += 10) {
-      const batch = employees.slice(i, i + 10)
-      await Promise.all(batch.map(processEmployee))
+    // Process employees sequentially to stay within Resend rate limits
+    for (const employee of employees) {
+      await processEmployee(employee)
     }
   }
 
