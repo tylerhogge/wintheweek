@@ -117,13 +117,16 @@ async function DashboardContent({
     }
     return s
   })
+  const actuallySent = typed.filter((s: SubmissionWithDetails) => !!(s as any).sent_at)
+  const unsent = typed.filter((s: SubmissionWithDetails) => !(s as any).sent_at)
   const replied = typed.filter((s: SubmissionWithDetails) => s.response !== null)
-  const pending = typed.filter((s: SubmissionWithDetails) => s.response === null)
+  const pending = actuallySent.filter((s: SubmissionWithDetails) => s.response === null)
 
   // Apply status filter from stat card clicks
   const visible = filter === 'replied' ? replied
     : filter === 'pending' ? pending
-    : typed // 'sent' or no filter = show all
+    : filter === 'sent' ? actuallySent
+    : typed // no filter = show all
 
   return (
     <div>
@@ -140,7 +143,7 @@ async function DashboardContent({
         </div>
       )}
 
-      <StatsBar total={typed.length} replied={replied.length} weekStart={weekStart} activeFilter={filter} team={team} />
+      <StatsBar total={actuallySent.length} replied={replied.length} weekStart={weekStart} activeFilter={filter} team={team} />
 
       {/* AI Briefing: show full briefing, generate button, or placeholder */}
       <div className="mt-5">
@@ -183,7 +186,7 @@ async function DashboardContent({
       </div>
 
       {/* Replies */}
-      <ReplyList replied={replied} pending={pending} filter={filter} />
+      <ReplyList replied={replied} pending={pending} unsent={unsent} filter={filter} />
     </div>
   )
 }

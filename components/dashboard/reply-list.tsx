@@ -8,10 +8,11 @@ import type { SubmissionWithDetails } from '@/types'
 type Props = {
   replied: SubmissionWithDetails[]
   pending: SubmissionWithDetails[]
+  unsent?: SubmissionWithDetails[]
   filter?: string
 }
 
-export function ReplyList({ replied, pending, filter }: Props) {
+export function ReplyList({ replied, pending, unsent = [], filter }: Props) {
   const [expandAll, setExpandAll] = useState(false)
 
   // Determine what to show based on filter
@@ -69,6 +70,22 @@ export function ReplyList({ replied, pending, filter }: Props) {
         {showPending && pending.map((submission) => (
           <ReplyCard key={submission.id} submission={submission} />
         ))}
+
+        {/* Unsent cards — failed or still queued */}
+        {showPending && unsent.length > 0 && (
+          <>
+            <div className="flex items-center gap-3 my-1 px-1">
+              <div className="flex-1 border-t border-[#f59e0b]/20" />
+              <span className="text-[11px] text-[#f59e0b] font-medium shrink-0">
+                {unsent.length} not sent
+              </span>
+              <div className="flex-1 border-t border-[#f59e0b]/20" />
+            </div>
+            {unsent.map((submission) => (
+              <ReplyCard key={submission.id} submission={submission} />
+            ))}
+          </>
+        )}
       </div>
     </div>
   )
