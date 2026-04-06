@@ -55,6 +55,131 @@ function sentimentBg(score: number) {
   return 'bg-red-400'
 }
 
+function SentimentChart({ data }: { data: SentimentData[] }) {
+  const [hoveredIdx, setHoveredIdx] = useState<number | null>(null)
+  const chartH = 140
+  const padLeft = 28
+  const padBottom = 22
+  const innerH = chartH - padBottom
+  const n = data.length
+
+  // Scale score (1-10) to pixel Y
+  const yScale = (score: number) => innerH - ((score - 1) / 9) * innerH
+
+  // Generate SVG path points
+  const points = data.map((d, i) => ({
+    x: n > 1 ? (i / (n - 1)) * 100 : 50,
+    y: yScale(d.score),
+  }))
+
+  // Build polyline string
+  const linePoints = points.map((p) => `${p.x},${p.y}`).join(' ')
+
+  // Build area path (fill under the line)
+  const areaPath = points.length > 0
+    ? `M ${points[0].x},${innerH} L ${points.map((p) => `${p.x},${p.y}`).join(' L ')} L ${points[points.length - 1].x},${innerH} Z`
+    : ''
+
+  return (
+    <div className="relative" style={{ height: chartH }}>
+      {/* Y-axis labels */}
+      <div className="absolute left-0 top-0 flex flex-col justify-between text-[9px] text-[#52525b]" style={{ height: innerH, width: padLeft - 4 }}>
+        <span>10</span>
+        <span className="translate-y-[-2px]">5</span>
+        <span>1</span>
+      </div>
+
+      {/* Chart area */}
+      <div className="absolute right-0 top-0" style={{ left: padLeft, height: innerH }}>
+        {/* Grid lines */}
+        <div className="absolute inset-0">
+          <div className="absolute top-0 left-0 right-0 border-t border-white/[0.04]" />
+          <div className="absolute top-1/2 left-0 right-0 border-t border-dashed border-white/[0.04]" />
+          <div className="absolute bottom-0 left-0 right-0 border-t border-white/[0.04]" />
+        </div>
+
+        {/* SVG chart */}
+        <svg className="w-full h-full" viewBox={`0 0 100 ${innerH}`} preserveAspectRatio="none">
+          {/* Gradient fill under line */}
+          <defs>
+            <linearGradient id="sentGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#22C55E" stopOpacity="0.15" />
+              <stop offset="100%" stopColor="#22C55E" stopOpacity="0" />
+            </linearGradient>
+          </defs>
+          {points.length > 1 && <path d={areaPath} fill="url(#sentGrad)" />}
+          {/* Line */}
+          {points.length > 1 && (
+            <polyline
+              fill="none"
+              stroke="#22C55E"
+              strokeWidth="1.5"
+              strokeLinejoin="round"
+              strokeLinecap="round"
+              points={linePoints}
+              vectorEffect="non-scaling-stroke"
+            />
+          )}
+        </svg>
+
+        {/* Interactive dot overlay (uses absolute positioning, not SVG) */}
+        {data.map((d, i) => {
+          const left = n > 1 ? `${(i / (n - 1)) * 100}%` : '50%'
+          const top = yScale(d.score)
+          const isHovered = hoveredIdx === i
+          return (
+            <div
+              key={d.week}
+              className="absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer"
+              style={{ left, top }}
+              onMouseEnter={() => setHoveredIdx(i)}
+              onMouseLeave={() => setHoveredIdx(null)}
+            >
+              {/* Hit area */}
+              <div className="w-6 h-6 flex items-center justify-center">
+                <div className={`rounded-full transition-all ${sentimentBg(d.score)} ${
+                  isHovered ? 'w-3 h-3 ring-4 ring-white/10' : 'w-2 h-2'
+                }`} />
+              </div>
+
+              {/* Tooltip */}
+              {isHovered && (
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-[#1c1c1f] border border-white/[0.12] rounded-lg px-3 py-2 text-xs z-20 whitespace-nowrap shadow-lg">
+                  <p className={`font-semibold ${sentimentColor(d.score)}`}>{d.score}/10 — {d.label}</p>
+                  <p className="text-[#71717a] mt-0.5">{formatWeekLabel(d.week)}</p>
+                  {i > 0 && (() => {
+                    const delta = d.score - data[i - 1].score
+                    if (delta === 0) return null
+                    return (
+                      <p className={`mt-0.5 ${delta > 0 ? 'text-accent' : 'text-red-400'}`}>
+                        {delta > 0 ? '↑' : '↓'} {Math.abs(delta).toFixed(1)} from prior week
+                      </p>
+                    )
+                  })()}
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
+
+      {/* X-axis labels */}
+      <div className="absolute bottom-0 right-0 flex justify-between" style={{ left: padLeft }}>
+        {data.map((d, i) => (
+          <span
+            key={d.week}
+            className={`text-[9px] tabular-nums transition-colors ${
+              hoveredIdx === i ? 'text-[#a1a1aa]' : 'text-[#52525b]'
+            } ${i % 2 !== 0 && data.length > 6 ? 'hidden sm:block' : ''}`}
+          >
+            {formatWeekLabel(d.week)}
+          </span>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 export function TrendsClient({ weeklyData, employeeList, teamList, sentimentData = [], latestThemes = [] }: Props) {
   const [tab, setTab] = useState<'people' | 'teams'>('people')
 
@@ -155,68 +280,28 @@ export function TrendsClient({ weeklyData, employeeList, teamList, sentimentData
             </div>
             {sentimentData.length > 0 && (() => {
               const latest = sentimentData[sentimentData.length - 1]
+              const prev = sentimentData.length > 1 ? sentimentData[sentimentData.length - 2] : null
+              const delta = prev ? latest.score - prev.score : 0
               return (
                 <div className="text-right">
-                  <p className={`text-2xl font-bold tracking-tight tabular-nums ${sentimentColor(latest.score)}`}>
-                    {latest.score}/10
-                  </p>
+                  <div className="flex items-baseline gap-1.5 justify-end">
+                    <p className={`text-2xl font-bold tracking-tight tabular-nums ${sentimentColor(latest.score)}`}>
+                      {latest.score}/10
+                    </p>
+                    {delta !== 0 && (
+                      <span className={`text-xs font-medium ${delta > 0 ? 'text-accent' : 'text-red-400'}`}>
+                        {delta > 0 ? '↑' : '↓'}{Math.abs(delta).toFixed(1)}
+                      </span>
+                    )}
+                  </div>
                   <p className="text-[10px] text-[#71717a] uppercase tracking-wider">{latest.label}</p>
                 </div>
               )
             })()}
           </div>
 
-          {/* Sentiment trend line */}
-          <div className="relative" style={{ height: 120 }}>
-            {/* Y-axis labels */}
-            <div className="absolute left-0 top-0 bottom-5 flex flex-col justify-between text-[9px] text-[#52525b] w-5">
-              <span>10</span>
-              <span>5</span>
-              <span>1</span>
-            </div>
-            {/* Grid lines */}
-            <div className="absolute left-7 right-0 top-0 bottom-5">
-              <div className="absolute top-0 left-0 right-0 border-t border-white/[0.04]" />
-              <div className="absolute top-1/2 left-0 right-0 border-t border-white/[0.04]" />
-              <div className="absolute bottom-0 left-0 right-0 border-t border-white/[0.04]" />
-            </div>
-            {/* Dots and connecting lines */}
-            <div className="absolute left-7 right-0 top-0 bottom-5">
-              <svg className="w-full h-full" preserveAspectRatio="none" viewBox={`0 0 ${Math.max(sentimentData.length - 1, 1)} 9`}>
-                {/* Connecting line */}
-                {sentimentData.length > 1 && (
-                  <polyline
-                    fill="none"
-                    stroke="rgba(255,255,255,0.15)"
-                    strokeWidth="0.15"
-                    points={sentimentData.map((d, i) => `${i},${10 - d.score}`).join(' ')}
-                  />
-                )}
-                {/* Dots */}
-                {sentimentData.map((d, i) => (
-                  <circle
-                    key={d.week}
-                    cx={i}
-                    cy={10 - d.score}
-                    r="0.25"
-                    className={sentimentBg(d.score)}
-                    fill="currentColor"
-                  />
-                ))}
-              </svg>
-            </div>
-            {/* X-axis labels */}
-            <div className="absolute left-7 right-0 bottom-0 flex justify-between">
-              {sentimentData.map((d, i) => (
-                <span
-                  key={d.week}
-                  className={`text-[9px] text-[#52525b] tabular-nums ${i % 2 !== 0 && sentimentData.length > 6 ? 'hidden sm:block' : ''}`}
-                >
-                  {formatWeekLabel(d.week)}
-                </span>
-              ))}
-            </div>
-          </div>
+          {/* Sentiment trend chart */}
+          <SentimentChart data={sentimentData} />
         </div>
       )}
 
