@@ -4,6 +4,87 @@ export const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 })
 
+// ── Circuit breaker for AI calls ────────────────────────────────────────────
+// Prevents slow/failing Anthropic calls from blocking webhook responses.
+// After `FAILURE_THRESHOLD` consecutive failures, the breaker opens and
+// immediately returns a fallback for `RESET_TIMEOUT_MS` before retrying.
+
+type CircuitState = 'closed' | 'open' | 'half-open'
+
+const circuitBreaker = {
+  state: 'closed' as CircuitState,
+  failures: 0,
+  lastFailureAt: 0,
+  FAILURE_THRESHOLD: 3,
+  RESET_TIMEOUT_MS: 60_000, // 1 minute cooldown before retrying
+}
+
+function shouldAllowRequest(): boolean {
+  if (circuitBreaker.state === 'closed') return true
+  if (circuitBreaker.state === 'open') {
+    // Check if cooldown has elapsed → move to half-open
+    if (Date.now() - circuitBreaker.lastFailureAt >= circuitBreaker.RESET_TIMEOUT_MS) {
+      circuitBreaker.state = 'half-open'
+      return true
+    }
+    return false
+  }
+  // half-open: allow one probe request
+  return true
+}
+
+function recordSuccess() {
+  circuitBreaker.failures = 0
+  circuitBreaker.state = 'closed'
+}
+
+function recordFailure() {
+  circuitBreaker.failures++
+  circuitBreaker.lastFailureAt = Date.now()
+  if (circuitBreaker.failures >= circuitBreaker.FAILURE_THRESHOLD) {
+    circuitBreaker.state = 'open'
+    console.warn(`[circuit-breaker] OPEN after ${circuitBreaker.failures} consecutive failures — AI calls will be skipped for ${circuitBreaker.RESET_TIMEOUT_MS / 1000}s`)
+  }
+}
+
+/**
+ * Wraps an async AI call with circuit breaker + hard timeout.
+ * Returns the result on success, or `fallback` if the breaker is open
+ * or the call fails/times out.
+ */
+export async function withCircuitBreaker<T>(
+  fn: () => Promise<T>,
+  fallback: T,
+  timeoutMs: number,
+): Promise<{ result: T; fromFallback: boolean }> {
+  if (!shouldAllowRequest()) {
+    console.warn('[circuit-breaker] Request blocked — breaker is OPEN')
+    return { result: fallback, fromFallback: true }
+  }
+
+  try {
+    const result = await Promise.race([
+      fn(),
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error(`AI call timed out after ${timeoutMs}ms`)), timeoutMs),
+      ),
+    ])
+    recordSuccess()
+    return { result, fromFallback: false }
+  } catch (err) {
+    recordFailure()
+    console.error('[circuit-breaker] AI call failed, using fallback:', err)
+    return { result: fallback, fromFallback: true }
+  }
+}
+
+/** Export for testing */
+export function _resetCircuitBreaker() {
+  circuitBreaker.state = 'closed'
+  circuitBreaker.failures = 0
+  circuitBreaker.lastFailureAt = 0
+}
+
 // ── Email query response generation ──────────────────────────────────────────
 
 export type QueryContext = {

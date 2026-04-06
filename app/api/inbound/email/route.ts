@@ -11,7 +11,7 @@ import { Webhook } from 'svix'
 import { getResend, buildDigestEmail, buildReplyNotification, buildManagerReplyEmail, buildNudgeEmail } from '@/lib/resend'
 import { createServiceClient } from '@/lib/supabase/server'
 import { cleanEmailBody, htmlToPlainText, formatWeekRange } from '@/lib/utils'
-import { generateWeeklyInsight, generateQueryResponse, type PriorWeekContext } from '@/lib/anthropic'
+import { generateWeeklyInsight, generateQueryResponse, withCircuitBreaker, type PriorWeekContext } from '@/lib/anthropic'
 
 type ResendInboundPayload = {
   type: string
@@ -131,7 +131,30 @@ async function generateAndStoreInsight(orgId: string, weekStart: string) {
   } : null
 
   const weekLabel = formatWeekRange(weekStart)
-  const insight = await generateWeeklyInsight(org?.name ?? 'the org', weekLabel, replies, org?.priorities, priorWeek)
+
+  // Circuit breaker: if Anthropic is down/slow, save a placeholder insight
+  // so the webhook responds fast. The next incoming reply will re-trigger generation.
+  const fallbackInsight = {
+    summary: 'Briefing is being generated — check back shortly.',
+    highlights: [],
+    cross_functional_themes: null,
+    risk_items: null,
+    bottom_line: null,
+    initiative_tracking: null,
+    sentiment_score: null,
+    sentiment_label: null,
+    themes: null,
+  }
+
+  const { result: insight, fromFallback } = await withCircuitBreaker(
+    () => generateWeeklyInsight(org?.name ?? 'the org', weekLabel, replies, org?.priorities, priorWeek),
+    fallbackInsight,
+    50_000, // 50s hard timeout (inside the 60s maxDuration)
+  )
+
+  if (fromFallback) {
+    console.warn(`[generateAndStoreInsight] Using fallback for org=${orgId} week=${weekStart} — will retry on next reply`)
+  }
 
   await supabase.from('insights').upsert(
     {
@@ -146,7 +169,7 @@ async function generateAndStoreInsight(orgId: string, weekStart: string) {
       sentiment_score: insight.sentiment_score,
       sentiment_label: insight.sentiment_label,
       themes: insight.themes,
-      generated_at: new Date().toISOString(),
+      generated_at: fromFallback ? null : new Date().toISOString(),
     },
     { onConflict: 'org_id,week_start' },
   )
@@ -658,11 +681,17 @@ async function handleManagerQuery({
     body: s.responses?.hidden_at ? null : (s.responses?.body_clean ?? null),
   }))
 
-  // Generate the AI answer
-  const answer = await generateQueryResponse(org?.name ?? 'your org', question, {
-    employees,
-    submissions,
-  })
+  // Generate the AI answer with circuit breaker fallback
+  const fallbackAnswer = "I wasn't able to process your question right now — our AI service is temporarily unavailable. Please try again in a few minutes, or reply to this email with your question and I'll get back to you as soon as the service recovers."
+
+  const { result: answer } = await withCircuitBreaker(
+    () => generateQueryResponse(org?.name ?? 'your org', question, {
+      employees,
+      submissions,
+    }),
+    fallbackAnswer,
+    25_000, // 25s hard timeout
+  )
 
   const replySubject = incomingSubject.startsWith('Re:')
     ? incomingSubject
