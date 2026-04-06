@@ -719,6 +719,24 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true, note: 'Ignored event type' })
   }
 
+  // ── Idempotency: deduplicate webhook retries using svix-id ──────────
+  // Resend retries webhooks if we respond slowly. Without this guard,
+  // retries hit the thread-continuation branch and send duplicate emails.
+  const supabaseDedup = createServiceClient()
+  const { data: existingEvent } = await supabaseDedup
+    .from('webhook_events')
+    .select('id')
+    .eq('svix_id', svixId)
+    .maybeSingle()
+
+  if (existingEvent) {
+    return NextResponse.json({ ok: true, note: 'Duplicate webhook, skipped' })
+  }
+
+  await supabaseDedup
+    .from('webhook_events')
+    .insert({ svix_id: svixId, event_type: payload.type, processed_at: new Date().toISOString() })
+
   const toAddresses = payload.data?.to ?? []
   const senderEmail = parseEmail(payload.data?.from ?? '')
 
