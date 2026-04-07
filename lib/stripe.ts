@@ -24,6 +24,12 @@ export const PLANS = {
     employeeLimit: 500,
     monthlyPrice: 299,
   },
+  enterprise: {
+    name: 'Enterprise',
+    priceId: process.env.STRIPE_PRICE_ENTERPRISE!,
+    employeeLimit: Infinity,
+    monthlyPrice: 499,
+  },
 } as const
 
 export type PlanKey = keyof typeof PLANS

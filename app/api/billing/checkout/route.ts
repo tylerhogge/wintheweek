@@ -21,7 +21,7 @@ export async function POST(req: Request) {
 
   const { plan } = await req.json()
   if (!plan || !PLANS[plan as PlanKey]) {
-    return NextResponse.json({ error: 'Invalid plan. Must be "starter" or "core".' }, { status: 400 })
+    return NextResponse.json({ error: 'Invalid plan. Must be "starter", "core", or "enterprise".' }, { status: 400 })
   }
 
   const planConfig = PLANS[plan as PlanKey]
