@@ -166,7 +166,7 @@ export default function LandingPage() {
           <div className="bg-surface border border-white/[0.07] rounded-xl p-7 flex flex-col">
             <p className="text-[13px] font-semibold mb-1">Enterprise</p>
             <p className="text-xs text-[#71717a] mb-5">500+ employees</p>
-            <p className="mb-6"><span className="text-[36px] font-bold tracking-[-0.04em]">Let&apos;s talk</span></p>
+            <p className="mb-6"><span className="text-[36px] font-bold tracking-[-0.04em]">$499</span><span className="text-sm text-[#71717a]">/mo</span></p>
             <ul className="space-y-2.5 mb-6 flex-1">
               {['Everything in Core', 'SSO & advanced security', 'Custom integrations', 'Dedicated account manager', 'SLA & uptime guarantee'].map((f: string) => (
                 <li key={f} className="text-sm text-[#a1a1aa] flex items-center gap-2">
@@ -174,9 +174,7 @@ export default function LandingPage() {
                 </li>
               ))}
             </ul>
-            <Link href="/contact" className="block text-center text-sm font-semibold py-2 rounded-md transition-colors border border-white/10 hover:bg-white/[0.04]">
-              Contact us
-            </Link>
+            <PricingCTA plan="enterprise" />
           </div>
         </div>
       </section>
