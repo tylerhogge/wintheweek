@@ -152,7 +152,8 @@ export async function POST(req: Request) {
               'Thread-Index': createInitialThreadIndex(),
               'Thread-Topic': campaign.subject,
             },
-            tracking: { open: true, click: false },
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            ...({ tracking: { open: true, click: false } } as any),
           })
           if (emailErr) sendError = emailErr.message
           else resendEmailId = sendResult?.id ?? null
@@ -172,7 +173,8 @@ export async function POST(req: Request) {
             'Thread-Index': createInitialThreadIndex(),
             'Thread-Topic': campaign.subject,
           },
-          tracking: { open: true, click: false },
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          ...({ tracking: { open: true, click: false } } as any),
         })
         if (emailErr) sendError = emailErr.message
         else resendEmailId = sendResult?.id ?? null
