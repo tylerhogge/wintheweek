@@ -45,7 +45,7 @@ export default function ContactPage() {
             </span>
             <div>
               <p className="text-sm font-semibold group-hover:text-white transition-colors">tyler@wintheweek.co</p>
-              <p className="text-xs text-[#71717a]">We usually reply within a day</p>
+              <p className="text-xs text-[#71717a]">We reply very fast.</p>
             </div>
           </a>
 
