@@ -43,6 +43,7 @@ function statusBadge(status: string | null, trialEndsAt: string | null) {
 export function BillingSection({ plan, planStatus, trialEndsAt, currentPeriodEnd, hasStripeCustomer }: Props) {
   const [loadingPortal, setLoadingPortal] = useState(false)
   const [loadingCheckout, setLoadingCheckout] = useState<string | null>(null)
+  const [billingError, setBillingError] = useState<string | null>(null)
 
   const badge = statusBadge(planStatus, trialEndsAt)
   const isSubscribed = planStatus === 'active' || planStatus === 'trialing'
@@ -50,12 +51,17 @@ export function BillingSection({ plan, planStatus, trialEndsAt, currentPeriodEnd
 
   async function openPortal() {
     setLoadingPortal(true)
+    setBillingError(null)
     try {
       const res = await fetch('/api/billing/portal', { method: 'POST' })
       const data = await res.json()
-      if (data.url) window.location.href = data.url
+      if (data.url) {
+        window.location.href = data.url
+      } else {
+        setBillingError(data.error ?? 'Could not open billing portal. Please try again.')
+      }
     } catch {
-      // silently fail
+      setBillingError('Could not connect to billing. Please check your connection and try again.')
     } finally {
       setLoadingPortal(false)
     }
@@ -63,6 +69,7 @@ export function BillingSection({ plan, planStatus, trialEndsAt, currentPeriodEnd
 
   async function startCheckout(selectedPlan: 'starter' | 'core') {
     setLoadingCheckout(selectedPlan)
+    setBillingError(null)
     try {
       const res = await fetch('/api/billing/checkout', {
         method: 'POST',
@@ -70,9 +77,13 @@ export function BillingSection({ plan, planStatus, trialEndsAt, currentPeriodEnd
         body: JSON.stringify({ plan: selectedPlan }),
       })
       const data = await res.json()
-      if (data.url) window.location.href = data.url
+      if (data.url) {
+        window.location.href = data.url
+      } else {
+        setBillingError(data.error ?? 'Could not start checkout. Please try again.')
+      }
     } catch {
-      // silently fail
+      setBillingError('Could not connect to billing. Please check your connection and try again.')
     } finally {
       setLoadingCheckout(null)
     }
@@ -80,6 +91,11 @@ export function BillingSection({ plan, planStatus, trialEndsAt, currentPeriodEnd
 
   return (
     <div className="bg-surface border border-white/[0.07] rounded-xl divide-y divide-white/[0.05]">
+      {billingError && (
+        <div className="px-5 py-3 bg-red-500/[0.06] border-b border-red-500/10">
+          <p className="text-xs text-red-400">{billingError}</p>
+        </div>
+      )}
       {/* Current plan */}
       <div className="px-5 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>

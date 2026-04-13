@@ -13,6 +13,14 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null)
   const [showEmail, setShowEmail] = useState(false)
 
+  // Preserve redirect destination through the auth flow
+  function getCallbackUrl() {
+    const params = new URLSearchParams(window.location.search)
+    const redirect = params.get('redirect')
+    const base = `${window.location.origin}/auth/callback`
+    return redirect ? `${base}?next=${encodeURIComponent(redirect)}` : base
+  }
+
   async function handleGoogle() {
     setLoadingGoogle(true)
     setError(null)
@@ -20,7 +28,7 @@ export default function LoginPage() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: getCallbackUrl(),
       },
     })
     if (error) {
@@ -36,7 +44,7 @@ export default function LoginPage() {
     const supabase = createClient()
     const { error } = await supabase.auth.signInWithOtp({
       email,
-      options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+      options: { emailRedirectTo: getCallbackUrl() },
     })
     if (error) {
       setError(error.message)

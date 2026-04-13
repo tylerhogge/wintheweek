@@ -2,7 +2,7 @@ import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { getResend } from '@/lib/resend'
 import { NextResponse } from 'next/server'
 
-const ADMIN_EMAIL = 'tyler@pelionvp.com'
+const ADMIN_EMAIL = process.env.ADMIN_NOTIFICATION_EMAIL ?? ''
 
 // Supabase redirects here after magic-link / OAuth sign-in
 export async function GET(request: Request) {
@@ -23,7 +23,7 @@ export async function GET(request: Request) {
   return NextResponse.redirect(`${origin}/auth/login?error=auth_callback_failed`)
 }
 
-/** Send Tyler an email the first time a new user signs in */
+/** Send the admin an email the first time a new user signs in */
 async function notifyIfFirstLogin(supabase: Awaited<ReturnType<typeof createClient>>) {
   try {
     const { data: { user } } = await supabase.auth.getUser()
@@ -45,8 +45,9 @@ async function notifyIfFirstLogin(supabase: Awaited<ReturnType<typeof createClie
       .update({ first_login_notified: true })
       .eq('id', user.id)
 
-    // Don't notify about Tyler's own logins
-    if (user.email.toLowerCase() === ADMIN_EMAIL) return
+    // Skip if no admin email configured or if it's the admin's own login
+    if (!ADMIN_EMAIL) return
+    if (user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase()) return
 
     await getResend().emails.send({
       from: 'Win The Week <notifications@wintheweek.co>',
