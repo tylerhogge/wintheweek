@@ -152,6 +152,7 @@ export async function POST(req: Request) {
               'Thread-Index': createInitialThreadIndex(),
               'Thread-Topic': campaign.subject,
             },
+            tracking: { open: true, click: false },
           })
           if (emailErr) sendError = emailErr.message
           else resendEmailId = sendResult?.id ?? null
@@ -171,6 +172,7 @@ export async function POST(req: Request) {
             'Thread-Index': createInitialThreadIndex(),
             'Thread-Topic': campaign.subject,
           },
+          tracking: { open: true, click: false },
         })
         if (emailErr) sendError = emailErr.message
         else resendEmailId = sendResult?.id ?? null
