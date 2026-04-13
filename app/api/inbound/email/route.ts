@@ -322,20 +322,20 @@ async function maybeFireDigest(orgId: string, weekStart: string) {
  */
 async function notifyAdmin({
   orgId,
+  submissionId,
   responseId,
   employeeName,
   employeeTeam,
   replyBody,
   weekStart,
-  isFollowUp = false,
 }: {
   orgId: string
+  submissionId: string
   responseId: string
   employeeName: string
   employeeTeam: string | null
   replyBody: string
   weekStart: string
-  isFollowUp?: boolean
 }) {
   const supabase = createServiceClient()
 
@@ -376,30 +376,23 @@ async function notifyAdmin({
     weekTotal,
   })
 
-  // Threading: Gmail ignores custom Message-ID headers set via ESPs like Resend.
-  // Instead, we capture the actual Resend message ID from the first notification
-  // and store it on the response row. Follow-ups reference that real ID so Gmail
-  // groups the entire conversation into one thread.
-  const headers: Record<string, string> = {}
+  // Threading: anchor on the SUBMISSION so all notifications for the same
+  // employee+week thread together in Gmail, regardless of which response
+  // or reply path triggers them.
+  const { data: sub } = await supabase
+    .from('submissions')
+    .select('notify_thread_id')
+    .eq('id', submissionId)
+    .single()
 
+  const headers: Record<string, string> = {}
   let subject = emailContent.subject
 
-  if (isFollowUp) {
-    // Look up the Resend ID from the first notification
-    const { data: resp } = await supabase
-      .from('responses')
-      .select('notify_resend_id')
-      .eq('id', responseId)
-      .single()
-
-    if (resp?.notify_resend_id) {
-      // Resend's SMTP Message-ID format: <{id}@resend.dev>
-      const realMessageId = `<${resp.notify_resend_id}@resend.dev>`
-      headers['In-Reply-To'] = realMessageId
-      headers['References'] = realMessageId
-    }
-
-    // Gmail expects Re: prefix on follow-ups
+  if (sub?.notify_thread_id) {
+    // Follow-up: thread onto the first notification
+    const realMessageId = `<${sub.notify_thread_id}@resend.dev>`
+    headers['In-Reply-To'] = realMessageId
+    headers['References'] = realMessageId
     subject = `Re: ${emailContent.subject}`
   }
 
@@ -414,12 +407,12 @@ async function notifyAdmin({
     headers: Object.keys(headers).length > 0 ? headers : undefined,
   })
 
-  // Store the Resend message ID on the first notification so follow-ups can thread
-  if (!isFollowUp && sendResult?.id) {
+  // Store the Resend message ID on the FIRST notification so all follow-ups thread
+  if (!sub?.notify_thread_id && sendResult?.id) {
     await supabase
-      .from('responses')
-      .update({ notify_resend_id: sendResult.id })
-      .eq('id', responseId)
+      .from('submissions')
+      .update({ notify_thread_id: sendResult.id })
+      .eq('id', submissionId)
   }
 }
 
@@ -898,12 +891,12 @@ export async function POST(req: Request) {
       if (orgSettingsThread?.notify_on_reply ?? true) {
         await notifyAdmin({
           orgId,
+          submissionId: priorSubmission.id,
           responseId: priorResponse.id,
           employeeName: employee.name,
           employeeTeam: (employee as any).team ?? null,
           replyBody: followUpBody,
           weekStart,
-          isFollowUp: true,
         }).catch((err) => console.error('[notifyAdmin thread]', err))
       }
     }
@@ -1003,6 +996,7 @@ export async function POST(req: Request) {
     if (shouldNotify) {
       await notifyAdmin({
         orgId,
+        submissionId: submission.id,
         responseId: savedResponse.id,
         employeeName: employee.name,
         employeeTeam: (employee as any).team ?? null,
