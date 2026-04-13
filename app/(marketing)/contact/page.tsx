@@ -50,7 +50,7 @@ export default function ContactPage() {
           </a>
 
           {/* Divider */}
-          <div className="border-t border-white/[0.07] my-12" />
+          <div className="border-t border-white/[0.07] mt-8 mb-10" />
 
           {/* Specifics */}
           <div className="space-y-6">
