@@ -145,6 +145,36 @@ async function DashboardContent({
 
       <StatsBar total={actuallySent.length} replied={replied.length} weekStart={weekStart} activeFilter={filter} team={team} />
 
+      {/* Email delivery breakdown — only show when there's data */}
+      {actuallySent.length > 0 && (() => {
+        const delivered = actuallySent.filter((s: any) => s.email_status === 'delivered' || s.email_status === 'opened').length
+        const opened = actuallySent.filter((s: any) => s.email_status === 'opened').length
+        const bounced = actuallySent.filter((s: any) => s.email_status === 'bounced' || s.email_status === 'complained').length
+        if (delivered === 0 && opened === 0 && bounced === 0) return null
+        return (
+          <div className="flex items-center gap-4 mt-2 px-1">
+            {delivered > 0 && (
+              <span className="text-[11px] text-[#71717a]">
+                <span className="inline-block w-1.5 h-1.5 rounded-full bg-accent mr-1 align-middle" />
+                {delivered} delivered
+              </span>
+            )}
+            {opened > 0 && (
+              <span className="text-[11px] text-[#71717a]">
+                <span className="inline-block w-1.5 h-1.5 rounded-full bg-blue-400 mr-1 align-middle" />
+                {opened} opened
+              </span>
+            )}
+            {bounced > 0 && (
+              <span className="text-[11px] text-red-400">
+                <span className="inline-block w-1.5 h-1.5 rounded-full bg-red-400 mr-1 align-middle" />
+                {bounced} bounced
+              </span>
+            )}
+          </div>
+        )
+      })()}
+
       {/* AI Briefing: show full briefing, generate button, or placeholder */}
       <div className="mt-5">
         {insight && replied.length > 0 ? (
