@@ -5,16 +5,8 @@
       "schedule": "0 15 * * 5"
     },
     {
-      "path": "/api/auto-nudge",
-      "schedule": "0 15 * * 1"
-    },
-    {
-      "path": "/api/wall-of-shame",
-      "schedule": "0 19 * * 1"
-    },
-    {
-      "path": "/api/email-briefing",
-      "schedule": "0 23 * * 1"
+      "path": "/api/monday-jobs",
+      "schedule": "0 15,19,23 * * 1"
     }
   ]
 }
