@@ -43,7 +43,11 @@ export function EditCampaignForm({ campaign, allTeams }: Props) {
   const router = useRouter()
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [form, setForm] = useState<Campaign>(campaign)
+  const [form, setForm] = useState<Campaign>({
+    ...campaign,
+    // DB stores "17:00:00" but dropdown values are "17:00" — normalize to HH:MM
+    send_time: campaign.send_time?.slice(0, 5) ?? '09:00',
+  })
   const [selectedTeams, setSelectedTeams] = useState<string[]>(campaign.target_teams ?? [])
   const [showPreview, setShowPreview] = useState(false)
 
