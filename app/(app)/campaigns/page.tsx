@@ -11,6 +11,29 @@ const FREQUENCY_LABEL: Record<Campaign['frequency'], string> = {
   monthly: 'Monthly',
 }
 
+function formatTime(time: string): string {
+  const [hStr, mStr] = time.split(':')
+  const h = parseInt(hStr, 10)
+  const m = mStr ?? '00'
+  const ampm = h >= 12 ? 'PM' : 'AM'
+  const displayH = h === 0 ? 12 : h > 12 ? h - 12 : h
+  return `${displayH}:${m.slice(0, 2)} ${ampm}`
+}
+
+const TZ_LABELS: Record<string, string> = {
+  'America/New_York': 'ET',
+  'America/Chicago': 'CT',
+  'America/Denver': 'MT',
+  'America/Los_Angeles': 'PT',
+  'America/Anchorage': 'AKT',
+  'Pacific/Honolulu': 'HT',
+  'America/Phoenix': 'AZ',
+  'Europe/London': 'GMT',
+  'Europe/Berlin': 'CET',
+  'Asia/Tokyo': 'JST',
+  'Australia/Sydney': 'AEST',
+}
+
 const DAY_LABEL: Record<number, string> = {
   1: 'Monday', 2: 'Tuesday', 3: 'Wednesday',
   4: 'Thursday', 5: 'Friday', 6: 'Saturday', 7: 'Sunday',
@@ -63,7 +86,7 @@ async function CampaignsContent({
                 <div>
                   <p className="text-[14px] font-semibold tracking-tight">{c.name}</p>
                   <p className="text-xs text-[#71717a] mt-0.5">
-                    {FREQUENCY_LABEL[c.frequency]} · {DAY_LABEL[c.send_day]} at {c.send_time} {c.timezone}
+                    {FREQUENCY_LABEL[c.frequency]} · {DAY_LABEL[c.send_day]} at {formatTime(c.send_time)} {TZ_LABELS[c.timezone] ?? c.timezone}
                   </p>
                   <p className="text-xs text-[#52525b] mt-0.5">
                     → {c.target_teams && c.target_teams.length > 0
