@@ -61,7 +61,7 @@ export function ReplyCard({ submission, forceExpanded }: Props) {
   const [expanded, setExpanded] = useState(false)
   const isExpanded = forceExpanded || expanded
 
-  const [nudgeSent, setNudgeSent] = useState(false)
+  const [nudgeSent, setNudgeSent] = useState(!!submission.nudged_at)
   const [nudging, setNudging] = useState(false)
   const [hidden, setHidden] = useState(false)
   const [confirming, setConfirming] = useState(false)

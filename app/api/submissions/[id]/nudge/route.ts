@@ -62,6 +62,10 @@ export async function POST(
       const { blocks, fallbackText } = buildNudgeBlocks(employee.name, senderName)
       const result = await sendSlackDM(integration.access_token, employee.slack_user_id, blocks, fallbackText)
       if (result.ok) {
+        await serviceSupabase
+          .from('submissions')
+          .update({ nudged_at: new Date().toISOString() })
+          .eq('id', submissionId)
         auditLog({
           action: 'submission.nudge',
           actorId: ctx.userId,
@@ -93,6 +97,11 @@ export async function POST(
     console.error('[nudge] Failed to send email:', error)
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
+
+  await serviceSupabase
+    .from('submissions')
+    .update({ nudged_at: new Date().toISOString() })
+    .eq('id', submissionId)
 
   auditLog({
     action: 'submission.nudge',

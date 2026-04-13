@@ -13,7 +13,7 @@
 import { NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { getResend, buildNudgeEmail } from '@/lib/resend'
-import { getWeekStart } from '@/lib/utils'
+import { getWeekStart, prevWeekStart } from '@/lib/utils'
 import { verifyCronSecret } from '@/lib/auth'
 import { format } from 'date-fns'
 
@@ -25,7 +25,12 @@ export async function POST(req: Request) {
   }
 
   const supabase = createServiceClient()
-  const weekStart = format(getWeekStart(), 'yyyy-MM-dd')
+  // On Monday morning we're nudging about LAST week's check-in (sent Friday).
+  // getWeekStart() returns today (Monday), but the submissions are keyed to
+  // the previous Monday. Use prevWeekStart to target the right week.
+  const thisWeek = format(getWeekStart(), 'yyyy-MM-dd')
+  const lastWeek = prevWeekStart(thisWeek)
+  const weekStart = lastWeek
   console.log(`[auto-nudge] Running for week_start=${weekStart} at ${new Date().toISOString()}`)
 
   // Find orgs that have auto_nudge enabled
@@ -83,36 +88,37 @@ export async function POST(req: Request) {
 
     if (!openSubmissions || openSubmissions.length === 0) continue
 
-    // Batch emails in groups of 10 (like send-weekly)
-    for (let i = 0; i < openSubmissions.length; i += 10) {
-      const batch = openSubmissions.slice(i, i + 10)
-      await Promise.all(batch.map(async (sub) => {
-        const emp = (sub as any).employees
-        if (!emp?.email) return
+    // Send sequentially to stay within Resend rate limits
+    for (const sub of openSubmissions) {
+      const emp = (sub as any).employees
+      if (!emp?.email) continue
 
-        const { subject, html, text } = buildNudgeEmail({
-          employeeName: emp.name,
-          senderName,
-          replyToAddress: replyTo,
-        })
+      const { subject, html, text } = buildNudgeEmail({
+        employeeName: emp.name,
+        senderName,
+        replyToAddress: replyTo,
+      })
 
-        const { error } = await resend.emails.send({
-          from: fromAddress,
-          to: emp.email,
-          replyTo,
-          subject,
-          html,
-          text,
-        })
+      const { error } = await resend.emails.send({
+        from: fromAddress,
+        to: emp.email,
+        replyTo,
+        subject,
+        html,
+        text,
+      })
 
-        if (error) {
-          console.error(`[auto-nudge] Failed to nudge ${emp.email}:`, error)
-          errors.push(`${emp.email}: ${(error as any).message ?? error}`)
-        } else {
-          nudged++
-          console.log(`[auto-nudge] Sent nudge to ${emp.email}`)
-        }
-      }))
+      if (error) {
+        console.error(`[auto-nudge] Failed to nudge ${emp.email}:`, error)
+        errors.push(`${emp.email}: ${(error as any).message ?? error}`)
+      } else {
+        nudged++
+        await supabase
+          .from('submissions')
+          .update({ nudged_at: new Date().toISOString() })
+          .eq('id', sub.id)
+        console.log(`[auto-nudge] Sent nudge to ${emp.email}`)
+      }
     }
   }
 
