@@ -148,7 +148,6 @@ export async function POST(req: Request) {
         .from('profiles')
         .select('email')
         .eq('org_id', org.id)
-        .eq('role', 'admin')
         .limit(1)
         .single()
 
