@@ -9,6 +9,17 @@ import type { Campaign } from '@/types'
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 
+const TIME_OPTIONS = Array.from({ length: 31 }, (_, i) => {
+  const totalMinutes = (6 * 60) + i * 30
+  const h = Math.floor(totalMinutes / 60)
+  const m = totalMinutes % 60
+  const value = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`
+  const ampm = h >= 12 ? 'PM' : 'AM'
+  const displayH = h === 0 ? 12 : h > 12 ? h - 12 : h
+  const label = `${displayH}:${String(m).padStart(2, '0')} ${ampm}`
+  return { value, label }
+})
+
 type Props = {
   campaign: Campaign
   allTeams: string[]
@@ -188,7 +199,11 @@ export function EditCampaignForm({ campaign, allTeams }: Props) {
               </select>
             </Field>
             <Field label="Send time">
-              <input type="time" value={form.send_time ?? '09:00'} onChange={(e) => update('send_time', e.target.value)} className={inputCls} />
+              <select value={form.send_time ?? '09:00'} onChange={(e) => update('send_time', e.target.value)} className={selectCls}>
+                {TIME_OPTIONS.map((t) => (
+                  <option key={t.value} value={t.value}>{t.label}</option>
+                ))}
+              </select>
             </Field>
             <Field label="Timezone">
               <input value={form.timezone ?? ''} onChange={(e) => update('timezone', e.target.value)} className={inputCls} />
