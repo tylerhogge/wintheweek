@@ -8,6 +8,20 @@ import { RichBodyEditor } from '@/components/rich-body-editor'
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 
+const TIMEZONE_OPTIONS = [
+  { value: 'America/New_York', label: 'Eastern (ET)' },
+  { value: 'America/Chicago', label: 'Central (CT)' },
+  { value: 'America/Denver', label: 'Mountain (MT)' },
+  { value: 'America/Los_Angeles', label: 'Pacific (PT)' },
+  { value: 'America/Anchorage', label: 'Alaska (AKT)' },
+  { value: 'Pacific/Honolulu', label: 'Hawaii (HT)' },
+  { value: 'America/Phoenix', label: 'Arizona (no DST)' },
+  { value: 'Europe/London', label: 'London (GMT/BST)' },
+  { value: 'Europe/Berlin', label: 'Central Europe (CET)' },
+  { value: 'Asia/Tokyo', label: 'Japan (JST)' },
+  { value: 'Australia/Sydney', label: 'Sydney (AEST)' },
+]
+
 // Half-hour increments from 6 AM to 9 PM
 const TIME_OPTIONS = Array.from({ length: 31 }, (_, i) => {
   const totalMinutes = (6 * 60) + i * 30
@@ -197,7 +211,11 @@ export function NewCampaignForm({ availableTeams }: Props) {
           </Field>
 
           <Field label="Timezone">
-            <input value={form.timezone} onChange={(e) => update('timezone', e.target.value)} className={inputCls} />
+            <select value={form.timezone} onChange={(e) => update('timezone', e.target.value)} className={selectCls}>
+              {TIMEZONE_OPTIONS.map((tz) => (
+                <option key={tz.value} value={tz.value}>{tz.label}</option>
+              ))}
+            </select>
           </Field>
         </div>
       </div>
