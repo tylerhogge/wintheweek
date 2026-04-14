@@ -86,29 +86,25 @@ async function DashboardContent({
 
   const onboardingComplete = (orgRow as any)?.onboarding_complete ?? false
 
-  // Only run onboarding queries if not yet complete
-  let hasTeam = true, hasCampaign = true, hasSentFirst = true, hasSlack = true, hasShame = true
-  let allComplete = onboardingComplete
+  // Fetch all onboarding check data in parallel, regardless of completion status.
+  // Always run these queries; we'll just use the results conditionally.
+  const [{ count: employeeCount }, { count: campaignCount }, { count: sentCount }, { data: slackRow }] = await Promise.all([
+    supabase.from('employees').select('id', { count: 'exact', head: true }).eq('org_id', orgId).eq('active', true),
+    supabase.from('campaigns').select('id', { count: 'exact', head: true }).eq('org_id', orgId).eq('active', true),
+    supabase.from('submissions').select('id, employees!inner(org_id)', { count: 'exact', head: true }).eq('employees.org_id', orgId).not('sent_at', 'is', null),
+    supabase.from('slack_integrations').select('id').eq('org_id', orgId).maybeSingle(),
+  ])
 
-  if (!onboardingComplete) {
-    const [{ count: employeeCount }, { count: campaignCount }, { count: sentCount }, { data: slackRow }] = await Promise.all([
-      supabase.from('employees').select('id', { count: 'exact', head: true }).eq('org_id', orgId).eq('active', true),
-      supabase.from('campaigns').select('id', { count: 'exact', head: true }).eq('org_id', orgId).eq('active', true),
-      supabase.from('submissions').select('id, employees!inner(org_id)', { count: 'exact', head: true }).eq('employees.org_id', orgId).not('sent_at', 'is', null),
-      supabase.from('slack_integrations').select('id').eq('org_id', orgId).maybeSingle(),
-    ])
+  const hasTeam = (employeeCount ?? 0) > 0
+  const hasCampaign = (campaignCount ?? 0) > 0
+  const hasSentFirst = (sentCount ?? 0) > 0
+  const hasSlack = !!slackRow
+  const hasShame = !!(orgRow?.shame_enabled || orgRow?.auto_nudge)
+  const allComplete = onboardingComplete || (hasTeam && hasCampaign && hasSentFirst && hasSlack && hasShame)
 
-    hasTeam = (employeeCount ?? 0) > 0
-    hasCampaign = (campaignCount ?? 0) > 0
-    hasSentFirst = (sentCount ?? 0) > 0
-    hasSlack = !!slackRow
-    hasShame = !!(orgRow?.shame_enabled || orgRow?.auto_nudge)
-    allComplete = hasTeam && hasCampaign && hasSentFirst && hasSlack && hasShame
-
-    // Persist completion so future loads skip these queries entirely
-    if (allComplete) {
-      supabase.from('organizations').update({ onboarding_complete: true }).eq('id', orgId).then(() => {})
-    }
+  // Persist completion so future loads skip these queries entirely
+  if (!onboardingComplete && allComplete) {
+    supabase.from('organizations').update({ onboarding_complete: true }).eq('id', orgId).then(() => {})
   }
 
   // If no submissions this week, fetch active campaign info for the "scheduled" preview
@@ -169,8 +165,19 @@ async function DashboardContent({
         .not('sent_at', 'is', null)
         .order('week_start', { ascending: false })
 
+      // Group submissions by employee_id in a single pass (O(n) instead of O(n²))
+      const histSubsByEmployee = new Map<string, typeof histSubs>()
+      for (const sub of (histSubs ?? [])) {
+        const empId = sub.employee_id
+        if (!histSubsByEmployee.has(empId)) {
+          histSubsByEmployee.set(empId, [])
+        }
+        histSubsByEmployee.get(empId)!.push(sub)
+      }
+
+      // Now iterate over employees and use the grouped data
       for (const empId of employeeIds) {
-        const empSubs = (histSubs ?? []).filter((s: any) => s.employee_id === empId)
+        const empSubs = histSubsByEmployee.get(empId) ?? []
         const sent = empSubs.length
         const replied = empSubs.filter((s: any) => s.replied_at !== null).length
         // Streak = consecutive weeks with replies, starting from most recent

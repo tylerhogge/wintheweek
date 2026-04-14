@@ -20,7 +20,8 @@ async function TrendsContent({ orgId }: { orgId: string }) {
       .eq('employees.org_id', orgId)
       .gte('week_start', twelveWeeksAgo)
       .not('sent_at', 'is', null)
-      .order('week_start', { ascending: true }),
+      .order('week_start', { ascending: true })
+      .limit(5000),
     supabase
       .from('employees')
       .select('id, name, team, active')

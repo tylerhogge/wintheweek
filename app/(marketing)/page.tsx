@@ -34,7 +34,7 @@ export default function LandingPage() {
 
       {/* ── HERO + DEMO ── */}
       <section className="pt-24 pb-8 md:pt-28 md:pb-12 relative overflow-hidden">
-        <div className="absolute top-0 left-1/3 w-[600px] h-[500px] bg-[radial-gradient(ellipse_at_center,rgba(34,197,94,0.07)_0%,transparent_70%)] pointer-events-none" />
+        <div className="absolute top-0 left-1/3 w-[600px] h-[500px] bg-[radial-gradient(ellipse_at_center,rgba(34,197,94,0.07)_0%,transparent_70%)] pointer-events-none hidden sm:block" />
 
         <div className="max-w-[1160px] mx-auto px-6 relative z-10">
           <div className="grid md:grid-cols-2 gap-12 items-center">
@@ -73,7 +73,7 @@ export default function LandingPage() {
         <h2 className="text-[clamp(26px,4vw,38px)] font-bold tracking-[-0.03em] leading-[1.15] mb-4">Set it once. Runs every week.</h2>
         <p className="text-base text-[#a1a1aa] mb-8 md:mb-14 max-w-xl">Win The Week handles the sending, collecting, and summarizing. You just read the results.</p>
 
-        <div className="grid md:grid-cols-3 gap-4">
+        <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
           {[
             { n: '01', title: 'Configure your check-in', body: 'Add your team, set your CEO priorities, and choose your send schedule. Takes two minutes.' },
             { n: '02', title: 'Employees just reply', body: 'They get a clean email or Slack DM. They hit Reply, type what they accomplished, and send. No app. No login. No friction.' },
@@ -93,7 +93,7 @@ export default function LandingPage() {
         <p className="text-xs font-semibold tracking-[0.1em] uppercase text-accent mb-4">Features</p>
         <h2 className="text-[clamp(26px,4vw,38px)] font-bold tracking-[-0.03em] leading-[1.15] mb-8 md:mb-14">Everything you need. Nothing you don&apos;t.</h2>
 
-        <div className="grid md:grid-cols-3 gap-4">
+        <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
           {[
             { icon: '📬', title: 'Zero-friction check-ins', body: 'Employees reply directly to the email — or Slack. No app download, no login, no portal. Just hit Reply and type.' },
             { icon: '✦', iconClass: 'text-3xl', title: 'AI CEO briefing', body: 'AI synthesizes every check-in into a CEO briefing with company sentiment scoring, top themes, and risk flags. Know how your team is feeling — not just what they\'re doing.' },

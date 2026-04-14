@@ -47,19 +47,17 @@ export default async function EmployeeProfilePage({ params }: { params: Promise<
 
   if (!employee) notFound()
 
-  // Fetch all submissions for this employee with response data
-  const { data: submissions } = await supabase
-    .from('submissions')
-    .select(`
-      id, week_start, sent_at, replied_at, nudged_at, email_status, hidden_at,
-      response:responses(id, body_clean, created_at, manager_replies(id, body_clean, sender_type, employee_name, created_at))
-    `)
-    .eq('employee_id', id)
-    .not('sent_at', 'is', null)
-    .order('week_start', { ascending: false })
-
-  // Fetch org name and all team names (for edit modal)
-  const [{ data: org }, { data: allEmployees }] = await Promise.all([
+  // Parallelize submissions, org, and team queries (all depend on employee.org_id which we now have)
+  const [{ data: submissions }, { data: org }, { data: allEmployees }] = await Promise.all([
+    supabase
+      .from('submissions')
+      .select(`
+        id, week_start, sent_at, replied_at, nudged_at, email_status, hidden_at,
+        response:responses(id, body_clean, created_at, manager_replies(id, body_clean, sender_type, employee_name, created_at))
+      `)
+      .eq('employee_id', id)
+      .not('sent_at', 'is', null)
+      .order('week_start', { ascending: false }),
     supabase.from('organizations').select('name').eq('id', profile.org_id).single(),
     supabase.from('employees').select('team').eq('org_id', profile.org_id).eq('active', true),
   ])

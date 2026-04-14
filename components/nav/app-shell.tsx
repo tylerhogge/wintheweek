@@ -230,12 +230,12 @@ export function AppShell({ profile, children }: Props) {
         </header>
 
         {/* Page content — responsive padding, bottom padding on mobile for nav bar */}
-        <main className="flex-1 max-w-[1040px] w-full mx-auto px-4 py-6 pb-20 md:px-8 md:py-8 md:pb-8">
+        <main className="flex-1 max-w-[1040px] w-full mx-auto px-4 py-6 pb-24 md:px-8 md:py-8 md:pb-8">
           {children}
         </main>
 
         {/* Mobile bottom nav */}
-        <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-bg border-t border-white/[0.07] z-30 flex items-center justify-around h-16">
+        <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-bg border-t border-white/[0.07] z-30 flex items-center justify-around h-20">
           {NAV.map(({ href, icon: Icon, label, anim }) => {
             const active = pathname.startsWith(href)
             return (
@@ -244,7 +244,7 @@ export function AppShell({ profile, children }: Props) {
                 href={href}
                 prefetch={true}
                 className={cn(
-                  'group flex flex-col items-center gap-1 px-5 py-2 rounded-lg transition-colors',
+                  'group flex flex-col items-center gap-1 px-5 py-3 rounded-lg transition-colors',
                   active ? 'text-white' : 'text-[#52525b]'
                 )}
               >

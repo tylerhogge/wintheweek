@@ -131,7 +131,7 @@ export function DemoAnimation() {
   }, [])
 
   return (
-    <div ref={containerRef} className="relative flex justify-center items-center py-4" style={{ minHeight: 520 }}>
+    <div ref={containerRef} className="relative flex justify-center items-center py-4 min-h-[320px] sm:min-h-[420px] md:min-h-[520px]">
 
       {/* ── PHONE ── */}
       <div

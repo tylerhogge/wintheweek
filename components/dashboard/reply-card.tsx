@@ -287,7 +287,7 @@ export function ReplyCard({ submission, forceExpanded, replyHistory }: Props) {
           )}
 
           {managerReplies.length > 0 && (
-            <div className="mt-3 ml-5 sm:ml-10 flex flex-col gap-2.5">
+            <div className="mt-3 ml-3 sm:ml-5 md:ml-10 flex flex-col gap-2.5">
               {managerReplies.map((mr: ManagerReply) => {
                 const isEmployee = mr.sender_type === 'employee'
                 return (

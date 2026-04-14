@@ -52,7 +52,7 @@ export function StatsBar({ total, replied, weekStart, activeFilter, team, schedu
     { label: 'Reply rate', value: `${pct}%`, filter: null },
   ]
 
-  const cols = (showQueued || showCreateCampaign) ? 'grid-cols-2 sm:grid-cols-5' : 'grid-cols-2 sm:grid-cols-4'
+  const cols = (showQueued || showCreateCampaign) ? 'grid-cols-2 sm:grid-cols-3 md:grid-cols-5' : 'grid-cols-2 md:grid-cols-4'
 
   return (
     <div className={`grid ${cols} gap-3`}>
