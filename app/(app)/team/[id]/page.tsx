@@ -58,12 +58,12 @@ export default async function EmployeeProfilePage({ params }: { params: Promise<
     .not('sent_at', 'is', null)
     .order('week_start', { ascending: false })
 
-  // Fetch org name for AI context
-  const { data: org } = await supabase
-    .from('organizations')
-    .select('name')
-    .eq('id', profile.org_id)
-    .single()
+  // Fetch org name and all team names (for edit modal)
+  const [{ data: org }, { data: allEmployees }] = await Promise.all([
+    supabase.from('organizations').select('name').eq('id', profile.org_id).single(),
+    supabase.from('employees').select('team').eq('org_id', profile.org_id).eq('active', true),
+  ])
+  const allTeams = [...new Set((allEmployees ?? []).map(e => e.team).filter(Boolean))] as string[]
 
   // Calculate stats from submissions
   const typedSubmissions = (submissions ?? []) as unknown as ProfileSubmission[]
@@ -109,6 +109,7 @@ export default async function EmployeeProfilePage({ params }: { params: Promise<
       submissions={typedSubmissions}
       stats={stats}
       orgName={orgName}
+      allTeams={allTeams}
     />
   )
 }

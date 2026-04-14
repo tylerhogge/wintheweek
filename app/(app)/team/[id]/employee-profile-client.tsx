@@ -2,10 +2,13 @@
 
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
+import dynamic from 'next/dynamic'
 import { format, parseISO } from 'date-fns'
 import type { Employee } from '@/types'
 import { getInitials, avatarGradient, cn } from '@/lib/utils'
-import { ArrowLeft, Clock } from 'lucide-react'
+import { ArrowLeft, Clock, Pencil } from 'lucide-react'
+
+const EditMemberModal = dynamic(() => import('@/components/team/edit-member-modal').then(m => ({ default: m.EditMemberModal })))
 
 type ProfileSubmission = {
   id: string
@@ -34,9 +37,11 @@ type Props = {
     avgResponseTimeHrs: number | null
   }
   orgName: string
+  allTeams: string[]
 }
 
-export function EmployeeProfileClient({ employee, submissions, stats, orgName }: Props) {
+export function EmployeeProfileClient({ employee, submissions, stats, orgName, allTeams }: Props) {
+  const [showEdit, setShowEdit] = useState(false)
   const [insights, setInsights] = useState<string | null>(null)
   const [insightsLoading, setInsightsLoading] = useState(true)
   const [chatOpen, setChatOpen] = useState(false)
@@ -95,6 +100,8 @@ export function EmployeeProfileClient({ employee, submissions, stats, orgName }:
 
   return (
     <div className="space-y-6">
+      {showEdit && <EditMemberModal employee={employee} allTeams={allTeams} onClose={() => setShowEdit(false)} />}
+
       {/* Back link */}
       <Link
         href="/team"
@@ -110,7 +117,16 @@ export function EmployeeProfileClient({ employee, submissions, stats, orgName }:
           {getInitials(employee.name)}
         </div>
         <div className="flex-1 min-w-0">
-          <h1 className="text-2xl font-bold tracking-[-0.03em] text-white mb-2">{employee.name}</h1>
+          <div className="flex items-center gap-3 mb-2">
+            <h1 className="text-2xl font-bold tracking-[-0.03em] text-white">{employee.name}</h1>
+            <button
+              onClick={() => setShowEdit(true)}
+              className="w-7 h-7 rounded-md flex items-center justify-center text-[#52525b] hover:text-white hover:bg-white/[0.06] transition-colors"
+              title="Edit member"
+            >
+              <Pencil className="w-3.5 h-3.5" />
+            </button>
+          </div>
           <p className="text-sm text-[#71717a] mb-3">{employee.email}</p>
           <div className="flex flex-wrap gap-2">
             {employee.team && (
