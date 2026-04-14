@@ -144,6 +144,16 @@ async function DashboardContent({
     }
   }
 
+  // Check if any campaign exists at all (for "create campaign" CTA)
+  let hasAnyCampaign = !!scheduledCampaign
+  if (!hasAnyCampaign && (!submissions || submissions.length === 0)) {
+    const { count } = await supabase
+      .from('campaigns')
+      .select('id', { count: 'exact', head: true })
+      .eq('org_id', orgId)
+    hasAnyCampaign = (count ?? 0) > 0
+  }
+
   // Fetch last 4 weeks of reply history per employee (for streak/context indicators)
   const replyHistoryMap = new Map<string, { replied: number; sent: number; streak: number }>()
   if (submissions && submissions.length > 0) {
@@ -207,7 +217,7 @@ async function DashboardContent({
         </div>
       )}
 
-      <StatsBar total={actuallySent.length} replied={replied.length} weekStart={weekStart} activeFilter={filter} team={team} scheduled={scheduledCampaign ? { employeeCount: scheduledCampaign.employeeCount, campaignId: scheduledCampaign.campaignId, sendDay: scheduledCampaign.sendDay, sendTime: scheduledCampaign.sendTime, timezone: scheduledCampaign.timezone } : undefined} />
+      <StatsBar total={actuallySent.length} replied={replied.length} weekStart={weekStart} activeFilter={filter} team={team} scheduled={scheduledCampaign ? { employeeCount: scheduledCampaign.employeeCount, campaignId: scheduledCampaign.campaignId, sendDay: scheduledCampaign.sendDay, sendTime: scheduledCampaign.sendTime, timezone: scheduledCampaign.timezone } : undefined} hasAnyCampaign={hasAnyCampaign} />
 
       {/* Email delivery breakdown — only show when there's data */}
       {actuallySent.length > 0 && (() => {

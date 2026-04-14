@@ -32,9 +32,10 @@ type Props = {
   activeFilter?: string
   team?: string
   scheduled?: ScheduledInfo
+  hasAnyCampaign?: boolean
 }
 
-export function StatsBar({ total, replied, weekStart, activeFilter, team, scheduled }: Props) {
+export function StatsBar({ total, replied, weekStart, activeFilter, team, scheduled, hasAnyCampaign = true }: Props) {
   const pct = total > 0 ? Math.round((replied / total) * 100) : 0
   const pending = total - replied
 
@@ -42,6 +43,7 @@ export function StatsBar({ total, replied, weekStart, activeFilter, team, schedu
   const base = `/dashboard?week=${weekStart}${team ? `&team=${team}` : ''}`
 
   const showQueued = scheduled && scheduled.employeeCount > 0 && total === 0
+  const showCreateCampaign = !scheduled && !hasAnyCampaign && total === 0
 
   const stats = [
     { label: 'Sent', value: total, filter: 'sent' as const },
@@ -50,7 +52,7 @@ export function StatsBar({ total, replied, weekStart, activeFilter, team, schedu
     { label: 'Reply rate', value: `${pct}%`, filter: null },
   ]
 
-  const cols = showQueued ? 'grid-cols-2 sm:grid-cols-5' : 'grid-cols-2 sm:grid-cols-4'
+  const cols = (showQueued || showCreateCampaign) ? 'grid-cols-2 sm:grid-cols-5' : 'grid-cols-2 sm:grid-cols-4'
 
   return (
     <div className={`grid ${cols} gap-3`}>
@@ -68,6 +70,19 @@ export function StatsBar({ total, replied, weekStart, activeFilter, team, schedu
             {DAY_LABEL[scheduled.sendDay]} {formatTime(scheduled.sendTime)} {TZ_LABELS[scheduled.timezone] ?? scheduled.timezone}
           </p>
           <p className="text-[10px] font-medium text-accent mt-1">Edit campaign →</p>
+        </Link>
+      )}
+
+      {/* Create campaign CTA when no campaign exists */}
+      {showCreateCampaign && (
+        <Link
+          key="create-campaign"
+          href="/campaigns/new"
+          prefetch={true}
+          className="bg-surface border border-dashed border-white/[0.12] hover:border-accent/40 rounded-xl px-4 py-3.5 transition-colors cursor-pointer flex flex-col items-center justify-center text-center"
+        >
+          <p className="text-[11px] text-[#71717a] font-medium mb-1">No campaign</p>
+          <p className="text-[13px] font-semibold text-accent">Set up emails →</p>
         </Link>
       )}
 
