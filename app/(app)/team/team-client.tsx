@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import type { Employee } from '@/types'
 import { getInitials, avatarGradient } from '@/lib/utils'
@@ -29,6 +29,7 @@ export function TeamClient({ active, inactive, allTeams }: Props) {
   const [showModal, setShowModal] = useState(false)
   const [showImportModal, setShowImportModal] = useState(false)
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null)
+  const router = useRouter()
   const searchParams = useSearchParams()
   const isOnboarding = searchParams.get('onboarding') === '1'
 
@@ -128,7 +129,8 @@ export function TeamClient({ active, inactive, allTeams }: Props) {
             return (
               <div
                 key={emp.id}
-                className={`px-5 py-3.5 grid grid-cols-[1fr_80px] sm:grid-cols-[2fr_1.5fr_1.5fr_100px_40px] items-center ${i < active.length - 1 ? 'border-b border-white/[0.05]' : ''} hover:bg-white/[0.02] transition-colors`}
+                onClick={() => router.push(`/team/${emp.id}`)}
+                className={`px-5 py-3.5 grid grid-cols-[1fr_80px] sm:grid-cols-[2fr_1.5fr_1.5fr_100px_40px] items-center cursor-pointer ${i < active.length - 1 ? 'border-b border-white/[0.05]' : ''} hover:bg-white/[0.02] transition-colors`}
               >
                 <div className="flex items-center gap-3 min-w-0">
                   <div className={`w-7 h-7 rounded-full bg-gradient-to-br ${avatarGradient(emp.email)} flex items-center justify-center text-[11px] font-bold text-white shrink-0`}>
@@ -159,7 +161,7 @@ export function TeamClient({ active, inactive, allTeams }: Props) {
                 </div>
                 <div className="hidden sm:flex justify-end">
                   <button
-                    onClick={() => setEditingEmployee(emp)}
+                    onClick={(e) => { e.stopPropagation(); setEditingEmployee(emp) }}
                     title="Edit member"
                     className="w-7 h-7 rounded-md flex items-center justify-center text-[#52525b] hover:text-white hover:bg-white/[0.06] transition-colors"
                   >
