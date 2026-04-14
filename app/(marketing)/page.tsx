@@ -54,8 +54,8 @@ export default function LandingPage() {
                 One weekly email (or Slack!). AI-powered CEO briefings. Performance reviews that write themselves.
               </p>
 
-              <p className="text-[clamp(14px,1.6vw,16px)] text-[#a1a1aa] max-w-[440px] mb-10 leading-relaxed">
-                Your team hits reply with what they got done. You get an AI briefing, employee profiles with strengths and risks, and people intelligence — no meetings, no logins.
+              <p className="text-[clamp(15px,1.8vw,17px)] text-[#d4d4d8] max-w-[440px] mb-10 leading-relaxed">
+                Send your team one weekly email (or Slack!). Collect replies. Get an AI-synthesized CEO briefing on what the whole company accomplished — no meetings, no logins.
               </p>
 
               <WaitlistForm />
