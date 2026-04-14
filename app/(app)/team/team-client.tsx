@@ -104,7 +104,7 @@ export function TeamClient({ active, inactive, allTeams }: Props) {
 
       {/* Active employees */}
       <div className="bg-surface border border-white/[0.07] rounded-xl overflow-hidden">
-        <div className="px-5 py-3 border-b border-white/[0.07] grid grid-cols-[1fr_80px] sm:grid-cols-[2fr_1.5fr_1.5fr_100px_40px] text-xs font-medium text-[#71717a] uppercase tracking-[0.06em]">
+        <div className="px-5 py-3 border-b border-white/[0.07] grid grid-cols-[1fr_80px] sm:grid-cols-[2fr_1.5fr_1.5fr_100px_80px] text-xs font-medium text-[#71717a] uppercase tracking-[0.06em]">
           <span>Name</span>
           <span className="hidden sm:block">Team</span>
           <span className="hidden sm:block">Function</span>
@@ -130,7 +130,7 @@ export function TeamClient({ active, inactive, allTeams }: Props) {
               <div
                 key={emp.id}
                 onClick={() => router.push(`/team/${emp.id}`)}
-                className={`px-5 py-3.5 grid grid-cols-[1fr_80px] sm:grid-cols-[2fr_1.5fr_1.5fr_100px_40px] items-center cursor-pointer ${i < active.length - 1 ? 'border-b border-white/[0.05]' : ''} hover:bg-white/[0.02] transition-colors`}
+                className={`group px-5 py-3.5 grid grid-cols-[1fr_80px] sm:grid-cols-[2fr_1.5fr_1.5fr_100px_80px] items-center cursor-pointer ${i < active.length - 1 ? 'border-b border-white/[0.05]' : ''} hover:bg-white/[0.02] transition-colors`}
               >
                 <div className="flex items-center gap-3 min-w-0">
                   <div className={`w-7 h-7 rounded-full bg-gradient-to-br ${avatarGradient(emp.email)} flex items-center justify-center text-[11px] font-bold text-white shrink-0`}>
@@ -159,7 +159,10 @@ export function TeamClient({ active, inactive, allTeams }: Props) {
                     <span className="text-xs text-[#52525b]">Member</span>
                   )}
                 </div>
-                <div className="hidden sm:flex justify-end">
+                <div className="hidden sm:flex items-center justify-end gap-2">
+                  <span className="text-[10px] font-medium text-accent/0 group-hover:text-accent/70 transition-colors">
+                    View profile →
+                  </span>
                   <button
                     onClick={(e) => { e.stopPropagation(); setEditingEmployee(emp) }}
                     title="Edit member"
