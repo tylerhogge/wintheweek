@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { Bell, Trash2, ChevronDown, CheckCircle2 } from 'lucide-react'
 import { getInitials, avatarGradient } from '@/lib/utils'
 import type { SubmissionWithDetails, ManagerReply } from '@/types'
@@ -157,7 +158,9 @@ export function ReplyCard({ submission, forceExpanded, replyHistory }: Props) {
         {/* Name + team + preview */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <span className="text-[13.5px] font-semibold tracking-[-0.01em]">{employee.name}</span>
+            <Link href={`/team/${employee.id}`} className="text-[13.5px] font-semibold tracking-[-0.01em] hover:text-accent transition-colors" onClick={(e) => e.stopPropagation()}>
+              {employee.name}
+            </Link>
             {employee.team && (
               <span className="text-[10px] font-medium text-[#a1a1aa] border border-white/[0.08] px-2 py-0.5 rounded-full bg-white/[0.03]">
                 {employee.team}
