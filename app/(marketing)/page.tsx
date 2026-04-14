@@ -51,7 +51,7 @@ export default function LandingPage() {
               </h1>
 
               <p className="text-[clamp(16px,2vw,20px)] font-semibold text-white/90 mb-4">
-                One weekly email. AI-powered CEO briefings. Performance reviews that write themselves.
+                One weekly email (or Slack!). AI-powered CEO briefings. Performance reviews that write themselves.
               </p>
 
               <p className="text-[clamp(14px,1.6vw,16px)] text-[#a1a1aa] max-w-[440px] mb-10 leading-relaxed">
