@@ -1,6 +1,7 @@
 import { Suspense } from 'react'
 import { getAuthUser, getProfile, createServiceClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { format, startOfWeek } from 'date-fns'
 import { DigestToggle } from '@/components/settings/digest-toggle'
 import { ReplyNotifyToggle } from '@/components/settings/reply-notify-toggle'
 import { OrgNameEdit } from '@/components/settings/org-name-edit'
@@ -16,7 +17,7 @@ async function SettingsContent({ orgId, org }: { orgId: string; org: any }) {
   const [orgData, slackData, employeeData] = await Promise.all([
     service.from('organizations').select('digest_notify, notify_on_reply, shame_enabled, shame_channel_id, shame_channel_name, shame_email_enabled, auto_nudge, priorities, stripe_customer_id, stripe_subscription_id, plan, plan_status, trial_ends_at, current_period_end').eq('id', orgId).single(),
     service.from('slack_integrations').select('team_name').eq('org_id', orgId).single(),
-    service.from('employees').select('slack_user_id').eq('org_id', orgId).eq('active', true),
+    service.from('employees').select('slack_user_id, name').eq('org_id', orgId).eq('active', true),
   ])
 
   const digestNotify = orgData.data?.digest_notify ?? false
@@ -36,6 +37,19 @@ async function SettingsContent({ orgId, org }: { orgId: string; org: any }) {
   const employees = employeeData.data ?? []
   const totalCount = employees.length
   const matchedCount = employees.filter((e: any) => e.slack_user_id !== null).length
+  const unmatchedNames = employees.filter((e: any) => !e.slack_user_id).map((e: any) => e.name as string)
+
+  // Fetch non-responders for live shame preview
+  const currentWeekStart = format(startOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-MM-dd')
+  const { data: pendingSubs } = await service
+    .from('submissions')
+    .select('employee_id, replied_at, sent_at, employees!inner(name, org_id)')
+    .eq('employees.org_id', orgId)
+    .eq('week_start', currentWeekStart)
+    .not('sent_at', 'is', null)
+    .is('replied_at', null)
+
+  const pendingNames = (pendingSubs ?? []).map((s: any) => s.employees?.name as string).filter(Boolean)
 
   return (
     <>
@@ -85,6 +99,7 @@ async function SettingsContent({ orgId, org }: { orgId: string; org: any }) {
               matchedCount={matchedCount}
               totalCount={totalCount}
               orgId={orgId}
+              unmatchedNames={unmatchedNames}
             />
           </div>
         </div>
@@ -146,6 +161,7 @@ async function SettingsContent({ orgId, org }: { orgId: string; org: any }) {
             initialChannelName={shameChannelName}
             initialEmailEnabled={shameEmailEnabled}
             initialAutoNudge={autoNudge}
+            pendingNames={pendingNames}
           />
         </div>
       </section>

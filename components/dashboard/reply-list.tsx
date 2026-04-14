@@ -1,8 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { ChevronDown, ChevronUp, Clock, Mail, ArrowRight } from 'lucide-react'
-import Link from 'next/link'
+import { ChevronDown, ChevronUp, Clock } from 'lucide-react'
 import { ReplyCard } from './reply-card'
 import type { SubmissionWithDetails } from '@/types'
 
@@ -41,9 +40,10 @@ type Props = {
   unsent?: SubmissionWithDetails[]
   filter?: string
   scheduledCampaign?: ScheduledCampaign
+  replyHistory?: Record<string, { replied: number; sent: number; streak: number }>
 }
 
-export function ReplyList({ replied, pending, unsent = [], filter, scheduledCampaign }: Props) {
+export function ReplyList({ replied, pending, unsent = [], filter, scheduledCampaign, replyHistory = {} }: Props) {
   const [expandAll, setExpandAll] = useState(false)
 
   // Determine what to show based on filter
@@ -56,29 +56,13 @@ export function ReplyList({ replied, pending, unsent = [], filter, scheduledCamp
 
   if (total === 0) {
     if (scheduledCampaign && scheduledCampaign.employeeCount > 0) {
-      const { employeeCount, sendDay, sendTime, timezone, campaignId } = scheduledCampaign
+      const { sendDay, sendTime, timezone } = scheduledCampaign
       return (
-        <div className="bg-surface border border-white/[0.07] rounded-xl p-6">
-          <div className="flex items-start gap-4">
-            <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center shrink-0">
-              <Mail className="w-5 h-5 text-accent" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-[14px] font-semibold text-white">
-                {employeeCount} {employeeCount === 1 ? 'email' : 'emails'} scheduled
-              </p>
-              <p className="text-[13px] text-[#a1a1aa] mt-0.5 flex items-center gap-1.5">
-                <Clock className="w-3.5 h-3.5" />
-                {DAY_LABEL[sendDay]} at {formatTime(sendTime)} {TZ_LABELS[timezone] ?? timezone}
-              </p>
-            </div>
-            <Link
-              href={`/campaigns/${campaignId}`}
-              className="flex items-center gap-1.5 text-[12px] font-medium text-accent hover:text-accent/80 transition-colors shrink-0 mt-1"
-            >
-              Edit schedule <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
-          </div>
+        <div className="bg-surface border border-white/[0.07] rounded-xl p-6 text-center">
+          <p className="text-[13px] text-[#a1a1aa] flex items-center justify-center gap-1.5">
+            <Clock className="w-3.5 h-3.5" />
+            Sending {DAY_LABEL[sendDay]} at {formatTime(sendTime)} {TZ_LABELS[timezone] ?? timezone}
+          </p>
         </div>
       )
     }
@@ -111,7 +95,7 @@ export function ReplyList({ replied, pending, unsent = [], filter, scheduledCamp
       <div className="flex flex-col gap-2">
         {/* Replied cards first */}
         {showReplied && replied.map((submission) => (
-          <ReplyCard key={submission.id} submission={submission} forceExpanded={expandAll} />
+          <ReplyCard key={submission.id} submission={submission} forceExpanded={expandAll} replyHistory={replyHistory[(submission as any).employee?.id]} />
         ))}
 
         {/* Divider between replied and pending */}
@@ -127,7 +111,7 @@ export function ReplyList({ replied, pending, unsent = [], filter, scheduledCamp
 
         {/* Pending cards */}
         {showPending && pending.map((submission) => (
-          <ReplyCard key={submission.id} submission={submission} />
+          <ReplyCard key={submission.id} submission={submission} replyHistory={replyHistory[(submission as any).employee?.id]} />
         ))}
 
         {/* Unsent cards — failed or still queued */}
@@ -141,7 +125,7 @@ export function ReplyList({ replied, pending, unsent = [], filter, scheduledCamp
               <div className="flex-1 border-t border-[#f59e0b]/20" />
             </div>
             {unsent.map((submission) => (
-              <ReplyCard key={submission.id} submission={submission} />
+              <ReplyCard key={submission.id} submission={submission} replyHistory={replyHistory[(submission as any).employee?.id]} />
             ))}
           </>
         )}

@@ -8,6 +8,7 @@ import type { SubmissionWithDetails, ManagerReply } from '@/types'
 type Props = {
   submission: SubmissionWithDetails
   forceExpanded?: boolean
+  replyHistory?: { replied: number; sent: number; streak: number }
 }
 
 function statusLabel(status: string | undefined): string {
@@ -53,7 +54,7 @@ function relativeTime(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
-export function ReplyCard({ submission, forceExpanded }: Props) {
+export function ReplyCard({ submission, forceExpanded, replyHistory }: Props) {
   const { employee, response } = submission
   const hasReplied = !!response
   const managerReplies: ManagerReply[] = (response as any)?.manager_replies ?? []
@@ -66,6 +67,7 @@ export function ReplyCard({ submission, forceExpanded }: Props) {
   const [hidden, setHidden] = useState(false)
   const [confirming, setConfirming] = useState(false)
   const [nudgeFailed, setNudgeFailed] = useState(false)
+  const [showUndoToast, setShowUndoToast] = useState(false)
 
   async function sendNudge() {
     if (nudging || nudgeSent) return
@@ -86,20 +88,49 @@ export function ReplyCard({ submission, forceExpanded }: Props) {
   }
 
   async function hideCard() {
-    setHidden(true)
+    setConfirming(false)
+    setShowUndoToast(true)
+    const timer = setTimeout(() => {
+      setHidden(true)
+      setShowUndoToast(false)
+    }, 4000)
+
     try {
       const url = response
         ? `/api/responses/${response.id}/hide`
         : `/api/submissions/${submission.id}/hide`
       const res = await fetch(url, { method: 'PATCH' })
-      if (!res.ok) setHidden(false)
+      if (!res.ok) {
+        clearTimeout(timer)
+        setShowUndoToast(false)
+      }
     } catch {
-      setHidden(false)
+      clearTimeout(timer)
+      setShowUndoToast(false)
     }
-    setConfirming(false)
   }
 
-  if (hidden) return null
+  function undoHide() {
+    setShowUndoToast(false)
+  }
+
+  if (hidden && !showUndoToast) return null
+
+  if (showUndoToast) {
+    return (
+      <div className="bg-surface border border-white/[0.07] rounded-xl px-5 py-3 flex items-center justify-between">
+        <p className="text-sm text-[#a1a1aa]">
+          {employee.name} removed
+        </p>
+        <button
+          onClick={undoHide}
+          className="text-xs font-medium text-accent hover:text-accent/80 transition-colors"
+        >
+          Undo
+        </button>
+      </div>
+    )
+  }
 
   const preview = hasReplied && response.body_clean ? getPreview(response.body_clean) : null
   const threadCount = managerReplies.length
@@ -164,6 +195,19 @@ export function ReplyCard({ submission, forceExpanded }: Props) {
                 <Bell className="w-3 h-3" />
                 {nudgeSent ? 'Nudged ✓' : nudgeFailed ? 'Failed' : nudging ? '...' : 'Nudge'}
               </button>
+              {replyHistory && replyHistory.sent > 0 && (
+                <span className={`text-[10px] ${
+                  replyHistory.replied === 0 ? 'text-red-400' :
+                  replyHistory.replied < replyHistory.sent ? 'text-yellow-500' :
+                  'text-accent/60'
+                }`}>
+                  {replyHistory.replied === 0
+                    ? `Missed ${replyHistory.sent}w`
+                    : replyHistory.replied === replyHistory.sent
+                    ? `${replyHistory.streak}w streak`
+                    : `${replyHistory.replied}/${replyHistory.sent} weeks`}
+                </span>
+              )}
             </>
           )}
 
@@ -172,6 +216,11 @@ export function ReplyCard({ submission, forceExpanded }: Props) {
               {threadCount > 0 && (
                 <span className="text-[10px] text-[#a1a1aa]">
                   {threadCount} {threadCount === 1 ? 'reply' : 'replies'}
+                </span>
+              )}
+              {replyHistory && replyHistory.streak >= 2 && (
+                <span className="text-[10px] text-[#52525b]">
+                  {replyHistory.streak >= 4 ? '🔥' : '✓'} {replyHistory.streak}w streak
                 </span>
               )}
               {submission.replied_at && (

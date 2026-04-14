@@ -37,9 +37,10 @@ const TIME_OPTIONS = Array.from({ length: 31 }, (_, i) => {
 type Props = {
   campaign: Campaign
   allTeams: string[]
+  alreadySentThisWeek?: boolean
 }
 
-export function EditCampaignForm({ campaign, allTeams }: Props) {
+export function EditCampaignForm({ campaign, allTeams, alreadySentThisWeek }: Props) {
   const router = useRouter()
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -119,6 +120,16 @@ export function EditCampaignForm({ campaign, allTeams }: Props) {
           </button>
         </div>
       </div>
+
+      {alreadySentThisWeek && (
+        <div className="mb-5 bg-yellow-500/[0.08] border border-yellow-500/20 rounded-lg px-4 py-3 flex items-start gap-3">
+          <span className="text-yellow-500 text-sm mt-0.5">⚠</span>
+          <div>
+            <p className="text-sm font-medium text-yellow-500">Emails already sent this week</p>
+            <p className="text-xs text-yellow-500/70 mt-0.5">Changes to the subject, body, or schedule will take effect next week.</p>
+          </div>
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="space-y-5">
 

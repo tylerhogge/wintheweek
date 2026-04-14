@@ -1,6 +1,6 @@
 import { Suspense } from 'react'
 import { redirect } from 'next/navigation'
-import { format } from 'date-fns'
+import { format, subWeeks } from 'date-fns'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { getAuthUser, getProfile } from '@/lib/supabase/server'
@@ -144,6 +144,36 @@ async function DashboardContent({
     }
   }
 
+  // Fetch last 4 weeks of reply history per employee (for streak/context indicators)
+  const replyHistoryMap = new Map<string, { replied: number; sent: number; streak: number }>()
+  if (submissions && submissions.length > 0) {
+    const employeeIds = [...new Set((submissions as any[]).map((s: any) => s.employee?.id).filter(Boolean))]
+    if (employeeIds.length > 0) {
+      const fourWeeksAgo = format(subWeeks(new Date(weekStart), 4), 'yyyy-MM-dd')
+      const { data: histSubs } = await supabase
+        .from('submissions')
+        .select('employee_id, week_start, replied_at, sent_at')
+        .in('employee_id', employeeIds)
+        .gte('week_start', fourWeeksAgo)
+        .lt('week_start', weekStart)
+        .not('sent_at', 'is', null)
+        .order('week_start', { ascending: false })
+
+      for (const empId of employeeIds) {
+        const empSubs = (histSubs ?? []).filter((s: any) => s.employee_id === empId)
+        const sent = empSubs.length
+        const replied = empSubs.filter((s: any) => s.replied_at !== null).length
+        // Streak = consecutive weeks with replies, starting from most recent
+        let streak = 0
+        for (const s of empSubs) {
+          if (s.replied_at) streak++
+          else break
+        }
+        replyHistoryMap.set(empId, { replied, sent, streak })
+      }
+    }
+  }
+
   // Treat hidden responses as if they don't exist — card shows "no reply yet"
   const typed = ((submissions ?? []) as unknown as SubmissionWithDetails[]).map((s) => {
     if (s.response && (s.response as any).hidden_at) {
@@ -177,7 +207,7 @@ async function DashboardContent({
         </div>
       )}
 
-      <StatsBar total={actuallySent.length} replied={replied.length} weekStart={weekStart} activeFilter={filter} team={team} />
+      <StatsBar total={actuallySent.length} replied={replied.length} weekStart={weekStart} activeFilter={filter} team={team} scheduled={scheduledCampaign ? { employeeCount: scheduledCampaign.employeeCount, campaignId: scheduledCampaign.campaignId } : undefined} />
 
       {/* Email delivery breakdown — only show when there's data */}
       {actuallySent.length > 0 && (() => {
@@ -250,7 +280,7 @@ async function DashboardContent({
       </div>
 
       {/* Replies */}
-      <ReplyList replied={replied} pending={pending} unsent={unsent} filter={filter} scheduledCampaign={scheduledCampaign} />
+      <ReplyList replied={replied} pending={pending} unsent={unsent} filter={filter} scheduledCampaign={scheduledCampaign} replyHistory={Object.fromEntries(replyHistoryMap)} />
     </div>
   )
 }

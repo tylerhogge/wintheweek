@@ -1,14 +1,24 @@
 import { Suspense } from 'react'
 import { redirect, notFound } from 'next/navigation'
+import { format, startOfWeek } from 'date-fns'
 import { getAuthUser, getProfile, createServiceClient } from '@/lib/supabase/server'
 import { EditCampaignForm } from './edit-campaign-form'
 
 async function EditCampaignContent({ id, orgId }: { id: string; orgId: string }) {
   const service = createServiceClient()
 
-  const [campaignRes, teamsRes] = await Promise.all([
+  const [campaignRes, teamsRes, submissionsRes] = await Promise.all([
     service.from('campaigns').select('id, org_id, name, subject, body, frequency, send_day, send_time, timezone, active, target_teams, created_at').eq('id', id).eq('org_id', orgId).single(),
     service.from('employees').select('team').eq('org_id', orgId).eq('active', true).not('team', 'is', null),
+    (async () => {
+      const currentWeekStart = format(startOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-MM-dd')
+      return service
+        .from('submissions')
+        .select('id', { count: 'exact', head: true })
+        .eq('campaign_id', id)
+        .eq('week_start', currentWeekStart)
+        .not('sent_at', 'is', null)
+    })(),
   ])
 
   if (campaignRes.error || !campaignRes.data) notFound()
@@ -17,7 +27,9 @@ async function EditCampaignContent({ id, orgId }: { id: string; orgId: string })
     ? [...new Set(teamsRes.data.map((e: { team: string | null }) => e.team).filter(Boolean) as string[])].sort()
     : []
 
-  return <EditCampaignForm campaign={campaignRes.data} allTeams={allTeams} />
+  const alreadySentThisWeek = submissionsRes.count !== null && submissionsRes.count > 0
+
+  return <EditCampaignForm campaign={campaignRes.data} allTeams={allTeams} alreadySentThisWeek={alreadySentThisWeek} />
 }
 
 function EditCampaignSkeleton() {

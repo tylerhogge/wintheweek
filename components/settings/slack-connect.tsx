@@ -9,9 +9,10 @@ type Props = {
   matchedCount: number
   totalCount: number
   orgId: string
+  unmatchedNames?: string[]
 }
 
-export function SlackConnect({ isConnected, teamName, matchedCount, totalCount, orgId }: Props) {
+export function SlackConnect({ isConnected, teamName, matchedCount, totalCount, orgId, unmatchedNames }: Props) {
   const router = useRouter()
   const [syncing, setSyncing] = useState(false)
   const [disconnecting, setDisconnecting] = useState(false)
@@ -72,6 +73,16 @@ export function SlackConnect({ isConnected, teamName, matchedCount, totalCount, 
             <span className="ml-1 text-[#52525b]">— unmatched members will receive email</span>
           )}
         </p>
+        {unmatchedNames && unmatchedNames.length > 0 && (
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {unmatchedNames.map((name) => (
+              <span key={name} className="text-[10px] text-[#71717a] bg-white/[0.04] border border-white/[0.08] px-2 py-0.5 rounded-full">
+                {name}
+              </span>
+            ))}
+            <span className="text-[10px] text-[#52525b] self-center ml-0.5">— receiving email</span>
+          </div>
+        )}
       </div>
     )
   }

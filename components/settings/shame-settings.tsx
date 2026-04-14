@@ -12,6 +12,7 @@ type Props = {
   initialChannelName: string | null
   initialEmailEnabled: boolean
   initialAutoNudge: boolean
+  pendingNames?: string[]
 }
 
 export function ShameSettings({
@@ -21,6 +22,7 @@ export function ShameSettings({
   initialChannelName,
   initialEmailEnabled,
   initialAutoNudge,
+  pendingNames = [],
 }: Props) {
   const router = useRouter()
   const [slackEnabled, setSlackEnabled] = useState(initialSlackEnabled)
@@ -192,66 +194,80 @@ export function ShameSettings({
 
       {/* ── Preview Modals ────────────────────────────────────────────── */}
 
-      {/* Nudge preview */}
-      <PreviewModal open={previewNudge} onClose={() => setPreviewNudge(false)} title="Nudge email preview">
-        <div className="bg-white rounded-lg p-6 text-[#111] text-sm leading-relaxed">
-          <p className="font-medium text-xs text-[#a1a1aa] mb-4 uppercase tracking-wider">Subject: Quick reminder — what did you win this week?</p>
-          <p className="mb-3">Hey <span className="text-accent font-medium">Sarah</span>,</p>
-          <p className="mb-3">Just a quick nudge — haven&apos;t heard from you yet this week. What did you get done?</p>
-          <p className="mb-4">Hit reply and share whatever comes to mind — big wins, small progress, blockers. Takes 30 seconds.</p>
-          <p className="text-[#52525b] text-[13px]">— Tyler</p>
-          <div className="mt-6 pt-4 border-t border-[#e5e5e5] text-xs text-[#a1a1aa]">
-            Sent via Win The Week
-          </div>
-        </div>
-        <p className="text-[11px] text-[#52525b] mt-3">This is sent to each team member who hasn&apos;t replied, using their first name and your name as the sender.</p>
-      </PreviewModal>
+      {(() => {
+        const displayNames = pendingNames.length > 0 ? pendingNames : ['Sarah Chen', 'Marcus Rivera', 'Priya Patel']
+        const nameCount = displayNames.length
+        const isLive = pendingNames.length > 0
 
-      {/* Slack post preview */}
-      <PreviewModal open={previewSlack} onClose={() => setPreviewSlack(false)} title="Slack post preview">
-        <div className="bg-[#1a1d21] rounded-lg p-5 text-sm">
-          <div className="flex items-start gap-2.5">
-            <div className="w-8 h-8 bg-accent rounded-[4px] flex items-center justify-center shrink-0 mt-0.5">
-              <svg className="w-3.5 h-3.5 text-black" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-1.5 mb-1">
-                <span className="text-[13px] font-bold text-white">Win The Week</span>
-                <span className="text-[11px] text-[#616061] bg-[#616061]/10 px-1 rounded text-[10px]">APP</span>
+        return (
+          <>
+            {/* Nudge preview */}
+            <PreviewModal open={previewNudge} onClose={() => setPreviewNudge(false)} title="Nudge email preview">
+              <div className="bg-white rounded-lg p-6 text-[#111] text-sm leading-relaxed">
+                <p className="font-medium text-xs text-[#a1a1aa] mb-4 uppercase tracking-wider">Subject: Quick reminder — what did you win this week?</p>
+                <p className="mb-3">Hey <span className="text-accent font-medium">Sarah</span>,</p>
+                <p className="mb-3">Just a quick nudge — haven&apos;t heard from you yet this week. What did you get done?</p>
+                <p className="mb-4">Hit reply and share whatever comes to mind — big wins, small progress, blockers. Takes 30 seconds.</p>
+                <p className="text-[#52525b] text-[13px]">— Tyler</p>
+                <div className="mt-6 pt-4 border-t border-[#e5e5e5] text-xs text-[#a1a1aa]">
+                  Sent via Win The Week
+                </div>
               </div>
-              <p className="text-[15px] text-[#d1d2d3] leading-relaxed mb-2">
-                🚨 <strong>Weekly Update Wall of Shame</strong> — week of Mar 22 – 28, 2026
-              </p>
-              <p className="text-[15px] text-[#d1d2d3] leading-relaxed">
-                The following <strong>3 of 9</strong> people haven&apos;t submitted yet:
-              </p>
-              <p className="text-[15px] text-[#d1d2d3] leading-relaxed mt-1.5">
-                • Sarah Chen<br />
-                • Marcus Rivera<br />
-                • Priya Patel
-              </p>
-            </div>
-          </div>
-        </div>
-        <p className="text-[11px] text-[#52525b] mt-3">Posted to your configured Slack channel every Monday morning. Shows actual team member names.</p>
-      </PreviewModal>
+              <p className="text-[11px] text-[#52525b] mt-3">This is sent to each team member who hasn&apos;t replied, using their first name and your name as the sender.</p>
+            </PreviewModal>
 
-      {/* Email report preview */}
-      <PreviewModal open={previewEmail} onClose={() => setPreviewEmail(false)} title="Weekly email report preview">
-        <div className="bg-white rounded-lg p-6 text-[#111] text-sm leading-relaxed">
-          <p className="font-medium text-xs text-[#a1a1aa] mb-4 uppercase tracking-wider">Subject: 🚨 3 non-respondents — Mar 22 – 28, 2026</p>
-          <p className="mb-3">Hi <span className="text-accent font-medium">Tyler</span>,</p>
-          <p className="mb-3">3 of 9 team members haven&apos;t replied to this week&apos;s check-in yet:</p>
-          <div className="mb-3 pl-3">
-            <p>• Sarah Chen</p>
-            <p>• Marcus Rivera</p>
-            <p>• Priya Patel</p>
-          </div>
-          <p className="mb-4">You can send individual nudges from the dashboard.</p>
-          <p className="text-[#52525b] text-[13px]">—<br />Win The Week</p>
-        </div>
-        <p className="text-[11px] text-[#52525b] mt-3">Sent to your admin email every Monday morning. When everyone has replied, you&apos;ll get a congratulations email instead.</p>
-      </PreviewModal>
+            {/* Slack post preview */}
+            <PreviewModal open={previewSlack} onClose={() => setPreviewSlack(false)} title="Slack post preview">
+              <div className="bg-[#1a1d21] rounded-lg p-5 text-sm">
+                <div className="flex items-start gap-2.5">
+                  <div className="w-8 h-8 bg-accent rounded-[4px] flex items-center justify-center shrink-0 mt-0.5">
+                    <svg className="w-3.5 h-3.5 text-black" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <span className="text-[13px] font-bold text-white">Win The Week</span>
+                      <span className="text-[11px] text-[#616061] bg-[#616061]/10 px-1 rounded text-[10px]">APP</span>
+                    </div>
+                    <p className="text-[15px] text-[#d1d2d3] leading-relaxed mb-2">
+                      🚨 <strong>Weekly Update Wall of Shame</strong> — week of Mar 22 – 28, 2026
+                    </p>
+                    <p className="text-[15px] text-[#d1d2d3] leading-relaxed">
+                      The following <strong>{nameCount}</strong> people haven&apos;t submitted yet:
+                    </p>
+                    <p className="text-[15px] text-[#d1d2d3] leading-relaxed mt-1.5">
+                      {displayNames.map((name, i) => (
+                        <span key={i}>• {name}{i < displayNames.length - 1 && <br />}</span>
+                      ))}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <p className="text-[11px] text-[#52525b] mt-3">
+                {isLive ? 'Showing actual non-responders for this week.' : 'Example preview — actual names will appear when check-ins are active.'}
+              </p>
+            </PreviewModal>
+
+            {/* Email report preview */}
+            <PreviewModal open={previewEmail} onClose={() => setPreviewEmail(false)} title="Weekly email report preview">
+              <div className="bg-white rounded-lg p-6 text-[#111] text-sm leading-relaxed">
+                <p className="font-medium text-xs text-[#a1a1aa] mb-4 uppercase tracking-wider">Subject: 🚨 {nameCount} non-respondents — Mar 22 – 28, 2026</p>
+                <p className="mb-3">Hi <span className="text-accent font-medium">Tyler</span>,</p>
+                <p className="mb-3">{nameCount} team members haven&apos;t replied to this week&apos;s check-in yet:</p>
+                <div className="mb-3 pl-3">
+                  {displayNames.map((name, i) => (
+                    <p key={i}>• {name}</p>
+                  ))}
+                </div>
+                <p className="mb-4">You can send individual nudges from the dashboard.</p>
+                <p className="text-[#52525b] text-[13px]">—<br />Win The Week</p>
+              </div>
+              <p className="text-[11px] text-[#52525b] mt-3">
+                {isLive ? 'Showing actual non-responders for this week.' : 'Example preview — actual names will appear when check-ins are active.'}
+              </p>
+            </PreviewModal>
+          </>
+        )
+      })()}
 
     </div>
   )

@@ -326,90 +326,103 @@ export function TrendsClient({ weeklyData, employeeList, teamList, sentimentData
       )}
 
       {/* ── People vs Teams toggle ────────────────────────────────────────── */}
-      <div>
-        <div className="flex items-center gap-1 mb-4">
-          <button
-            onClick={() => setTab('people')}
-            className={`text-xs font-medium px-3.5 py-1.5 rounded-full border transition-colors ${
-              tab === 'people'
-                ? 'bg-white/[0.07] border-white/[0.12] text-white'
-                : 'border-white/[0.07] text-[#71717a] hover:text-white'
-            }`}
-          >
-            People
-          </button>
-          <button
-            onClick={() => setTab('teams')}
-            className={`text-xs font-medium px-3.5 py-1.5 rounded-full border transition-colors ${
-              tab === 'teams'
-                ? 'bg-white/[0.07] border-white/[0.12] text-white'
-                : 'border-white/[0.07] text-[#71717a] hover:text-white'
-            }`}
-          >
-            Teams
-          </button>
-          <span className="text-[11px] text-[#52525b] ml-2">Last 8 weeks</span>
-        </div>
+      {weeklyData.length > 0 && (
+        <>
+          <div>
+            <div className="flex items-center gap-1 mb-4">
+              <button
+                onClick={() => setTab('people')}
+                className={`text-xs font-medium px-3.5 py-1.5 rounded-full border transition-colors ${
+                  tab === 'people'
+                    ? 'bg-white/[0.07] border-white/[0.12] text-white'
+                    : 'border-white/[0.07] text-[#71717a] hover:text-white'
+                }`}
+              >
+                People
+              </button>
+              <button
+                onClick={() => setTab('teams')}
+                className={`text-xs font-medium px-3.5 py-1.5 rounded-full border transition-colors ${
+                  tab === 'teams'
+                    ? 'bg-white/[0.07] border-white/[0.12] text-white'
+                    : 'border-white/[0.07] text-[#71717a] hover:text-white'
+                }`}
+              >
+                Teams
+              </button>
+              <span className="text-[11px] text-[#52525b] ml-2">Last 8 weeks</span>
+            </div>
 
-        {tab === 'people' ? (
-          <div className="bg-surface border border-white/[0.07] rounded-xl overflow-hidden overflow-x-auto">
-            <div className="px-5 py-3 border-b border-white/[0.07] grid grid-cols-[1.5fr_1fr_60px] sm:grid-cols-[2fr_1.2fr_1fr_100px] text-xs font-medium text-[#71717a] uppercase tracking-[0.06em]">
-              <span>Name</span>
-              <span className="hidden sm:block">Team</span>
-              <span>Reply rate</span>
-              <span className="text-right">Missed</span>
-            </div>
-            {employeeList.length === 0 ? (
-              <div className="py-12 text-center text-sm text-[#52525b]">No data yet</div>
-            ) : (
-              employeeList.map((emp, i) => (
-                <div
-                  key={emp.name + i}
-                  className={`px-5 py-3 grid grid-cols-[1.5fr_1fr_60px] sm:grid-cols-[2fr_1.2fr_1fr_100px] items-center ${
-                    i < employeeList.length - 1 ? 'border-b border-white/[0.05]' : ''
-                  }`}
-                >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className={`w-6 h-6 rounded-full bg-gradient-to-br ${avatarGradient(emp.name)} flex items-center justify-center text-[9px] font-bold text-white shrink-0`}>
-                      {getInitials(emp.name)}
+            {tab === 'people' ? (
+              <div className="bg-surface border border-white/[0.07] rounded-xl overflow-hidden overflow-x-auto">
+                <div className="px-5 py-3 border-b border-white/[0.07] grid grid-cols-[1.5fr_1fr_60px] sm:grid-cols-[2fr_1.2fr_1fr_100px] text-xs font-medium text-[#71717a] uppercase tracking-[0.06em]">
+                  <span>Name</span>
+                  <span className="hidden sm:block">Team</span>
+                  <span>Reply rate</span>
+                  <span className="text-right">Missed</span>
+                </div>
+                {employeeList.length === 0 ? (
+                  <div className="py-12 text-center text-sm text-[#52525b]">No data yet</div>
+                ) : (
+                  employeeList.map((emp, i) => (
+                    <div
+                      key={emp.name + i}
+                      className={`px-5 py-3 grid grid-cols-[1.5fr_1fr_60px] sm:grid-cols-[2fr_1.2fr_1fr_100px] items-center ${
+                        i < employeeList.length - 1 ? 'border-b border-white/[0.05]' : ''
+                      }`}
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className={`w-6 h-6 rounded-full bg-gradient-to-br ${avatarGradient(emp.name)} flex items-center justify-center text-[9px] font-bold text-white shrink-0`}>
+                          {getInitials(emp.name)}
+                        </div>
+                        <span className="text-[13px] font-medium truncate">{emp.name}</span>
+                      </div>
+                      <span className="hidden sm:block text-sm text-[#a1a1aa] truncate">{emp.team ?? '—'}</span>
+                      <RateBar rate={emp.rate} />
+                      <span className={`text-xs text-right tabular-nums ${emp.missed > 0 ? 'text-red-400' : 'text-[#52525b]'}`}>
+                        {emp.missed > 0 ? emp.missed : '—'}
+                      </span>
                     </div>
-                    <span className="text-[13px] font-medium truncate">{emp.name}</span>
-                  </div>
-                  <span className="hidden sm:block text-sm text-[#a1a1aa] truncate">{emp.team ?? '—'}</span>
-                  <RateBar rate={emp.rate} />
-                  <span className={`text-xs text-right tabular-nums ${emp.missed > 0 ? 'text-red-400' : 'text-[#52525b]'}`}>
-                    {emp.missed > 0 ? emp.missed : '—'}
-                  </span>
-                </div>
-              ))
-            )}
-          </div>
-        ) : (
-          <div className="bg-surface border border-white/[0.07] rounded-xl overflow-hidden overflow-x-auto">
-            <div className="px-5 py-3 border-b border-white/[0.07] grid grid-cols-[2fr_1fr_80px] text-xs font-medium text-[#71717a] uppercase tracking-[0.06em]">
-              <span>Team</span>
-              <span>Reply rate</span>
-              <span className="text-right">Replies</span>
-            </div>
-            {teamList.length === 0 ? (
-              <div className="py-12 text-center text-sm text-[#52525b]">No data yet</div>
+                  ))
+                )}
+              </div>
             ) : (
-              teamList.map((t, i) => (
-                <div
-                  key={t.team}
-                  className={`px-5 py-3.5 grid grid-cols-[2fr_1fr_80px] items-center ${
-                    i < teamList.length - 1 ? 'border-b border-white/[0.05]' : ''
-                  }`}
-                >
-                  <span className="text-[13px] font-medium">{t.team}</span>
-                  <RateBar rate={t.rate} />
-                  <span className="text-xs text-[#a1a1aa] text-right tabular-nums">{t.replied}/{t.sent}</span>
+              <div className="bg-surface border border-white/[0.07] rounded-xl overflow-hidden overflow-x-auto">
+                <div className="px-5 py-3 border-b border-white/[0.07] grid grid-cols-[2fr_1fr_80px] text-xs font-medium text-[#71717a] uppercase tracking-[0.06em]">
+                  <span>Team</span>
+                  <span>Reply rate</span>
+                  <span className="text-right">Replies</span>
                 </div>
-              ))
+                {teamList.length === 0 ? (
+                  <div className="py-12 text-center text-sm text-[#52525b]">No data yet</div>
+                ) : (
+                  teamList.map((t, i) => (
+                    <div
+                      key={t.team}
+                      className={`px-5 py-3.5 grid grid-cols-[2fr_1fr_80px] items-center ${
+                        i < teamList.length - 1 ? 'border-b border-white/[0.05]' : ''
+                      }`}
+                    >
+                      <span className="text-[13px] font-medium">{t.team}</span>
+                      <RateBar rate={t.rate} />
+                      <span className="text-xs text-[#a1a1aa] text-right tabular-nums">{t.replied}/{t.sent}</span>
+                    </div>
+                  ))
+                )}
+              </div>
             )}
           </div>
-        )}
-      </div>
+        </>
+      )}
+
+      {weeklyData.length === 0 && (
+        <div className="bg-surface border border-white/[0.07] rounded-xl p-8 text-center">
+          <p className="text-sm text-[#a1a1aa] mb-1">Not enough data yet</p>
+          <p className="text-xs text-[#52525b]">
+            Trends will populate after your first week of check-ins. Send your first campaign to get started.
+          </p>
+        </div>
+      )}
     </div>
   )
 }
