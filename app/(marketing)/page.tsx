@@ -51,7 +51,7 @@ export default function LandingPage() {
               </h1>
 
               <p className="text-[clamp(15px,1.8vw,17px)] text-[#d4d4d8] max-w-[440px] mb-10 leading-relaxed">
-                One weekly email (or Slack!). AI-powered CEO briefings. Performance reviews that write themselves — no meetings, no logins.
+                Send your team one weekly email (or Slack!). Collect replies. Get an AI-synthesized CEO briefing and performance reviews that write themselves. No meetings. No logins. No&nbsp;brainer.
               </p>
 
               <WaitlistForm />
