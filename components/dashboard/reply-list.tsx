@@ -1,30 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { ChevronDown, ChevronUp, Clock } from 'lucide-react'
+import { ChevronDown, ChevronUp } from 'lucide-react'
 import { ReplyCard } from './reply-card'
 import type { SubmissionWithDetails } from '@/types'
-
-const DAY_LABEL: Record<number, string> = {
-  1: 'Monday', 2: 'Tuesday', 3: 'Wednesday',
-  4: 'Thursday', 5: 'Friday', 6: 'Saturday', 7: 'Sunday',
-}
-
-const TZ_LABELS: Record<string, string> = {
-  'America/New_York': 'ET', 'America/Chicago': 'CT',
-  'America/Denver': 'MT', 'America/Los_Angeles': 'PT',
-  'America/Anchorage': 'AKT', 'Pacific/Honolulu': 'HT',
-  'America/Phoenix': 'AZ',
-}
-
-function formatTime(time: string): string {
-  const [hStr, mStr] = time.split(':')
-  const h = parseInt(hStr, 10)
-  const m = mStr ?? '00'
-  const ampm = h >= 12 ? 'PM' : 'AM'
-  const displayH = h === 0 ? 12 : h > 12 ? h - 12 : h
-  return `${displayH}:${m.slice(0, 2)} ${ampm}`
-}
 
 type ScheduledCampaign = {
   employeeCount: number
@@ -55,21 +34,14 @@ export function ReplyList({ replied, pending, unsent = [], filter, scheduledCamp
   const total = replied.length + pending.length
 
   if (total === 0) {
-    if (scheduledCampaign && scheduledCampaign.employeeCount > 0) {
-      const { sendDay, sendTime, timezone } = scheduledCampaign
-      return (
-        <div className="bg-surface border border-white/[0.07] rounded-xl p-6 text-center">
-          <p className="text-[13px] text-[#a1a1aa] flex items-center justify-center gap-1.5">
-            <Clock className="w-3.5 h-3.5" />
-            Sending {DAY_LABEL[sendDay]} at {formatTime(sendTime)} {TZ_LABELS[timezone] ?? timezone}
-          </p>
-        </div>
-      )
-    }
-
     return (
       <div className="bg-surface border border-white/[0.07] rounded-xl p-8 text-center">
-        <p className="text-sm text-[#a1a1aa]">No {filter === 'replied' ? 'replies' : filter === 'pending' ? 'pending submissions' : 'submissions'} this week</p>
+        <p className="text-sm text-[#a1a1aa]">
+          {filter === 'replied' ? 'No replies yet' : filter === 'pending' ? 'No pending submissions' : 'Replies will appear here as your team responds'}
+        </p>
+        {!filter && (
+          <p className="text-xs text-[#52525b] mt-1.5">Your CEO briefing gets created once 50% of the team has replied</p>
+        )}
       </div>
     )
   }

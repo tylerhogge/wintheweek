@@ -207,7 +207,7 @@ async function DashboardContent({
         </div>
       )}
 
-      <StatsBar total={actuallySent.length} replied={replied.length} weekStart={weekStart} activeFilter={filter} team={team} scheduled={scheduledCampaign ? { employeeCount: scheduledCampaign.employeeCount, campaignId: scheduledCampaign.campaignId } : undefined} />
+      <StatsBar total={actuallySent.length} replied={replied.length} weekStart={weekStart} activeFilter={filter} team={team} scheduled={scheduledCampaign ? { employeeCount: scheduledCampaign.employeeCount, campaignId: scheduledCampaign.campaignId, sendDay: scheduledCampaign.sendDay, sendTime: scheduledCampaign.sendTime, timezone: scheduledCampaign.timezone } : undefined} />
 
       {/* Email delivery breakdown — only show when there's data */}
       {actuallySent.length > 0 && (() => {
