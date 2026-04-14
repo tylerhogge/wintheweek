@@ -376,23 +376,31 @@ async function notifyAdmin({
     weekTotal,
   })
 
-  // Threading: anchor on the SUBMISSION so all notifications for the same
-  // employee+week thread together in Gmail, regardless of which response
-  // or reply path triggers them.
+  // Threading: use a deterministic Message-ID we control so Gmail can match
+  // In-Reply-To headers on follow-ups. SES generates its own Message-ID
+  // (e.g. <xxx@email.amazonses.com>) that we can't predict, so we set our
+  // own custom Message-ID on the first notification and reference it later.
+  //
+  // Format: <wtw-notify-{submissionId}@wintheweek.co>
+  const threadMessageId = `<wtw-notify-${submissionId}@wintheweek.co>`
+
   const { data: sub } = await supabase
     .from('submissions')
     .select('notify_thread_id')
     .eq('id', submissionId)
     .single()
 
+  const isFirstNotification = !sub?.notify_thread_id
   const headers: Record<string, string> = {}
   let subject = emailContent.subject
 
-  if (sub?.notify_thread_id) {
+  if (isFirstNotification) {
+    // First notification: stamp our own Message-ID so we can reference it later
+    headers['Message-ID'] = threadMessageId
+  } else {
     // Follow-up: thread onto the first notification
-    const realMessageId = `<${sub.notify_thread_id}@resend.dev>`
-    headers['In-Reply-To'] = realMessageId
-    headers['References'] = realMessageId
+    headers['In-Reply-To'] = threadMessageId
+    headers['References'] = threadMessageId
     subject = `Re: ${emailContent.subject}`
   }
 
@@ -404,14 +412,14 @@ async function notifyAdmin({
     subject,
     html: emailContent.html,
     text: emailContent.text,
-    headers: Object.keys(headers).length > 0 ? headers : undefined,
+    headers,
   })
 
-  // Store the Resend message ID on the FIRST notification so all follow-ups thread
-  if (!sub?.notify_thread_id && sendResult?.id) {
+  // Mark this submission as having its first notification sent
+  if (isFirstNotification && sendResult?.id) {
     await supabase
       .from('submissions')
-      .update({ notify_thread_id: sendResult.id })
+      .update({ notify_thread_id: submissionId })
       .eq('id', submissionId)
   }
 }
