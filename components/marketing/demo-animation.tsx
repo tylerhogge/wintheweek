@@ -33,7 +33,8 @@ export function DemoAnimation() {
       hide('demo-phone-wrap')
       // Desktop
       hide('demo-desktop-wrap')
-      // (heart + comment removed — CEO operating system, not social)
+      // Profile
+      hide('demo-profile-wrap')
       // Typing
       const typed = el('demo-typed')
       if (typed) typed.textContent = ''
@@ -41,14 +42,14 @@ export function DemoAnimation() {
       const cursor = el('demo-cursor')
       if (cursor) cursor.style.opacity = '1'
       // Dots
-      ;[0,1,2,3].forEach(i => {
+      ;[0,1,2,3,4].forEach(i => {
         const d = el(`demo-dot-${i}`)
         if (d) { d.style.background = 'rgba(255,255,255,0.2)'; d.style.transform = 'scale(1)' }
       })
     }
 
     function setDot(active: number) {
-      ;[0,1,2,3].forEach(i => {
+      ;[0,1,2,3,4].forEach(i => {
         const d = el(`demo-dot-${i}`)
         if (!d) return
         d.style.background = i === active ? '#22c55e' : 'rgba(255,255,255,0.2)'
@@ -94,8 +95,13 @@ export function DemoAnimation() {
         show('demo-phone-wrap'); setDot(2); show('demo-scene-compose')
         startTyping()
       } else if (scene === 3) {
-        // Scene 3: dashboard
+        // Scene 3: dashboard → then profile
         show('demo-desktop-wrap'); setDot(3)
+        t(() => { hide('demo-desktop-wrap'); show('demo-profile-wrap'); setDot(4) }, 5000)
+        t(() => playFromScene(0), 10000)
+      } else if (scene === 4) {
+        // Scene 4: employee profile
+        show('demo-profile-wrap'); setDot(4)
         t(() => playFromScene(0), 5000)
       }
     }
@@ -107,7 +113,9 @@ export function DemoAnimation() {
           if (cursor) cursor.style.opacity = '0'
           t(() => { hide('demo-scene-compose'); show('demo-scene-sent'); setDot(3) }, 800)
           t(() => { hide('demo-phone-wrap'); show('demo-desktop-wrap') }, 1800)
-          t(() => playFromScene(0), 1800 + 5000)
+          // Dashboard → Profile → Loop
+          t(() => { hide('demo-desktop-wrap'); show('demo-profile-wrap'); setDot(4) }, 1800 + 5000)
+          t(() => playFromScene(0), 1800 + 5000 + 5000)
         })
       }, 400)
     }
@@ -359,14 +367,104 @@ export function DemoAnimation() {
         </div>
       </div>
 
+      {/* ── PROFILE ── */}
+      <div
+        id="demo-profile-wrap"
+        style={{
+          opacity: 0,
+          transition: 'opacity 0.5s ease',
+          position: 'absolute',
+          inset: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          padding: '8px 12px',
+        }}
+      >
+        {/* Browser chrome */}
+        <div style={{ background: '#18181b', borderRadius: '12px 12px 0 0', border: '1px solid rgba(255,255,255,0.08)', borderBottom: 'none', padding: '8px 12px', display: 'flex', alignItems: 'center', gap: 6 }}>
+          <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#ef4444' }} />
+          <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#f59e0b' }} />
+          <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#22c55e' }} />
+          <div style={{ flex: 1, background: '#27272a', borderRadius: 4, height: 18, marginLeft: 8, display: 'flex', alignItems: 'center', paddingLeft: 8 }}>
+            <span style={{ color: '#52525b', fontSize: 10 }}>app.wintheweek.co/team/alex</span>
+          </div>
+        </div>
+        {/* Profile window */}
+        <div style={{
+          flex: 1,
+          background: '#09090b',
+          border: '1px solid rgba(255,255,255,0.08)',
+          borderRadius: '0 0 12px 12px',
+          overflow: 'hidden',
+          display: 'flex',
+        }}>
+          {/* Sidebar */}
+          <div style={{ width: 44, background: '#111113', borderRight: '1px solid rgba(255,255,255,0.06)', padding: '12px 6px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+            <div style={{ width: 24, height: 24, background: '#22c55e', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            {[1,2,3].map(i => <div key={i} style={{ width: 20, height: 3, background: 'rgba(255,255,255,0.1)', borderRadius: 2 }} />)}
+          </div>
+          {/* Profile content */}
+          <div style={{ flex: 1, padding: '12px 14px', overflow: 'hidden' }}>
+            {/* Header: avatar + name */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+              <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, color: '#fff', fontWeight: 700 }}>
+                A
+              </div>
+              <div>
+                <p style={{ color: '#fafafa', fontSize: 13, fontWeight: 700 }}>Alex Kim</p>
+                <p style={{ color: '#71717a', fontSize: 10 }}>Engineering · 8w streak 🔥</p>
+              </div>
+            </div>
+            {/* Mini stats row */}
+            <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
+              {[
+                { label: 'Reply rate', value: '92%' },
+                { label: 'Streak', value: '8w' },
+                { label: 'Avg response', value: '4h' },
+              ].map((s, i) => (
+                <div key={i} style={{ flex: 1, background: '#111113', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 6, padding: '5px 7px', textAlign: 'center' }}>
+                  <p style={{ color: '#fafafa', fontSize: 12, fontWeight: 700, lineHeight: 1 }}>{s.value}</p>
+                  <p style={{ color: '#52525b', fontSize: 8, marginTop: 2 }}>{s.label}</p>
+                </div>
+              ))}
+            </div>
+            {/* AI Insights */}
+            <div style={{ background: 'rgba(139,92,246,0.06)', border: '1px solid rgba(139,92,246,0.18)', borderRadius: 8, padding: '7px 10px', marginBottom: 10 }}>
+              <p style={{ color: '#a78bfa', fontSize: 10, fontWeight: 600, marginBottom: 3 }}>✦ AI INSIGHTS</p>
+              <p style={{ color: '#a1a1aa', fontSize: 10, lineHeight: 1.5 }}>Alex has been consistently high-performing, leading the onboarding redesign and mobile launch. Key themes: shipping velocity, cross-team collaboration.</p>
+            </div>
+            {/* Themes */}
+            <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginBottom: 10 }}>
+              {['Product launches', 'Mobile', 'Cross-team', 'Onboarding'].map(tag => (
+                <span key={tag} style={{ background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.2)', color: '#22c55e', fontSize: 9, fontWeight: 600, padding: '2px 7px', borderRadius: 99 }}>
+                  {tag}
+                </span>
+              ))}
+            </div>
+            {/* Sentiment */}
+            <div style={{ background: '#111113', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 8, padding: '7px 10px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                <span style={{ color: '#71717a', fontSize: 9 }}>SENTIMENT</span>
+                <span style={{ color: '#22c55e', fontSize: 11, fontWeight: 700 }}>Positive</span>
+              </div>
+              <div style={{ height: 4, background: '#27272a', borderRadius: 2, overflow: 'hidden' }}>
+                <div style={{ width: '88%', height: '100%', background: 'linear-gradient(90deg, #22c55e, #4ade80)', borderRadius: 2 }} />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Dots */}
       <div style={{ position: 'absolute', bottom: 12, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 6 }}>
-        {[0,1,2,3].map(i => (
+        {[0,1,2,3,4].map(i => (
           <button
             key={i}
             id={`demo-dot-${i}`}
             onClick={() => restartRef.current?.(i)}
-            title={['Notification', 'Email', 'Reply', 'Dashboard'][i]}
+            title={['Notification', 'Email', 'Reply', 'Dashboard', 'Profile'][i]}
             style={{ width: 10, height: 10, borderRadius: '50%', background: 'rgba(255,255,255,0.2)', transition: 'background 0.3s, transform 0.3s', border: 'none', padding: 0, cursor: 'pointer' }}
           />
         ))}
