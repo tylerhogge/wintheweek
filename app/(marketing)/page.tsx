@@ -46,12 +46,16 @@ export default function LandingPage() {
                 Now in beta — join the waitlist
               </div>
 
-              <h1 className="text-[clamp(32px,4.5vw,54px)] font-bold tracking-[-0.04em] leading-[1.08] mb-5">
+              <h1 className="text-[clamp(32px,4.5vw,54px)] font-bold tracking-[-0.04em] leading-[1.08] mb-4">
                 What did your company get done <em className="not-italic text-accent">this week?</em>
               </h1>
 
-              <p className="text-[clamp(15px,1.8vw,17px)] text-[#d4d4d8] max-w-[440px] mb-10 leading-relaxed">
-                Send your team one weekly email (or Slack!). Collect replies. Get an AI-synthesized CEO briefing, auto-generated employee profiles, and people intelligence — no meetings, no logins.
+              <p className="text-[clamp(16px,2vw,20px)] font-semibold text-white/90 mb-4">
+                One weekly email. AI-powered CEO briefings. Performance reviews that write themselves.
+              </p>
+
+              <p className="text-[clamp(14px,1.6vw,16px)] text-[#a1a1aa] max-w-[440px] mb-10 leading-relaxed">
+                Your team hits reply with what they got done. You get an AI briefing, employee profiles with strengths and risks, and people intelligence — no meetings, no logins.
               </p>
 
               <WaitlistForm />
