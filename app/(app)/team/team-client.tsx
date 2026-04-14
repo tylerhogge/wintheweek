@@ -141,7 +141,7 @@ export function TeamClient({ active, inactive, allTeams }: Props) {
                       <Link href={`/team/${emp.id}`} className="text-[13.5px] font-medium truncate hover:text-accent transition-colors">
                         {emp.name}
                       </Link>
-                      <span className="text-[10px] font-medium text-accent/0 group-hover:text-accent/70 transition-colors shrink-0 hidden sm:inline">
+                      <span className="text-[10px] font-medium text-accent/50 group-hover:text-accent transition-colors shrink-0 hidden sm:inline">
                         View profile →
                       </span>
                       {emp.slack_user_id && (

@@ -169,7 +169,7 @@ export function ReplyCard({ submission, forceExpanded, replyHistory }: Props) {
             <Link
               href={`/team/${employee.id}`}
               onClick={(e) => e.stopPropagation()}
-              className="text-[10px] font-medium text-accent/0 group-hover:text-accent/70 hover:!text-accent transition-colors hidden sm:inline"
+              className="text-[10px] font-medium text-accent/50 group-hover:text-accent hover:!text-accent transition-colors hidden sm:inline"
             >
               View profile →
             </Link>
