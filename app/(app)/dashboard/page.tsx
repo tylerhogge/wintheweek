@@ -43,6 +43,7 @@ async function DashboardContent({
     .eq('employees.org_id', orgId)
     .is('hidden_at', null)
     .order('replied_at', { ascending: false, nullsFirst: false })
+    .order('created_at', { referencedTable: 'responses.manager_replies', ascending: true })
 
   if (team) submissionsQuery = submissionsQuery.eq('employees.team', team)
 
