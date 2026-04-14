@@ -51,7 +51,7 @@ export default function LandingPage() {
               </h1>
 
               <p className="text-[clamp(15px,1.8vw,17px)] text-[#d4d4d8] max-w-[440px] mb-10 leading-relaxed">
-                Send your team one weekly email (or Slack!). Collect replies. Get an AI-synthesized CEO briefing on what the whole company accomplished — no meetings, no logins.
+                Send your team one weekly email (or Slack!). Collect replies. Get an AI-synthesized CEO briefing, auto-generated employee profiles, and people intelligence — no meetings, no logins.
               </p>
 
               <WaitlistForm />
@@ -101,6 +101,9 @@ export default function LandingPage() {
             { icon: '🔔', title: 'Auto-nudges & accountability', body: 'Automatic reminders for people who haven\'t replied. See who responded and who didn\'t — no awkward follow-ups.' },
             { icon: '💬', title: 'Ask your data anything', body: 'Email a question and get an AI-powered answer based on your team\'s check-in data. Like having a chief of staff on call.' },
             { icon: '📊', title: 'Sentiment & trends over time', body: 'Track company mood, top themes, and reply rates week over week. AI scores team sentiment from check-in tone — spot morale dips early.' },
+            { icon: '🧠', title: 'AI employee profiles', body: 'Every team member gets an auto-generated profile built from their check-in history — key themes, strengths, and areas to watch. Performance reviews that write themselves.' },
+            { icon: '💭', title: 'Chat with AI about anyone', body: 'Click any employee and ask questions about their work. "What has Sarah been focused on?" "Any recurring blockers?" Prep for 1:1s in seconds, not hours.' },
+            { icon: '🔥', title: 'Reply streaks & engagement', body: 'See who\'s consistently engaged and who\'s going quiet. Streak indicators, missed-week warnings, and response history — spot disengagement before it becomes a problem.' },
           ].map(({ icon, iconClass, title, body }: { icon: string; iconClass?: string; title: string; body: string }) => (
             <div key={title} className="bg-surface border border-white/[0.07] rounded-xl p-7 hover:border-white/[0.12] transition-colors h-full">
               <div className={`${iconClass ?? 'text-2xl'} mb-4 w-8 h-8 flex items-center justify-center`}>
@@ -134,7 +137,7 @@ export default function LandingPage() {
             <p className="mb-1"><span className="text-[36px] font-bold tracking-[-0.04em]">$99</span><span className="text-sm text-[#71717a] ml-1">/ mo</span></p>
             <p className="text-xs text-accent mb-6">First month free</p>
             <ul className="space-y-2.5 mb-6 flex-1">
-              {['Unlimited campaigns', 'AI weekly CEO briefing', 'Company sentiment & themes', 'Slack integration', 'Ask-your-data AI queries', 'Team & function filters', 'Reply tracking & auto-nudges', 'Unlimited history'].map((f: string) => (
+              {['Unlimited campaigns', 'AI weekly CEO briefing', 'Company sentiment & themes', 'Slack integration', 'Ask-your-data AI queries', 'Team & function filters', 'Reply tracking & auto-nudges', 'Reply streaks & engagement', 'Unlimited history'].map((f: string) => (
                 <li key={f} className="text-sm text-[#a1a1aa] flex items-center gap-2">
                   <span className="text-accent font-bold text-xs">✓</span> {f}
                 </li>
@@ -153,7 +156,7 @@ export default function LandingPage() {
             <p className="mb-1"><span className="text-[36px] font-bold tracking-[-0.04em]">$299</span><span className="text-sm text-[#71717a] ml-1">/ mo</span></p>
             <p className="text-xs text-accent mb-6">First month free</p>
             <ul className="space-y-2.5 mb-6 flex-1">
-              {['Everything in Starter', 'Up to 500 employees', 'Manager-level dashboards', 'Sentiment & response trends', 'Custom send domain', 'Priority support & onboarding'].map((f: string) => (
+              {['Everything in Starter', 'Up to 500 employees', 'AI employee profiles', 'Chat with AI about anyone', 'Manager-level dashboards', 'Sentiment & response trends', 'Custom send domain', 'Priority support & onboarding'].map((f: string) => (
                 <li key={f} className="text-sm text-[#a1a1aa] flex items-center gap-2">
                   <span className="text-accent font-bold text-xs">✓</span> {f}
                 </li>
@@ -168,7 +171,7 @@ export default function LandingPage() {
             <p className="text-xs text-[#71717a] mb-5">500+ employees</p>
             <p className="mb-6"><span className="text-[36px] font-bold tracking-[-0.04em]">$499</span><span className="text-sm text-[#71717a]">/mo</span></p>
             <ul className="space-y-2.5 mb-6 flex-1">
-              {['Everything in Core', 'SSO & advanced security', 'Custom integrations', 'Dedicated account manager', 'SLA & uptime guarantee'].map((f: string) => (
+              {['Everything in Core', 'SSO & advanced security', 'Quarterly AI performance reviews', 'Custom integrations', 'Dedicated account manager', 'SLA & uptime guarantee'].map((f: string) => (
                 <li key={f} className="text-sm text-[#a1a1aa] flex items-center gap-2">
                   <span className="text-accent font-bold text-xs">✓</span> {f}
                 </li>
