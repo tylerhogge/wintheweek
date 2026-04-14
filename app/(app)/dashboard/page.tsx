@@ -111,6 +111,39 @@ async function DashboardContent({
     }
   }
 
+  // If no submissions this week, fetch active campaign info for the "scheduled" preview
+  let scheduledCampaign: { employeeCount: number; sendDay: number; sendTime: string; timezone: string; campaignId: string } | null = null
+  if (!submissions || submissions.length === 0) {
+    const { data: campaign } = await supabase
+      .from('campaigns')
+      .select('id, send_day, send_time, timezone, target_teams')
+      .eq('org_id', orgId)
+      .eq('active', true)
+      .limit(1)
+      .single()
+
+    if (campaign) {
+      let empQuery = supabase
+        .from('employees')
+        .select('id', { count: 'exact', head: true })
+        .eq('org_id', orgId)
+        .eq('active', true)
+
+      if (campaign.target_teams && campaign.target_teams.length > 0) {
+        empQuery = empQuery.in('team', campaign.target_teams)
+      }
+
+      const { count: empCount } = await empQuery
+      scheduledCampaign = {
+        employeeCount: empCount ?? 0,
+        sendDay: campaign.send_day,
+        sendTime: campaign.send_time,
+        timezone: campaign.timezone,
+        campaignId: campaign.id,
+      }
+    }
+  }
+
   // Treat hidden responses as if they don't exist — card shows "no reply yet"
   const typed = ((submissions ?? []) as unknown as SubmissionWithDetails[]).map((s) => {
     if (s.response && (s.response as any).hidden_at) {
@@ -217,7 +250,7 @@ async function DashboardContent({
       </div>
 
       {/* Replies */}
-      <ReplyList replied={replied} pending={pending} unsent={unsent} filter={filter} />
+      <ReplyList replied={replied} pending={pending} unsent={unsent} filter={filter} scheduledCampaign={scheduledCampaign} />
     </div>
   )
 }
