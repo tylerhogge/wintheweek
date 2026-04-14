@@ -67,6 +67,7 @@ export function StatsBar({ total, replied, weekStart, activeFilter, team, schedu
           <p className="text-[10px] text-[#71717a] mt-1.5">
             {DAY_LABEL[scheduled.sendDay]} {formatTime(scheduled.sendTime)} {TZ_LABELS[scheduled.timezone] ?? scheduled.timezone}
           </p>
+          <p className="text-[10px] font-medium text-accent mt-1">Edit campaign →</p>
         </Link>
       )}
 
