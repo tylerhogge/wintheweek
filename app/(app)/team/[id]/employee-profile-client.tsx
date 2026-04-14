@@ -284,40 +284,9 @@ export function EmployeeProfileClient({ employee, submissions, stats, orgName, a
           </div>
         ) : (
           <div className="space-y-3">
-            {submissions.map((sub, idx) => {
-              const hasReply = !!sub.replied_at && !!sub.response
-              const weekLabel = format(parseISO(sub.week_start), 'MMM d, yyyy')
-
-              return (
-                <div key={sub.id} className={`relative pl-6 pb-4 ${idx !== submissions.length - 1 ? 'border-l border-white/[0.07]' : ''}`}>
-                  {/* Timeline dot */}
-                  <div className={`absolute left-[-9px] top-1 w-4 h-4 rounded-full border-2 ${hasReply ? 'bg-green-500 border-green-500' : 'bg-transparent border-[#52525b]'}`} />
-
-                  {/* Week label */}
-                  <p className="text-sm font-medium text-white mb-1">{weekLabel}</p>
-
-                  {/* Status */}
-                  <div className="flex items-center gap-2 mb-2">
-                    {hasReply ? (
-                      <>
-                        <span className="w-2 h-2 rounded-full bg-green-500" />
-                        <span className="text-xs text-green-400 font-medium">Replied</span>
-                      </>
-                    ) : (
-                      <>
-                        <span className="w-2 h-2 rounded-full bg-[#52525b]" />
-                        <span className="text-xs text-[#71717a] font-medium">No reply</span>
-                      </>
-                    )}
-                  </div>
-
-                  {/* Response body */}
-                  {hasReply && sub.response?.body_clean && (
-                    <SubmissionResponseCard response={sub.response} />
-                  )}
-                </div>
-              )
-            })}
+            {submissions.map((sub, idx) => (
+              <SubmissionTimelineRow key={sub.id} sub={sub} isLast={idx === submissions.length - 1} />
+            ))}
           </div>
         )}
       </div>
@@ -334,6 +303,56 @@ function SendIcon() {
     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M13 5l7 7m0 0l-7 7m7-7H6" />
     </svg>
+  )
+}
+
+function SubmissionTimelineRow({ sub, isLast }: { sub: any; isLast: boolean }) {
+  const [open, setOpen] = useState(false)
+  const hasReply = !!sub.replied_at && !!sub.response
+  const weekLabel = format(parseISO(sub.week_start), 'MMM d, yyyy')
+  const preview = hasReply && sub.response?.body_clean
+    ? sub.response.body_clean.slice(0, 80) + (sub.response.body_clean.length > 80 ? '…' : '')
+    : null
+
+  return (
+    <div className={`relative pl-6 pb-4 ${!isLast ? 'border-l border-white/[0.07]' : ''}`}>
+      {/* Timeline dot */}
+      <div className={`absolute left-[-9px] top-1 w-4 h-4 rounded-full border-2 ${hasReply ? 'bg-green-500 border-green-500' : 'bg-transparent border-[#52525b]'}`} />
+
+      {/* Clickable header row */}
+      <button
+        onClick={() => hasReply && setOpen(o => !o)}
+        className={`w-full text-left flex items-center gap-2 ${hasReply ? 'cursor-pointer' : 'cursor-default'}`}
+      >
+        <p className="text-sm font-medium text-white">{weekLabel}</p>
+        {hasReply ? (
+          <>
+            <span className="w-2 h-2 rounded-full bg-green-500 shrink-0" />
+            <span className="text-xs text-green-400 font-medium shrink-0">Replied</span>
+          </>
+        ) : (
+          <>
+            <span className="w-2 h-2 rounded-full bg-[#52525b] shrink-0" />
+            <span className="text-xs text-[#71717a] font-medium shrink-0">No reply</span>
+          </>
+        )}
+        {hasReply && (
+          <svg className={`w-3.5 h-3.5 text-[#52525b] ml-auto shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        )}
+      </button>
+
+      {/* Preview when collapsed */}
+      {hasReply && !open && preview && (
+        <p className="text-xs text-[#71717a] mt-1 truncate">{preview}</p>
+      )}
+
+      {/* Expanded response */}
+      {hasReply && open && sub.response?.body_clean && (
+        <div className="mt-2">
+          <SubmissionResponseCard response={sub.response} />
+        </div>
+      )}
+    </div>
   )
 }
 
