@@ -104,7 +104,7 @@ export function TeamClient({ active, inactive, allTeams }: Props) {
 
       {/* Active employees */}
       <div className="bg-surface border border-white/[0.07] rounded-xl overflow-hidden">
-        <div className="px-5 py-3 border-b border-white/[0.07] grid grid-cols-[1fr_80px] sm:grid-cols-[2fr_1.5fr_1.5fr_100px_80px] text-xs font-medium text-[#71717a] uppercase tracking-[0.06em]">
+        <div className="px-5 py-3 border-b border-white/[0.07] grid grid-cols-[1fr_80px] sm:grid-cols-[2fr_1.5fr_1.5fr_100px_40px] text-xs font-medium text-[#71717a] uppercase tracking-[0.06em]">
           <span>Name</span>
           <span className="hidden sm:block">Team</span>
           <span className="hidden sm:block">Function</span>
@@ -130,7 +130,7 @@ export function TeamClient({ active, inactive, allTeams }: Props) {
               <div
                 key={emp.id}
                 onClick={() => router.push(`/team/${emp.id}`)}
-                className={`group px-5 py-3.5 grid grid-cols-[1fr_80px] sm:grid-cols-[2fr_1.5fr_1.5fr_100px_80px] items-center cursor-pointer ${i < active.length - 1 ? 'border-b border-white/[0.05]' : ''} hover:bg-white/[0.02] transition-colors`}
+                className={`group px-5 py-3.5 grid grid-cols-[1fr_80px] sm:grid-cols-[2fr_1.5fr_1.5fr_100px_40px] items-center cursor-pointer ${i < active.length - 1 ? 'border-b border-white/[0.05]' : ''} hover:bg-white/[0.02] transition-colors`}
               >
                 <div className="flex items-center gap-3 min-w-0">
                   <div className={`w-7 h-7 rounded-full bg-gradient-to-br ${avatarGradient(emp.email)} flex items-center justify-center text-[11px] font-bold text-white shrink-0`}>
@@ -141,6 +141,9 @@ export function TeamClient({ active, inactive, allTeams }: Props) {
                       <Link href={`/team/${emp.id}`} className="text-[13.5px] font-medium truncate hover:text-accent transition-colors">
                         {emp.name}
                       </Link>
+                      <span className="text-[10px] font-medium text-accent/0 group-hover:text-accent/70 transition-colors shrink-0 hidden sm:inline">
+                        View profile →
+                      </span>
                       {emp.slack_user_id && (
                         <span title="Receives check-ins via Slack" className="text-[#a1a1aa] shrink-0">
                           <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523A2.528 2.528 0 0 1 0 15.165a2.527 2.527 0 0 1 2.522-2.52h2.52v2.52zM6.313 15.165a2.527 2.527 0 0 1 2.521-2.52 2.527 2.527 0 0 1 2.521 2.52v6.313A2.528 2.528 0 0 1 8.834 24a2.528 2.528 0 0 1-2.521-2.522v-6.313zM8.834 5.042a2.528 2.528 0 0 1-2.521-2.52A2.528 2.528 0 0 1 8.834 0a2.528 2.528 0 0 1 2.521 2.522v2.52H8.834zM8.834 6.313a2.528 2.528 0 0 1 2.521 2.521 2.528 2.528 0 0 1-2.521 2.521H2.522A2.528 2.528 0 0 1 0 8.834a2.528 2.528 0 0 1 2.522-2.521h6.312zM18.956 8.834a2.528 2.528 0 0 1 2.522-2.521A2.528 2.528 0 0 1 24 8.834a2.528 2.528 0 0 1-2.522 2.521h-2.522V8.834zM17.688 8.834a2.528 2.528 0 0 1-2.523 2.521 2.527 2.527 0 0 1-2.52-2.521V2.522A2.527 2.527 0 0 1 15.165 0a2.528 2.528 0 0 1 2.523 2.522v6.312zM15.165 18.956a2.528 2.528 0 0 1 2.523 2.522A2.528 2.528 0 0 1 15.165 24a2.527 2.527 0 0 1-2.52-2.522v-2.522h2.52zM15.165 17.688a2.527 2.527 0 0 1-2.52-2.523 2.526 2.526 0 0 1 2.52-2.52h6.313A2.527 2.527 0 0 1 24 15.165a2.528 2.528 0 0 1-2.522 2.523h-6.313z"/></svg>
@@ -159,10 +162,7 @@ export function TeamClient({ active, inactive, allTeams }: Props) {
                     <span className="text-xs text-[#52525b]">Member</span>
                   )}
                 </div>
-                <div className="hidden sm:flex items-center justify-end gap-2">
-                  <span className="text-[10px] font-medium text-accent/0 group-hover:text-accent/70 transition-colors">
-                    View profile →
-                  </span>
+                <div className="hidden sm:flex justify-end">
                   <button
                     onClick={(e) => { e.stopPropagation(); setEditingEmployee(emp) }}
                     title="Edit member"
