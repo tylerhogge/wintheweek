@@ -376,13 +376,14 @@ async function notifyAdmin({
     weekTotal,
   })
 
-  // Threading: use a deterministic Message-ID we control so Gmail can match
-  // In-Reply-To headers on follow-ups. SES generates its own Message-ID
-  // (e.g. <xxx@email.amazonses.com>) that we can't predict, so we set our
-  // own custom Message-ID on the first notification and reference it later.
+  // Gmail threading strategy:
+  // SES overrides any custom Message-ID header, so we can't control that.
+  // BUT SES passes through References and In-Reply-To headers untouched.
+  // Gmail threads emails that share any Message-ID in their References chain.
   //
-  // Format: <wtw-notify-{submissionId}@wintheweek.co>
-  const threadMessageId = `<wtw-notify-${submissionId}@wintheweek.co>`
+  // So: every notification for the same submission includes a shared
+  // References anchor. Gmail sees the common reference and groups them.
+  const threadAnchor = `<wtw-thread-${submissionId}@wintheweek.co>`
 
   const { data: sub } = await supabase
     .from('submissions')
@@ -391,16 +392,15 @@ async function notifyAdmin({
     .single()
 
   const isFirstNotification = !sub?.notify_thread_id
-  const headers: Record<string, string> = {}
+  const headers: Record<string, string> = {
+    // Every notification references the same anchor — this is the key
+    'References': threadAnchor,
+  }
   let subject = emailContent.subject
 
-  if (isFirstNotification) {
-    // First notification: stamp our own Message-ID so we can reference it later
-    headers['Message-ID'] = threadMessageId
-  } else {
-    // Follow-up: thread onto the first notification
-    headers['In-Reply-To'] = threadMessageId
-    headers['References'] = threadMessageId
+  if (!isFirstNotification) {
+    // Follow-ups also set In-Reply-To and prefix subject with Re:
+    headers['In-Reply-To'] = threadAnchor
     subject = `Re: ${emailContent.subject}`
   }
 
@@ -415,7 +415,7 @@ async function notifyAdmin({
     headers,
   })
 
-  // Mark this submission as having its first notification sent
+  // Flag that at least one notification has been sent for this submission
   if (isFirstNotification && sendResult?.id) {
     await supabase
       .from('submissions')
