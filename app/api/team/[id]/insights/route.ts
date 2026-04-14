@@ -81,13 +81,17 @@ Write a brief employee profile summary (under 250 words) covering:
 3. AREAS TO WATCH: Any patterns of concern — things they struggle with, recurring blockers, or topics they avoid?
 4. ENGAGEMENT: Comment on their reply consistency and the depth/quality of their responses.
 
-Write in direct, confident prose. No headers or bullet points — just flowing paragraphs. Use their first name. Be specific and cite examples from their actual responses. This is for their manager's eyes only.`,
+Write in direct, confident prose. Use their first name. Be specific and cite examples from their actual responses. This is for their manager's eyes only.
+
+CRITICAL FORMATTING RULE: Do NOT use any markdown. No # headers, no ** bold **, no bullet points, no numbered lists. Write ONLY in plain flowing paragraphs separated by blank lines. Start directly with the content — do not begin with a title or header line.`,
       }],
     }, { timeout: 30000 })
 
     const content = message.content[0]
     if (content.type !== 'text') throw new Error('Bad response')
-    return NextResponse.json({ insights: content.text.trim() })
+    // Strip any markdown headers/bold the model may have added
+    const cleaned = content.text.trim().replace(/^#+\s+.*\n*/gm, '').replace(/\*\*/g, '').trim()
+    return NextResponse.json({ insights: cleaned })
   } catch (err) {
     console.error('Employee insights generation failed:', err)
     return NextResponse.json({ insights: 'Unable to generate insights right now. Please try again later.' })

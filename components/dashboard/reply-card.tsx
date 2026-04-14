@@ -166,6 +166,13 @@ export function ReplyCard({ submission, forceExpanded, replyHistory }: Props) {
                 {employee.team}
               </span>
             )}
+            <Link
+              href={`/team/${employee.id}`}
+              onClick={(e) => e.stopPropagation()}
+              className="text-[10px] font-medium text-accent/0 group-hover:text-accent/70 hover:!text-accent transition-colors hidden sm:inline"
+            >
+              View profile →
+            </Link>
           </div>
           {/* Preview line when collapsed */}
           {hasReplied && !isExpanded && preview && (
