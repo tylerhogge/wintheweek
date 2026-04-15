@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import { getAuthUser } from '@/lib/supabase/server'
 
-const SUPER_ADMIN_EMAILS = ['tyler@pelionvp.com']
+const SUPER_ADMIN_EMAILS = ['tyler@pelionvp.com', 'tylerhogge@gmail.com']
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const user = await getAuthUser()
