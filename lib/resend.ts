@@ -504,6 +504,55 @@ export function buildWelcomeEmail({
   return { subject, html, text }
 }
 
+/**
+ * Nudge email sent to admins who signed up but stalled during onboarding.
+ * Sent ~48h after signup if they haven't added team members or created a campaign.
+ */
+export function buildOnboardingNudgeEmail({
+  adminName,
+  appUrl,
+}: {
+  adminName: string | null
+  appUrl: string
+}): { subject: string; html: string; text: string } {
+  const firstName = adminName ? adminName.split(' ')[0] : 'there'
+  const subject = `Finish setting up Win The Week — takes less than 5 minutes`
+
+  const html = `<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"/><style>
+  body { background:#ffffff; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif; margin:0; padding:0; }
+  .wrap { max-width:520px; margin:0 auto; padding:40px 24px; }
+  p { font-size:15px; color:#111111; line-height:1.65; margin:0 0 16px; }
+  .cta { display:inline-block; background:#22c55e; color:#000000; font-weight:700; font-size:15px; text-decoration:none; padding:12px 28px; border-radius:8px; margin:8px 0 24px; }
+  .steps { background:#f9fafb; border-radius:8px; padding:20px 24px; margin:0 0 20px; }
+  .steps p { margin:0 0 8px; font-size:14px; }
+  .footer { margin-top:40px; padding-top:20px; border-top:1px solid #e5e5e5; font-size:12px; color:#a1a1aa; }
+  .footer a { color:#a1a1aa; }
+</style></head>
+<body>
+  <div class="wrap">
+    <p>Hey ${firstName},</p>
+    <p>You signed up for Win The Week but haven't finished setting up yet — no worries, it takes less than 5 minutes.</p>
+    <div class="steps">
+      <p><strong>1. Add your team</strong> — paste in a few emails (or connect Slack)</p>
+      <p><strong>2. Create a campaign</strong> — pick a day and time for your weekly check-in</p>
+      <p style="margin:0;"><strong>That's it.</strong> Your team will get their first email automatically.</p>
+    </div>
+    <a href="${appUrl}/team" class="cta">Finish setup →</a>
+    <p style="color:#71717a; font-size:14px;">Once you're set up, Win The Week runs on autopilot — AI-powered CEO briefings, employee profiles, and performance reviews that write themselves.</p>
+    <p style="color:#71717a; font-size:14px;">Questions? Just reply to this email.</p>
+    <p style="color:#52525b; font-size:14px;">— Tyler, Win The Week</p>
+    <div class="footer">Sent via <a href="https://wintheweek.co">Win The Week</a></div>
+  </div>
+</body>
+</html>`
+
+  const text = `Hey ${firstName},\n\nYou signed up for Win The Week but haven't finished setting up yet — no worries, it takes less than 5 minutes.\n\n1. Add your team — paste in a few emails (or connect Slack)\n2. Create a campaign — pick a day and time for your weekly check-in\n\nThat's it. Your team will get their first email automatically.\n\nFinish setup: ${appUrl}/team\n\nOnce you're set up, Win The Week runs on autopilot — AI-powered CEO briefings, employee profiles, and performance reviews that write themselves.\n\nQuestions? Just reply to this email.\n\n— Tyler, Win The Week`
+
+  return { subject, html, text }
+}
+
 export function buildWaitlistConfirmation(email: string): { subject: string; html: string } {
   return {
     subject: "You're on the list 🎉",
