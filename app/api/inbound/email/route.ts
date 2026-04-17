@@ -381,15 +381,16 @@ async function notifyAdmin({
   // BUT SES passes through References and In-Reply-To headers untouched.
   // Gmail threads emails that share any Message-ID in their References chain.
   //
-  // So: every notification for the same submission includes a shared
-  // References anchor. Gmail sees the common reference and groups them.
-  const threadAnchor = `<wtw-thread-${submissionId}@wintheweek.co>`
-
+  // Anchor on the EMPLOYEE, not the submission, so all weekly notifications
+  // for the same person land in one Gmail thread across weeks.
   const { data: sub } = await supabase
     .from('submissions')
-    .select('notify_thread_id')
+    .select('employee_id, notify_thread_id')
     .eq('id', submissionId)
     .single()
+
+  const employeeId = sub?.employee_id
+  const threadAnchor = `<wtw-notify-${employeeId ?? submissionId}@wintheweek.co>`
 
   const isFirstNotification = !sub?.notify_thread_id
   const headers: Record<string, string> = {
