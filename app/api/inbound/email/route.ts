@@ -830,7 +830,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true, note: 'Sender not found' })
   }
 
-  const { data: submission, error: subErr } = await supabase
+  let { data: submission, error: subErr } = await supabase
     .from('submissions')
     .select('*, campaigns(org_id)')
     .eq('employee_id', employee.id)
@@ -839,6 +839,28 @@ export async function POST(req: Request) {
     .order('sent_at', { ascending: false })
     .limit(1)
     .single()
+
+  // Guard against stale unreplied submissions from prior weeks.
+  // If the employee already replied to a MORE RECENT submission, this email
+  // is a follow-up to that conversation — not a late reply to an older one.
+  if (submission) {
+    const { data: newerReplied } = await supabase
+      .from('submissions')
+      .select('id')
+      .eq('employee_id', employee.id)
+      .not('replied_at', 'is', null)
+      .gt('sent_at', submission.sent_at)
+      .limit(1)
+      .single()
+
+    if (newerReplied) {
+      console.log(
+        `[inbound] Skipping stale unreplied submission ${submission.id} — employee already replied to a newer one`
+      )
+      submission = null
+      subErr = null
+    }
+  }
 
   if (subErr || !submission) {
     // No unreplied submission — could be a thread continuation after admin replied back.
