@@ -1,7 +1,20 @@
 import Anthropic from '@anthropic-ai/sdk'
 
-export const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
+/** Lazy-initialised Anthropic client — avoids loading the SDK on cold start
+ *  for routes that never call AI (dashboard, team pages, etc.). */
+let _anthropic: Anthropic | null = null
+export function getAnthropic(): Anthropic {
+  if (!_anthropic) {
+    _anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+  }
+  return _anthropic
+}
+
+/** @deprecated Use getAnthropic() instead — kept for back-compat */
+export const anthropic = new Proxy({} as Anthropic, {
+  get(_, prop) {
+    return (getAnthropic() as any)[prop]
+  },
 })
 
 // ── Circuit breaker for AI calls ────────────────────────────────────────────

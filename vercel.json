@@ -1,4 +1,12 @@
 {
+  "functions": {
+    "app/api/send-weekly/route.ts": { "maxDuration": 300, "memory": 1024 },
+    "app/api/email-briefing/route.ts": { "maxDuration": 120, "memory": 1024 },
+    "app/api/insights/generate/route.ts": { "maxDuration": 120, "memory": 1024 },
+    "app/api/insights/generate-now/route.ts": { "maxDuration": 120, "memory": 1024 },
+    "app/api/briefing-chat/route.ts": { "maxDuration": 60, "memory": 512 },
+    "app/api/inbound/email/route.ts": { "maxDuration": 120, "memory": 1024 }
+  },
   "crons": [
     {
       "path": "/api/send-weekly",
