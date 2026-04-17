@@ -1,9 +1,10 @@
 /**
  * POST /api/send-weekly
  *
- * Called by Vercel Cron (see vercel.json) every Friday at 9am UTC.
- * Sends campaign emails to all active employees, creates submission records,
- * and sets the unique reply-to address for inbound tracking.
+ * Called by Vercel Cron (see vercel.json) every hour.
+ * For each active campaign, checks if the current hour in the campaign's
+ * timezone matches the configured send_time and send_day. Only sends when
+ * both the day and hour align.
  *
  * Also callable manually for testing — just POST with the cron secret.
  */
@@ -16,20 +17,35 @@ import { getWeekStart, createInitialThreadIndex } from '@/lib/utils'
 import { verifyCronSecret } from '@/lib/auth'
 import { format } from 'date-fns'
 
+/** Get the current day-of-week (1=Mon..7=Sun) and hour (0-23) in a given timezone. */
+function getLocalDayAndHour(tz: string): { dayOfWeek: number; hour: number } {
+  const now = new Date()
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: tz,
+    weekday: 'short',
+    hour: 'numeric',
+    hour12: false,
+  }).formatToParts(now)
+
+  const weekdayStr = parts.find((p) => p.type === 'weekday')?.value ?? ''
+  const hourStr = parts.find((p) => p.type === 'hour')?.value ?? '0'
+
+  const dayMap: Record<string, number> = { Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6, Sun: 7 }
+  return { dayOfWeek: dayMap[weekdayStr] ?? 1, hour: parseInt(hourStr, 10) }
+}
+
 export async function POST(req: Request) {
   const authErr = verifyCronSecret(req)
   if (authErr) return authErr
 
   const supabase = createServiceClient()
   const weekStart = format(getWeekStart(), 'yyyy-MM-dd')
-  const today = new Date().getDay() // 0 = Sunday, 5 = Friday
 
-  // Find all active campaigns due to send today
+  // Fetch ALL active campaigns — we'll filter by day/time per-campaign timezone
   const { data: campaigns, error: campaignErr } = await supabase
     .from('campaigns')
     .select('*, organizations(name)')
     .eq('active', true)
-    .eq('send_day', today === 0 ? 7 : today) // normalise Sunday
 
   if (campaignErr) {
     console.error('Failed to fetch campaigns', campaignErr)
@@ -54,6 +70,20 @@ export async function POST(req: Request) {
   }
 
   for (const campaign of campaigns ?? []) {
+    // ── Timezone-aware day/time gate ───────────────────────────────────────
+    const tz = campaign.timezone || 'America/New_York'
+    const { dayOfWeek, hour } = getLocalDayAndHour(tz)
+    const configuredHour = parseInt(campaign.send_time?.split(':')[0] ?? '9', 10)
+
+    if (dayOfWeek !== campaign.send_day || hour !== configuredHour) {
+      // Not the right day or hour for this campaign — skip
+      continue
+    }
+
+    console.log(
+      `[send-weekly] Campaign "${campaign.subject}" (tz=${tz}) matches day=${dayOfWeek} hour=${hour}. Sending...`
+    )
+
     // Fetch active employees — filtered by target_teams if set, otherwise all
     const employeeQuery = supabase
       .from('employees')

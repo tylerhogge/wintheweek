@@ -2,7 +2,7 @@
   "crons": [
     {
       "path": "/api/send-weekly",
-      "schedule": "0 15 * * 5"
+      "schedule": "0 * * * *"
     },
     {
       "path": "/api/auto-nudge",
