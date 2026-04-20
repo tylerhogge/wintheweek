@@ -1,23 +1,27 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 
 type SlackChannel = { id: string; name: string; num_members: number }
 
 type Props = { onClose: () => void }
 
-type Step = 'choose' | 'channels' | 'importing' | 'done'
+type Step = 'choose' | 'channels' | 'delivery' | 'importing' | 'done'
+type ImportMode = 'all' | 'channels'
+type DeliveryMethod = 'email' | 'slack'
 
 export function SlackImportModal({ onClose }: Props) {
   const router = useRouter()
   const [step, setStep] = useState<Step>('choose')
+  const [importMode, setImportMode] = useState<ImportMode>('all')
+  const [delivery, setDelivery] = useState<DeliveryMethod>('email')
   const [channels, setChannels] = useState<SlackChannel[]>([])
   const [channelsLoading, setChannelsLoading] = useState(false)
   const [selectedChannels, setSelectedChannels] = useState<Set<string>>(new Set())
   const [channelSearch, setChannelSearch] = useState('')
   const [error, setError] = useState<string | null>(null)
-  const [result, setResult] = useState<{ imported: number; new: number; existing: number } | null>(null)
+  const [result, setResult] = useState<{ imported: number; new: number; existing: number; delivery: string } | null>(null)
 
   // Fetch channels when user picks "by channel"
   async function loadChannels() {
@@ -70,12 +74,24 @@ export function SlackImportModal({ onClose }: Props) {
     return channels.filter((ch) => ch.name.toLowerCase().includes(q))
   }
 
-  async function doImport(mode: 'all' | 'channels') {
+  // Called from "Import all" — go to delivery step
+  function chooseAll() {
+    setImportMode('all')
+    setStep('delivery')
+  }
+
+  // Called from channel picker "Continue" — go to delivery step
+  function confirmChannels() {
+    setImportMode('channels')
+    setStep('delivery')
+  }
+
+  async function doImport() {
     setStep('importing')
     setError(null)
     try {
-      const body: any = { mode }
-      if (mode === 'channels') body.channel_ids = [...selectedChannels]
+      const body: Record<string, unknown> = { mode: importMode, delivery }
+      if (importMode === 'channels') body.channel_ids = [...selectedChannels]
 
       const res = await fetch('/api/slack/import', {
         method: 'POST',
@@ -85,15 +101,25 @@ export function SlackImportModal({ onClose }: Props) {
       const data = await res.json()
       if (!res.ok) {
         setError(data.error ?? 'Import failed')
-        setStep('choose')
+        setStep('delivery')
         return
       }
-      setResult({ imported: data.imported, new: data.new, existing: data.existing })
+      setResult({ imported: data.imported, new: data.new, existing: data.existing, delivery: data.delivery })
       setStep('done')
       router.refresh()
     } catch {
       setError('Import failed')
+      setStep('delivery')
+    }
+  }
+
+  function goBack() {
+    if (step === 'delivery') {
+      setStep(importMode === 'channels' ? 'channels' : 'choose')
+    } else if (step === 'channels') {
       setStep('choose')
+      setSelectedChannels(new Set())
+      setChannelSearch('')
     }
   }
 
@@ -117,22 +143,27 @@ export function SlackImportModal({ onClose }: Props) {
             <button onClick={onClose} className="text-[#52525b] hover:text-white transition-colors text-lg leading-none p-1">×</button>
           </div>
           <p className="text-xs text-[#71717a]">
-            Pull your team directly from your connected Slack workspace
+            {step === 'choose' && 'Use your Slack workspace as a quick way to import your team roster'}
+            {step === 'channels' && 'Select which channels to import members from'}
+            {step === 'delivery' && 'One more thing — how should check-ins be delivered?'}
+            {step === 'importing' && 'Importing your team...'}
+            {step === 'done' && 'Import complete'}
           </p>
         </div>
 
         <div className="px-6 py-5">
-          {/* ── Step: Choose mode ─────────────────────────────────────── */}
+          {/* ── Step 1: Choose who to import ──────────────────────────── */}
           {step === 'choose' && (
             <div className="space-y-3">
+              <p className="text-xs font-semibold tracking-[0.06em] uppercase text-[#52525b] mb-2">Who should we import?</p>
               <button
-                onClick={() => doImport('all')}
+                onClick={chooseAll}
                 className="w-full text-left bg-[#09090b] border border-white/[0.08] hover:border-white/[0.18] rounded-xl px-5 py-4 transition-colors group"
               >
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-semibold text-white mb-0.5">Import all employees</p>
-                    <p className="text-xs text-[#71717a]">Every real user in your Slack workspace (bots and deactivated users are excluded)</p>
+                    <p className="text-sm font-semibold text-white mb-0.5">Everyone in the workspace</p>
+                    <p className="text-xs text-[#71717a]">Imports all real users — bots and deactivated accounts are excluded automatically</p>
                   </div>
                   <span className="text-[#52525b] group-hover:text-white transition-colors text-lg">→</span>
                 </div>
@@ -144,8 +175,8 @@ export function SlackImportModal({ onClose }: Props) {
               >
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-semibold text-white mb-0.5">Import by channel</p>
-                    <p className="text-xs text-[#71717a]">Pick specific channels — members become employees with the channel as their team</p>
+                    <p className="text-sm font-semibold text-white mb-0.5">Pick specific channels</p>
+                    <p className="text-xs text-[#71717a]">Choose one or more channels — the channel name becomes each member's team</p>
                   </div>
                   <span className="text-[#52525b] group-hover:text-white transition-colors text-lg">→</span>
                 </div>
@@ -153,7 +184,7 @@ export function SlackImportModal({ onClose }: Props) {
             </div>
           )}
 
-          {/* ── Step: Channel picker ─────────────────────────────────── */}
+          {/* ── Step 2a: Channel picker ───────────────────────────────── */}
           {step === 'channels' && (
             <div>
               {channelsLoading ? (
@@ -163,7 +194,6 @@ export function SlackImportModal({ onClose }: Props) {
                 </div>
               ) : (
                 <>
-                  {/* Search + bulk actions */}
                   <div className="flex items-center gap-2 mb-3">
                     <input
                       value={channelSearch}
@@ -179,7 +209,6 @@ export function SlackImportModal({ onClose }: Props) {
                     </button>
                   </div>
 
-                  {/* Channel list */}
                   <div className="bg-[#09090b] border border-white/[0.07] rounded-lg overflow-hidden max-h-64 overflow-y-auto">
                     {filtered.length === 0 ? (
                       <p className="text-xs text-[#52525b] px-3 py-6 text-center">No channels found</p>
@@ -214,7 +243,73 @@ export function SlackImportModal({ onClose }: Props) {
             </div>
           )}
 
-          {/* ── Step: Importing ──────────────────────────────────────── */}
+          {/* ── Step 2b: Delivery preference ─────────────────────────── */}
+          {step === 'delivery' && (
+            <div className="space-y-4">
+              <div>
+                <p className="text-xs font-semibold tracking-[0.06em] uppercase text-[#52525b] mb-1">Delivery method</p>
+                <p className="text-xs text-[#71717a] mb-3">
+                  This controls how your team receives their weekly check-in. You can change this per person later.
+                </p>
+              </div>
+
+              <label
+                className={`flex items-start gap-3.5 bg-[#09090b] border rounded-xl px-5 py-4 cursor-pointer transition-colors ${
+                  delivery === 'email'
+                    ? 'border-accent/40 bg-accent/[0.03]'
+                    : 'border-white/[0.08] hover:border-white/[0.18]'
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="delivery"
+                  checked={delivery === 'email'}
+                  onChange={() => setDelivery('email')}
+                  className="mt-0.5 accent-accent shrink-0"
+                />
+                <div>
+                  <p className="text-sm font-semibold text-white mb-0.5 flex items-center gap-2">
+                    Email
+                    <span className="text-[10px] font-semibold text-accent bg-accent/10 border border-accent/20 px-1.5 py-0.5 rounded-full">Most common</span>
+                  </p>
+                  <p className="text-xs text-[#71717a]">
+                    Check-ins arrive in each person's inbox. They reply by email — no new tools to learn.
+                  </p>
+                </div>
+              </label>
+
+              <label
+                className={`flex items-start gap-3.5 bg-[#09090b] border rounded-xl px-5 py-4 cursor-pointer transition-colors ${
+                  delivery === 'slack'
+                    ? 'border-[#4A154B]/50 bg-[#4A154B]/[0.05]'
+                    : 'border-white/[0.08] hover:border-white/[0.18]'
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="delivery"
+                  checked={delivery === 'slack'}
+                  onChange={() => setDelivery('slack')}
+                  className="mt-0.5 accent-[#4A154B] shrink-0"
+                />
+                <div>
+                  <p className="text-sm font-semibold text-white mb-0.5 flex items-center gap-2">
+                    Slack DM
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="#a1a1aa"><path d="M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523A2.528 2.528 0 0 1 0 15.165a2.527 2.527 0 0 1 2.522-2.52h2.52v2.52zM6.313 15.165a2.527 2.527 0 0 1 2.521-2.52 2.527 2.527 0 0 1 2.521 2.52v6.313A2.528 2.528 0 0 1 8.834 24a2.528 2.528 0 0 1-2.521-2.522v-6.313zM8.834 5.042a2.528 2.528 0 0 1-2.521-2.52A2.528 2.528 0 0 1 8.834 0a2.528 2.528 0 0 1 2.521 2.522v2.52H8.834zM8.834 6.313a2.528 2.528 0 0 1 2.521 2.521 2.528 2.528 0 0 1-2.521 2.521H2.522A2.528 2.528 0 0 1 0 8.834a2.528 2.528 0 0 1 2.522-2.521h6.312zM18.956 8.834a2.528 2.528 0 0 1 2.522-2.521A2.528 2.528 0 0 1 24 8.834a2.528 2.528 0 0 1-2.522 2.521h-2.522V8.834zM17.688 8.834a2.528 2.528 0 0 1-2.523 2.521 2.527 2.527 0 0 1-2.52-2.521V2.522A2.527 2.527 0 0 1 15.165 0a2.528 2.528 0 0 1 2.523 2.522v6.312zM15.165 18.956a2.528 2.528 0 0 1 2.523 2.522A2.528 2.528 0 0 1 15.165 24a2.527 2.527 0 0 1-2.52-2.522v-2.522h2.52zM15.165 17.688a2.527 2.527 0 0 1-2.52-2.523 2.526 2.526 0 0 1 2.52-2.52h6.313A2.527 2.527 0 0 1 24 15.165a2.528 2.528 0 0 1-2.522 2.523h-6.313z"/></svg>
+                  </p>
+                  <p className="text-xs text-[#71717a]">
+                    Check-ins arrive as a Slack DM from the Win The Week bot. People reply right in Slack.
+                  </p>
+                </div>
+              </label>
+
+              <p className="text-[11px] text-[#3f3f46]">
+                Either way, we're using Slack just to pull your team roster right now. You can switch individual people between email and Slack later in their profile.
+              </p>
+            </div>
+          )}
+
+          {/* ── Step 3: Importing ────────────────────────────────────── */}
           {step === 'importing' && (
             <div className="py-12 text-center">
               <div className="inline-block w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin mb-3" />
@@ -223,7 +318,7 @@ export function SlackImportModal({ onClose }: Props) {
             </div>
           )}
 
-          {/* ── Step: Done ───────────────────────────────────────────── */}
+          {/* ── Step 4: Done ─────────────────────────────────────────── */}
           {step === 'done' && result && (
             <div className="py-6 text-center">
               <div className="w-12 h-12 rounded-full bg-accent/10 border border-accent/20 flex items-center justify-center mx-auto mb-4">
@@ -239,7 +334,11 @@ export function SlackImportModal({ onClose }: Props) {
                 {result.existing > 0 && ` — ${result.existing} already existed`}
                 {result.new > 0 && ' — welcome emails sent'}
               </p>
-              <p className="text-xs text-[#52525b] mt-2">All imported users have Slack linked automatically</p>
+              <p className="text-xs text-[#52525b] mt-3">
+                {result.delivery === 'slack'
+                  ? 'Check-ins will be delivered via Slack DM'
+                  : 'Check-ins will be delivered via email'}
+              </p>
             </div>
           )}
         </div>
@@ -253,15 +352,15 @@ export function SlackImportModal({ onClose }: Props) {
 
         {/* Actions */}
         <div className="px-6 py-4 border-t border-white/[0.07] flex items-center justify-between">
-          {step === 'channels' && !channelsLoading && (
+          {(step === 'channels' || step === 'delivery') && (
             <button
-              onClick={() => { setStep('choose'); setSelectedChannels(new Set()); setChannelSearch('') }}
+              onClick={goBack}
               className="text-sm text-[#71717a] hover:text-white transition-colors"
             >
               ← Back
             </button>
           )}
-          {step !== 'channels' && <div />}
+          {step !== 'channels' && step !== 'delivery' && <div />}
 
           <div className="flex items-center gap-3">
             <button onClick={onClose} className="text-sm text-[#71717a] hover:text-white transition-colors">
@@ -269,11 +368,19 @@ export function SlackImportModal({ onClose }: Props) {
             </button>
             {step === 'channels' && !channelsLoading && (
               <button
-                onClick={() => doImport('channels')}
+                onClick={confirmChannels}
                 disabled={selectedChannels.size === 0}
                 className="bg-white text-black font-semibold text-sm px-5 py-2.5 rounded-md hover:bg-white/90 transition-colors disabled:opacity-50"
               >
-                Import from {selectedChannels.size} channel{selectedChannels.size !== 1 ? 's' : ''}
+                Continue with {selectedChannels.size} channel{selectedChannels.size !== 1 ? 's' : ''}
+              </button>
+            )}
+            {step === 'delivery' && (
+              <button
+                onClick={doImport}
+                className="bg-white text-black font-semibold text-sm px-5 py-2.5 rounded-md hover:bg-white/90 transition-colors"
+              >
+                Import {importMode === 'all' ? 'all' : `from ${selectedChannels.size} channel${selectedChannels.size !== 1 ? 's' : ''}`}
               </button>
             )}
           </div>

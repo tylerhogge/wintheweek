@@ -3,15 +3,14 @@
  *
  * Imports employees from a connected Slack workspace.
  *
- * Two modes:
- *   { mode: 'all' }               — imports every real user in the workspace
- *   { mode: 'channels', channel_ids: ['C123', ...] }  — imports members of specific channels
+ * Body:
+ *   mode: 'all' | 'channels'
+ *   channel_ids?: string[]           (required when mode is 'channels')
+ *   delivery: 'email' | 'slack'      (how check-ins should be delivered)
  *
- * For each user imported:
- *   - Skips bots, deactivated users, and users without email
- *   - Upserts into the employees table (dedupes by org_id + email)
- *   - Sets slack_user_id automatically
- *   - Uses channel name as the `team` field (channel mode only)
+ * When delivery is 'slack', imported employees get their slack_user_id set
+ * so check-ins are delivered via Slack DM. When 'email', Slack is only used
+ * as an import source — employees receive check-ins via email.
  */
 
 import { NextResponse } from 'next/server'
@@ -43,6 +42,7 @@ export async function POST(req: Request) {
   const body = await req.json()
   const mode: 'all' | 'channels' = body.mode
   const channelIds: string[] = body.channel_ids ?? []
+  const delivery: 'email' | 'slack' = body.delivery ?? 'email'
 
   if (mode !== 'all' && mode !== 'channels') {
     return NextResponse.json({ error: 'Invalid mode — must be "all" or "channels"' }, { status: 400 })
@@ -82,15 +82,12 @@ export async function POST(req: Request) {
       }))
   } else {
     // ── Import from specific channels ───────────────────────────────────
-    // Fetch channel names for team labels
     const allChannels = await listSlackChannels(token)
     const channelNameMap = new Map(allChannels.map((ch) => [ch.id, ch.name]))
 
-    // Fetch all workspace users upfront so we can resolve IDs → profiles
     const allUsers = await listSlackUsers(token)
     const userMap = new Map(allUsers.map((u) => [u.id, u]))
 
-    // Deduplicate across channels (a user in #eng and #product should appear once)
     const seen = new Set<string>()
 
     for (const channelId of channelIds) {
@@ -136,13 +133,14 @@ export async function POST(req: Request) {
   const existingEmails = new Set((existing ?? []).map((e: any) => e.email))
   const newMembers = membersToImport.filter((m) => !existingEmails.has(m.email.toLowerCase()))
 
-  // Build upsert rows
+  // Build upsert rows — only set slack_user_id if delivery method is Slack
+  const linkSlack = delivery === 'slack'
   const rows = membersToImport.map((m) => ({
     org_id: ctx.orgId,
     name: m.name,
     email: m.email.toLowerCase(),
     team: m.team,
-    slack_user_id: m.slack_user_id,
+    ...(linkSlack && { slack_user_id: m.slack_user_id }),
     active: true,
   }))
 
@@ -155,17 +153,17 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
-  // For existing employees, also update their slack_user_id if not set
-  // (ignoreDuplicates: false means upsert will update, but only if we have the right merge behavior)
-  // Let's explicitly update slack_user_id for existing employees who don't have one
-  for (const m of membersToImport) {
-    if (existingEmails.has(m.email.toLowerCase())) {
-      await supabase
-        .from('employees')
-        .update({ slack_user_id: m.slack_user_id })
-        .eq('org_id', ctx.orgId)
-        .eq('email', m.email.toLowerCase())
-        .is('slack_user_id', null)
+  // If Slack delivery, also update slack_user_id for existing employees who don't have one
+  if (linkSlack) {
+    for (const m of membersToImport) {
+      if (existingEmails.has(m.email.toLowerCase())) {
+        await supabase
+          .from('employees')
+          .update({ slack_user_id: m.slack_user_id })
+          .eq('org_id', ctx.orgId)
+          .eq('email', m.email.toLowerCase())
+          .is('slack_user_id', null)
+      }
     }
   }
 
@@ -173,7 +171,7 @@ export async function POST(req: Request) {
     action: 'slack.import',
     actorId: ctx.userId,
     orgId: ctx.orgId,
-    metadata: { mode, total: rows.length, new: newMembers.length, channels: mode === 'channels' ? channelIds : undefined },
+    metadata: { mode, delivery, total: rows.length, new: newMembers.length, channels: mode === 'channels' ? channelIds : undefined },
   })
 
   // Send welcome emails to newly added members (non-blocking)
@@ -207,6 +205,6 @@ export async function POST(req: Request) {
     imported: rows.length,
     new: newMembers.length,
     existing: rows.length - newMembers.length,
-    slack_synced: rows.length,
+    delivery,
   })
 }

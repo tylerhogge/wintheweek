@@ -89,7 +89,7 @@ export function TeamClient({ active, inactive, allTeams, hasSlack }: Props) {
                       <p className="text-sm font-semibold text-white">Import from Slack</p>
                       <span className="text-[10px] font-semibold text-accent bg-accent/10 border border-accent/20 px-1.5 py-0.5 rounded-full">Recommended</span>
                     </div>
-                    <p className="text-xs text-[#a1a1aa]">Pull everyone from your workspace, or pick specific channels. Slack DMs are linked automatically.</p>
+                    <p className="text-xs text-[#a1a1aa]">Pull your team roster from Slack — everyone, or pick specific channels. You choose email vs. Slack delivery next.</p>
                   </div>
                   <span className="text-[#52525b] group-hover:text-white transition-colors text-lg shrink-0">→</span>
                 </div>
@@ -111,7 +111,7 @@ export function TeamClient({ active, inactive, allTeams, hasSlack }: Props) {
                       <p className="text-sm font-semibold text-white">Connect Slack and import your team</p>
                       <span className="text-[10px] font-semibold text-accent bg-accent/10 border border-accent/20 px-1.5 py-0.5 rounded-full">Fastest</span>
                     </div>
-                    <p className="text-xs text-[#a1a1aa]">Connect your Slack workspace, then import everyone — or pick specific channels. Takes 30 seconds.</p>
+                    <p className="text-xs text-[#a1a1aa]">Connect your Slack workspace to pull your team roster in seconds. You'll choose email vs. Slack delivery next.</p>
                   </div>
                   <span className="text-[#52525b] group-hover:text-white transition-colors text-lg shrink-0">→</span>
                 </div>
