@@ -148,6 +148,11 @@ export async function POST(req: Request) {
         submissionId = submission.id
       }
 
+      // Stable thread anchor for the employee's check-in conversation.
+      // Both the campaign email and any manager reply include this in References
+      // so Gmail groups them in one thread.
+      const checkinAnchor = `<wtw-checkin-${submissionId}@wintheweek.co>`
+
       let sendError: string | null = null
       let resendEmailId: string | null = null
 
@@ -179,6 +184,7 @@ export async function POST(req: Request) {
             html,
             text,
             headers: {
+              'References': checkinAnchor,
               'Thread-Index': createInitialThreadIndex(),
               'Thread-Topic': campaign.subject,
             },

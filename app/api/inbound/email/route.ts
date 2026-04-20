@@ -583,10 +583,20 @@ async function handleManagerReply(responseId: string, rawBody: string) {
     ? storedThreadTopic
     : (campaignSubject ? `Re: ${campaignSubject}` : 'Re: Your weekly update')
 
+  // Build a stable anchor so Gmail threads the manager reply with the
+  // original campaign email, even if we didn't capture thread_message_id.
+  const submissionId = (response as any).submission_id
+  const checkinAnchor = `<wtw-checkin-${submissionId}@wintheweek.co>`
+
   const outboundHeaders: Record<string, string> = {}
   if (threadMessageId) {
     outboundHeaders['In-Reply-To'] = threadMessageId
-    outboundHeaders['References'] = threadMessageId
+    // Include both the captured Message-ID and the stable anchor
+    outboundHeaders['References'] = `${checkinAnchor} ${threadMessageId}`
+  } else {
+    // No captured Message-ID — use just the stable anchor
+    outboundHeaders['In-Reply-To'] = checkinAnchor
+    outboundHeaders['References'] = checkinAnchor
   }
   if (storedThreadHeaders['thread-topic']) outboundHeaders['Thread-Topic'] = storedThreadHeaders['thread-topic']
   if (storedThreadHeaders['thread-index']) outboundHeaders['Thread-Index'] = extendThreadIndex(storedThreadHeaders['thread-index'])
