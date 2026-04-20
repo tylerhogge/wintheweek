@@ -67,5 +67,17 @@ export async function GET(req: NextRequest) {
     body: JSON.stringify({ org_id: profile.org_id }),
   }).catch((err) => console.error('[Slack OAuth] Sync trigger failed:', err))
 
+  // If the org has no employees yet, redirect straight to team import
+  // so the admin can immediately import from Slack
+  const { count } = await supabase
+    .from('employees')
+    .select('id', { count: 'exact', head: true })
+    .eq('org_id', profile.org_id)
+    .eq('active', true)
+
+  if (count === 0) {
+    redirect('/team?slack_import=1')
+  }
+
   redirect('/settings?slack=connected')
 }

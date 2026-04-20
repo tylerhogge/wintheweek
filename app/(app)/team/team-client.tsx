@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useSearchParams, useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
@@ -13,6 +13,13 @@ const ImportModal = dynamic(() => import('@/components/team/import-modal').then(
 const SlackImportModal = dynamic(() => import('@/components/team/slack-import-modal').then(m => ({ default: m.SlackImportModal })))
 
 type Props = { active: Employee[]; inactive: Employee[]; allTeams: string[]; hasSlack?: boolean }
+
+// ── Slack icon reused across the component ───────────────────────────────
+function SlackIcon({ size = 12 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor"><path d="M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523A2.528 2.528 0 0 1 0 15.165a2.527 2.527 0 0 1 2.522-2.52h2.52v2.52zM6.313 15.165a2.527 2.527 0 0 1 2.521-2.52 2.527 2.527 0 0 1 2.521 2.52v6.313A2.528 2.528 0 0 1 8.834 24a2.528 2.528 0 0 1-2.521-2.522v-6.313zM8.834 5.042a2.528 2.528 0 0 1-2.521-2.52A2.528 2.528 0 0 1 8.834 0a2.528 2.528 0 0 1 2.521 2.522v2.52H8.834zM8.834 6.313a2.528 2.528 0 0 1 2.521 2.521 2.528 2.528 0 0 1-2.521 2.521H2.522A2.528 2.528 0 0 1 0 8.834a2.528 2.528 0 0 1 2.522-2.521h6.312zM18.956 8.834a2.528 2.528 0 0 1 2.522-2.521A2.528 2.528 0 0 1 24 8.834a2.528 2.528 0 0 1-2.522 2.521h-2.522V8.834zM17.688 8.834a2.528 2.528 0 0 1-2.523 2.521 2.527 2.527 0 0 1-2.52-2.521V2.522A2.527 2.527 0 0 1 15.165 0a2.528 2.528 0 0 1 2.523 2.522v6.312zM15.165 18.956a2.528 2.528 0 0 1 2.523 2.522A2.528 2.528 0 0 1 15.165 24a2.527 2.527 0 0 1-2.52-2.522v-2.522h2.52zM15.165 17.688a2.527 2.527 0 0 1-2.52-2.523 2.526 2.526 0 0 1 2.52-2.52h6.313A2.527 2.527 0 0 1 24 15.165a2.528 2.528 0 0 1-2.522 2.523h-6.313z"/></svg>
+  )
+}
 
 // ── Manager badge shown inline next to name ───────────────────────────────
 function ManagerBadge({ teams }: { teams: string[] }) {
@@ -34,6 +41,16 @@ export function TeamClient({ active, inactive, allTeams, hasSlack }: Props) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const isOnboarding = searchParams.get('onboarding') === '1'
+  const slackImportParam = searchParams.get('slack_import') === '1'
+
+  // Auto-open Slack import modal when redirected from Slack OAuth
+  useEffect(() => {
+    if (slackImportParam && hasSlack) {
+      setShowSlackImport(true)
+    }
+  }, [slackImportParam, hasSlack])
+
+  const isEmpty = active.length === 0
 
   return (
     <>
@@ -42,46 +59,145 @@ export function TeamClient({ active, inactive, allTeams, hasSlack }: Props) {
       {showImportModal && <ImportModal onClose={() => setShowImportModal(false)} />}
       {showSlackImport && <SlackImportModal onClose={() => setShowSlackImport(false)} />}
 
-      {/* Onboarding welcome banner */}
-      {isOnboarding && active.length === 0 && (
-        <div className="mb-6 bg-accent/10 border border-accent/20 rounded-xl px-5 py-4 flex items-start gap-3">
-          <span className="text-xl mt-0.5">🎉</span>
-          <div>
-            <p className="text-sm font-semibold text-white mb-0.5">Workspace created! Now add your team.</p>
-            <p className="text-sm text-[#a1a1aa]">Add the people who will receive weekly check-in emails. You can always add more later.</p>
+      {/* ── Empty state: import hub ──────────────────────────────────────── */}
+      {isEmpty && (
+        <div className="mb-8">
+          {/* Onboarding header */}
+          <div className="mb-6">
+            <h1 className="text-[22px] font-bold tracking-[-0.03em] mb-1">Add your team</h1>
+            <p className="text-sm text-[#71717a]">
+              {isOnboarding
+                ? 'Import the people who\'ll receive weekly check-ins. This takes about 30 seconds.'
+                : 'Add the people who will receive weekly check-in emails.'}
+            </p>
+          </div>
+
+          {/* Import options */}
+          <div className="space-y-3">
+            {/* Option 1: Slack (featured) — shown if connected */}
+            {hasSlack && (
+              <button
+                onClick={() => setShowSlackImport(true)}
+                className="w-full text-left bg-[#4A154B]/10 border border-[#4A154B]/30 hover:border-[#4A154B]/50 rounded-xl px-5 py-4 transition-colors group"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-lg bg-[#4A154B] flex items-center justify-center shrink-0">
+                    <SlackIcon size={18} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <p className="text-sm font-semibold text-white">Import from Slack</p>
+                      <span className="text-[10px] font-semibold text-accent bg-accent/10 border border-accent/20 px-1.5 py-0.5 rounded-full">Recommended</span>
+                    </div>
+                    <p className="text-xs text-[#a1a1aa]">Pull everyone from your workspace, or pick specific channels. Slack DMs are linked automatically.</p>
+                  </div>
+                  <span className="text-[#52525b] group-hover:text-white transition-colors text-lg shrink-0">→</span>
+                </div>
+              </button>
+            )}
+
+            {/* Option 1 alt: Connect Slack first — shown if NOT connected */}
+            {!hasSlack && (
+              <a
+                href="/api/slack/install"
+                className="block w-full text-left bg-[#4A154B]/10 border border-[#4A154B]/30 hover:border-[#4A154B]/50 rounded-xl px-5 py-4 transition-colors group"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-lg bg-[#4A154B] flex items-center justify-center shrink-0">
+                    <SlackIcon size={18} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <p className="text-sm font-semibold text-white">Connect Slack and import your team</p>
+                      <span className="text-[10px] font-semibold text-accent bg-accent/10 border border-accent/20 px-1.5 py-0.5 rounded-full">Fastest</span>
+                    </div>
+                    <p className="text-xs text-[#a1a1aa]">Connect your Slack workspace, then import everyone — or pick specific channels. Takes 30 seconds.</p>
+                  </div>
+                  <span className="text-[#52525b] group-hover:text-white transition-colors text-lg shrink-0">→</span>
+                </div>
+              </a>
+            )}
+
+            {/* Option 2: CSV / Spreadsheet import */}
+            <button
+              onClick={() => setShowImportModal(true)}
+              className="w-full text-left bg-[#09090b] border border-white/[0.08] hover:border-white/[0.18] rounded-xl px-5 py-4 transition-colors group"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-lg bg-white/[0.04] border border-white/[0.08] flex items-center justify-center shrink-0 text-[#a1a1aa]">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                    <line x1="16" x2="8" y1="13" y2="13"/>
+                    <line x1="16" x2="8" y1="17" y2="17"/>
+                    <line x1="10" x2="8" y1="9" y2="9"/>
+                  </svg>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-white mb-0.5">Import from CSV or spreadsheet</p>
+                  <p className="text-xs text-[#71717a]">Paste from Excel / Google Sheets, upload a CSV, or link a Google Sheet directly.</p>
+                </div>
+                <span className="text-[#52525b] group-hover:text-white transition-colors text-lg shrink-0">→</span>
+              </div>
+            </button>
+
+            {/* Option 3: Add manually */}
+            <button
+              onClick={() => setShowModal(true)}
+              className="w-full text-left bg-[#09090b] border border-white/[0.08] hover:border-white/[0.18] rounded-xl px-5 py-4 transition-colors group"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-lg bg-white/[0.04] border border-white/[0.08] flex items-center justify-center shrink-0 text-[#a1a1aa]">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <line x1="19" x2="19" y1="8" y2="14"/>
+                    <line x1="22" x2="16" y1="11" y2="11"/>
+                  </svg>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-white mb-0.5">Add members one by one</p>
+                  <p className="text-xs text-[#71717a]">Type in each person's name and email. Best for small teams.</p>
+                </div>
+                <span className="text-[#52525b] group-hover:text-white transition-colors text-lg shrink-0">→</span>
+              </div>
+            </button>
           </div>
         </div>
       )}
 
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-8">
-        <div>
-          <h1 className="text-[22px] font-bold tracking-[-0.03em] mb-0.5">Team</h1>
-          <p className="text-sm text-[#71717a]">{active.length} active member{active.length !== 1 ? 's' : ''}</p>
-        </div>
-        <div className="flex items-center gap-2">
-          {hasSlack && (
+      {/* ── Normal header (when team has members) ─────────────────────────── */}
+      {!isEmpty && (
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-8">
+          <div>
+            <h1 className="text-[22px] font-bold tracking-[-0.03em] mb-0.5">Team</h1>
+            <p className="text-sm text-[#71717a]">{active.length} active member{active.length !== 1 ? 's' : ''}</p>
+          </div>
+          <div className="flex items-center gap-2">
+            {hasSlack && (
+              <button
+                onClick={() => setShowSlackImport(true)}
+                className="text-sm border border-white/10 text-[#a1a1aa] hover:text-white hover:border-white/20 px-4 py-2 rounded-md transition-colors flex items-center gap-1.5"
+              >
+                <SlackIcon size={12} />
+                Import from Slack
+              </button>
+            )}
             <button
-              onClick={() => setShowSlackImport(true)}
-              className="text-sm border border-white/10 text-[#a1a1aa] hover:text-white hover:border-white/20 px-4 py-2 rounded-md transition-colors flex items-center gap-1.5"
+              onClick={() => setShowImportModal(true)}
+              className="text-sm border border-white/10 text-[#a1a1aa] hover:text-white hover:border-white/20 px-4 py-2 rounded-md transition-colors"
             >
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" className="shrink-0"><path d="M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523A2.528 2.528 0 0 1 0 15.165a2.527 2.527 0 0 1 2.522-2.52h2.52v2.52zM6.313 15.165a2.527 2.527 0 0 1 2.521-2.52 2.527 2.527 0 0 1 2.521 2.52v6.313A2.528 2.528 0 0 1 8.834 24a2.528 2.528 0 0 1-2.521-2.522v-6.313zM8.834 5.042a2.528 2.528 0 0 1-2.521-2.52A2.528 2.528 0 0 1 8.834 0a2.528 2.528 0 0 1 2.521 2.522v2.52H8.834zM8.834 6.313a2.528 2.528 0 0 1 2.521 2.521 2.528 2.528 0 0 1-2.521 2.521H2.522A2.528 2.528 0 0 1 0 8.834a2.528 2.528 0 0 1 2.522-2.521h6.312zM18.956 8.834a2.528 2.528 0 0 1 2.522-2.521A2.528 2.528 0 0 1 24 8.834a2.528 2.528 0 0 1-2.522 2.521h-2.522V8.834zM17.688 8.834a2.528 2.528 0 0 1-2.523 2.521 2.527 2.527 0 0 1-2.52-2.521V2.522A2.527 2.527 0 0 1 15.165 0a2.528 2.528 0 0 1 2.523 2.522v6.312zM15.165 18.956a2.528 2.528 0 0 1 2.523 2.522A2.528 2.528 0 0 1 15.165 24a2.527 2.527 0 0 1-2.52-2.522v-2.522h2.52zM15.165 17.688a2.527 2.527 0 0 1-2.52-2.523 2.526 2.526 0 0 1 2.52-2.52h6.313A2.527 2.527 0 0 1 24 15.165a2.528 2.528 0 0 1-2.522 2.523h-6.313z"/></svg>
-              Import from Slack
+              Bulk Import
             </button>
-          )}
-          <button
-            onClick={() => setShowImportModal(true)}
-            className="text-sm border border-white/10 text-[#a1a1aa] hover:text-white hover:border-white/20 px-4 py-2 rounded-md transition-colors"
-          >
-            Bulk Import
-          </button>
-          <button
-            onClick={() => setShowModal(true)}
-            className="text-sm font-semibold bg-white text-black px-4 py-2 rounded-md hover:bg-white/90 transition-colors flex items-center gap-1.5"
-          >
-            <span className="text-lg leading-none">+</span> Add member
-          </button>
+            <button
+              onClick={() => setShowModal(true)}
+              className="text-sm font-semibold bg-white text-black px-4 py-2 rounded-md hover:bg-white/90 transition-colors flex items-center gap-1.5"
+            >
+              <span className="text-lg leading-none">+</span> Add member
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Manager summary — only shown when managers exist */}
       {(() => {
@@ -125,15 +241,8 @@ export function TeamClient({ active, inactive, allTeams, hasSlack }: Props) {
         </div>
 
         {active.length === 0 ? (
-          <div className="py-16 text-center">
-            <p className="text-sm font-medium text-white mb-1">No team members yet</p>
-            <p className="text-sm text-[#71717a] mb-5">Add your first member to start sending check-ins.</p>
-            <button
-              onClick={() => setShowModal(true)}
-              className="text-sm font-semibold bg-accent text-black px-4 py-2 rounded-md hover:bg-accent/90 transition-colors"
-            >
-              Add first member →
-            </button>
+          <div className="py-12 text-center">
+            <p className="text-sm text-[#52525b]">No team members yet. Use the options above to get started.</p>
           </div>
         ) : (
           active.map((emp: Employee, i: number): React.ReactNode => {
