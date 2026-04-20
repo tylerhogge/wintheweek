@@ -9,17 +9,19 @@ import { SlackConnect } from '@/components/settings/slack-connect'
 import { ShameSettings } from '@/components/settings/shame-settings'
 import { PrioritiesEditor } from '@/components/settings/priorities-editor'
 import { BillingSection } from '@/components/settings/billing-section'
+import { DeliveryMethod } from '@/components/settings/delivery-method'
 import type { Priority } from '@/types'
 
 // ── Heavy data section — streams in while shell renders instantly ──────────
 async function SettingsContent({ orgId, org }: { orgId: string; org: any }) {
   const service = createServiceClient()
   const [orgData, slackData, employeeData] = await Promise.all([
-    service.from('organizations').select('digest_notify, notify_on_reply, shame_enabled, shame_channel_id, shame_channel_name, shame_email_enabled, auto_nudge, priorities, stripe_customer_id, stripe_subscription_id, plan, plan_status, trial_ends_at, current_period_end').eq('id', orgId).single(),
+    service.from('organizations').select('default_delivery, digest_notify, notify_on_reply, shame_enabled, shame_channel_id, shame_channel_name, shame_email_enabled, auto_nudge, priorities, stripe_customer_id, stripe_subscription_id, plan, plan_status, trial_ends_at, current_period_end').eq('id', orgId).single(),
     service.from('slack_integrations').select('team_name').eq('org_id', orgId).single(),
     service.from('employees').select('slack_user_id, name').eq('org_id', orgId).eq('active', true),
   ])
 
+  const defaultDelivery = (orgData.data?.default_delivery as 'email' | 'slack') ?? 'email'
   const digestNotify = orgData.data?.digest_notify ?? false
   const notifyOnReply = orgData.data?.notify_on_reply ?? true
   const shameEnabled = orgData.data?.shame_enabled ?? false
@@ -65,6 +67,20 @@ async function SettingsContent({ orgId, org }: { orgId: string; org: any }) {
         />
       </section>
 
+      {/* Check-in Delivery */}
+      <section className="mb-8">
+        <p className="text-xs font-semibold tracking-[0.07em] uppercase text-[#71717a] mb-4">Check-in delivery</p>
+        <div className="bg-surface border border-white/[0.07] rounded-xl p-5">
+          <div className="mb-4">
+            <p className="text-sm font-medium">Delivery method</p>
+            <p className="text-xs text-[#71717a] mt-0.5">
+              How your team receives their weekly check-in. Changing this applies to all future check-ins.
+            </p>
+          </div>
+          <DeliveryMethod initialValue={defaultDelivery} hasSlack={!!slackIntegration} />
+        </div>
+      </section>
+
       {/* CEO Priorities */}
       <section className="mb-8">
         <p className="text-xs font-semibold tracking-[0.07em] uppercase text-[#71717a] mb-4">CEO Priorities</p>
@@ -88,8 +104,9 @@ async function SettingsContent({ orgId, org }: { orgId: string; org: any }) {
               <div>
                 <p className="text-sm font-medium">Slack</p>
                 <p className="text-xs text-[#71717a] mt-0.5 max-w-[360px]">
-                  Send check-ins and nudges via Slack DM instead of email.
-                  Employees matched by email address — unmatched members still receive email.
+                  {defaultDelivery === 'slack'
+                    ? 'Connected — check-ins and nudges are delivered via Slack DM. Unmatched members receive email.'
+                    : 'Connect Slack to import your team roster and optionally deliver check-ins via DM.'}
                 </p>
               </div>
             </div>
