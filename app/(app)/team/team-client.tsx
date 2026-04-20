@@ -10,8 +10,9 @@ import { getInitials, avatarGradient } from '@/lib/utils'
 const AddMemberModal = dynamic(() => import('@/components/team/add-member-modal').then(m => ({ default: m.AddMemberModal })))
 const EditMemberModal = dynamic(() => import('@/components/team/edit-member-modal').then(m => ({ default: m.EditMemberModal })))
 const ImportModal = dynamic(() => import('@/components/team/import-modal').then(m => ({ default: m.ImportModal })))
+const SlackImportModal = dynamic(() => import('@/components/team/slack-import-modal').then(m => ({ default: m.SlackImportModal })))
 
-type Props = { active: Employee[]; inactive: Employee[]; allTeams: string[] }
+type Props = { active: Employee[]; inactive: Employee[]; allTeams: string[]; hasSlack?: boolean }
 
 // ── Manager badge shown inline next to name ───────────────────────────────
 function ManagerBadge({ teams }: { teams: string[] }) {
@@ -25,9 +26,10 @@ function ManagerBadge({ teams }: { teams: string[] }) {
   )
 }
 
-export function TeamClient({ active, inactive, allTeams }: Props) {
+export function TeamClient({ active, inactive, allTeams, hasSlack }: Props) {
   const [showModal, setShowModal] = useState(false)
   const [showImportModal, setShowImportModal] = useState(false)
+  const [showSlackImport, setShowSlackImport] = useState(false)
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null)
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -38,6 +40,7 @@ export function TeamClient({ active, inactive, allTeams }: Props) {
       {showModal && <AddMemberModal onClose={() => setShowModal(false)} allTeams={allTeams} />}
       {editingEmployee && <EditMemberModal employee={editingEmployee} allTeams={allTeams} onClose={() => setEditingEmployee(null)} />}
       {showImportModal && <ImportModal onClose={() => setShowImportModal(false)} />}
+      {showSlackImport && <SlackImportModal onClose={() => setShowSlackImport(false)} />}
 
       {/* Onboarding welcome banner */}
       {isOnboarding && active.length === 0 && (
@@ -56,6 +59,15 @@ export function TeamClient({ active, inactive, allTeams }: Props) {
           <p className="text-sm text-[#71717a]">{active.length} active member{active.length !== 1 ? 's' : ''}</p>
         </div>
         <div className="flex items-center gap-2">
+          {hasSlack && (
+            <button
+              onClick={() => setShowSlackImport(true)}
+              className="text-sm border border-white/10 text-[#a1a1aa] hover:text-white hover:border-white/20 px-4 py-2 rounded-md transition-colors flex items-center gap-1.5"
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" className="shrink-0"><path d="M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523A2.528 2.528 0 0 1 0 15.165a2.527 2.527 0 0 1 2.522-2.52h2.52v2.52zM6.313 15.165a2.527 2.527 0 0 1 2.521-2.52 2.527 2.527 0 0 1 2.521 2.52v6.313A2.528 2.528 0 0 1 8.834 24a2.528 2.528 0 0 1-2.521-2.522v-6.313zM8.834 5.042a2.528 2.528 0 0 1-2.521-2.52A2.528 2.528 0 0 1 8.834 0a2.528 2.528 0 0 1 2.521 2.522v2.52H8.834zM8.834 6.313a2.528 2.528 0 0 1 2.521 2.521 2.528 2.528 0 0 1-2.521 2.521H2.522A2.528 2.528 0 0 1 0 8.834a2.528 2.528 0 0 1 2.522-2.521h6.312zM18.956 8.834a2.528 2.528 0 0 1 2.522-2.521A2.528 2.528 0 0 1 24 8.834a2.528 2.528 0 0 1-2.522 2.521h-2.522V8.834zM17.688 8.834a2.528 2.528 0 0 1-2.523 2.521 2.527 2.527 0 0 1-2.52-2.521V2.522A2.527 2.527 0 0 1 15.165 0a2.528 2.528 0 0 1 2.523 2.522v6.312zM15.165 18.956a2.528 2.528 0 0 1 2.523 2.522A2.528 2.528 0 0 1 15.165 24a2.527 2.527 0 0 1-2.52-2.522v-2.522h2.52zM15.165 17.688a2.527 2.527 0 0 1-2.52-2.523 2.526 2.526 0 0 1 2.52-2.52h6.313A2.527 2.527 0 0 1 24 15.165a2.528 2.528 0 0 1-2.522 2.523h-6.313z"/></svg>
+              Import from Slack
+            </button>
+          )}
           <button
             onClick={() => setShowImportModal(true)}
             className="text-sm border border-white/10 text-[#a1a1aa] hover:text-white hover:border-white/20 px-4 py-2 rounded-md transition-colors"

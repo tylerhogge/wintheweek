@@ -45,6 +45,7 @@ export function buildSlackOAuthUrl(): string {
     'im:write',
     'users:read',
     'users:read.email',
+    'channels:read',      // list channels + members for Slack import
   ].join(',')
 
   return (
@@ -326,4 +327,125 @@ export function buildWallOfShameBlocks(
   ]
 
   return { blocks, fallbackText }
+}
+
+// ── Slack workspace data fetchers (for employee import) ─────────────────
+
+export type SlackUser = {
+  id: string
+  name: string          // display_name or real_name
+  email: string | null
+  is_bot: boolean
+  deleted: boolean
+}
+
+export type SlackChannel = {
+  id: string
+  name: string
+  num_members: number
+  is_private: boolean
+}
+
+/**
+ * Fetches ALL real (non-bot, non-deactivated) users from a Slack workspace.
+ * Handles pagination via cursor.
+ */
+export async function listSlackUsers(token: string): Promise<SlackUser[]> {
+  const users: SlackUser[] = []
+  let cursor: string | undefined
+
+  do {
+    const params = new URLSearchParams({ limit: '200' })
+    if (cursor) params.set('cursor', cursor)
+
+    const res = await fetch(`https://slack.com/api/users.list?${params}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    const data = await res.json()
+    if (!data.ok) {
+      console.error('[slack] users.list failed:', data.error)
+      break
+    }
+
+    for (const m of data.members ?? []) {
+      users.push({
+        id: m.id,
+        name: m.profile?.real_name || m.profile?.display_name || m.name || '',
+        email: m.profile?.email ?? null,
+        is_bot: m.is_bot || m.id === 'USLACKBOT',
+        deleted: m.deleted,
+      })
+    }
+
+    cursor = data.response_metadata?.next_cursor || undefined
+  } while (cursor)
+
+  return users
+}
+
+/**
+ * Lists public channels in the workspace (requires channels:read scope).
+ */
+export async function listSlackChannels(token: string): Promise<SlackChannel[]> {
+  const channels: SlackChannel[] = []
+  let cursor: string | undefined
+
+  do {
+    const params = new URLSearchParams({
+      limit: '200',
+      types: 'public_channel',
+      exclude_archived: 'true',
+    })
+    if (cursor) params.set('cursor', cursor)
+
+    const res = await fetch(`https://slack.com/api/conversations.list?${params}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    const data = await res.json()
+    if (!data.ok) {
+      console.error('[slack] conversations.list failed:', data.error)
+      break
+    }
+
+    for (const ch of data.channels ?? []) {
+      channels.push({
+        id: ch.id,
+        name: ch.name,
+        num_members: ch.num_members ?? 0,
+        is_private: ch.is_private ?? false,
+      })
+    }
+
+    cursor = data.response_metadata?.next_cursor || undefined
+  } while (cursor)
+
+  // Sort by member count descending so most-populated channels appear first
+  return channels.sort((a, b) => b.num_members - a.num_members)
+}
+
+/**
+ * Gets all member IDs in a channel (paginated).
+ */
+export async function getSlackChannelMembers(token: string, channelId: string): Promise<string[]> {
+  const memberIds: string[] = []
+  let cursor: string | undefined
+
+  do {
+    const params = new URLSearchParams({ channel: channelId, limit: '200' })
+    if (cursor) params.set('cursor', cursor)
+
+    const res = await fetch(`https://slack.com/api/conversations.members?${params}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    const data = await res.json()
+    if (!data.ok) {
+      console.error(`[slack] conversations.members failed for ${channelId}:`, data.error)
+      break
+    }
+
+    memberIds.push(...(data.members ?? []))
+    cursor = data.response_metadata?.next_cursor || undefined
+  } while (cursor)
+
+  return memberIds
 }

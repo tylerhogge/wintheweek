@@ -20,6 +20,7 @@ export type AuditAction =
   | 'slack.connect'
   | 'slack.disconnect'
   | 'slack.sync'
+  | 'slack.import'
   | 'campaign.send_test'
   | 'insight.generate'
   | 'data.export'
