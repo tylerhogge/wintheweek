@@ -84,6 +84,15 @@ export async function POST(req: Request) {
       `[send-weekly] Campaign "${campaign.subject}" (tz=${tz}) matches day=${dayOfWeek} hour=${hour}. Sending...`
     )
 
+    // Fetch admin profile for the org so we can send from their name
+    const { data: adminProfile } = await supabase
+      .from('profiles')
+      .select('name, email')
+      .eq('org_id', campaign.org_id)
+      .limit(1)
+      .single()
+    const senderName = adminProfile?.name || process.env.FROM_NAME || 'Win The Week'
+
     // Fetch active employees — filtered by target_teams if set, otherwise all
     const employeeQuery = supabase
       .from('employees')
@@ -177,7 +186,7 @@ export async function POST(req: Request) {
           const replyTo = process.env.REPLY_TO_EMAIL ?? 'updates@wintheweek.co'
           const { subject, html, text } = buildCampaignEmail({ employeeName: employee.name, subject: campaign.subject, body: campaign.body, replyToAddress: replyTo })
           const { data: sendResult, error: emailErr } = await getResend().emails.send({
-            from: `${process.env.FROM_NAME ?? 'Win The Week'} <${process.env.FROM_EMAIL ?? 'updates@wintheweek.co'}>`,
+            from: `${senderName} <${process.env.FROM_EMAIL ?? 'updates@wintheweek.co'}>`,
             to: employee.email,
             replyTo,
             subject,
@@ -188,8 +197,9 @@ export async function POST(req: Request) {
               'Thread-Index': createInitialThreadIndex(),
               'Thread-Topic': campaign.subject,
             },
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            ...({ tracking: { open: true, click: false } } as any),
+            // Tracking pixels disabled — they trigger Gmail's Updates tab
+            // and Apple Mail Privacy Protection blocks them anyway.
+
           })
           if (emailErr) sendError = emailErr.message
           else resendEmailId = sendResult?.id ?? null
@@ -199,18 +209,19 @@ export async function POST(req: Request) {
         const replyTo = process.env.REPLY_TO_EMAIL ?? 'updates@wintheweek.co'
         const { subject, html, text } = buildCampaignEmail({ employeeName: employee.name, subject: campaign.subject, body: campaign.body, replyToAddress: replyTo })
         const { data: sendResult, error: emailErr } = await getResend().emails.send({
-          from: `${process.env.FROM_NAME ?? 'Win The Week'} <${process.env.FROM_EMAIL ?? 'updates@wintheweek.co'}>`,
+          from: `${senderName} <${process.env.FROM_EMAIL ?? 'updates@wintheweek.co'}>`,
           to: employee.email,
           replyTo,
           subject,
           html,
           text,
           headers: {
+            'References': checkinAnchor,
             'Thread-Index': createInitialThreadIndex(),
             'Thread-Topic': campaign.subject,
           },
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          ...({ tracking: { open: true, click: false } } as any),
+            // Tracking pixels disabled — they trigger Gmail's Updates tab
+            // and Apple Mail Privacy Protection blocks them anyway.
         })
         if (emailErr) sendError = emailErr.message
         else resendEmailId = sendResult?.id ?? null
