@@ -8,7 +8,7 @@ import { TeamClient } from './team-client'
 async function TeamContent({ orgId }: { orgId: string }) {
   const supabase = await createClient()
 
-  const [{ data: employees }, { data: slackIntegration }] = await Promise.all([
+  const [{ data: employees }, { data: slackIntegration }, { data: orgData }] = await Promise.all([
     supabase
       .from('employees')
       .select('id, org_id, name, email, team, function, active, slack_user_id, manager_of_teams, created_at')
@@ -19,6 +19,11 @@ async function TeamContent({ orgId }: { orgId: string }) {
       .select('id')
       .eq('org_id', orgId)
       .single(),
+    supabase
+      .from('organizations')
+      .select('default_delivery')
+      .eq('id', orgId)
+      .single(),
   ])
 
   const active = employees?.filter((e: Employee): boolean => e.active) ?? []
@@ -26,8 +31,9 @@ async function TeamContent({ orgId }: { orgId: string }) {
 
   // Unique team names across all active employees (for manager assignment UI)
   const allTeams = [...new Set(active.map((e) => e.team).filter(Boolean))] as string[]
+  const defaultDelivery = (orgData?.default_delivery as 'email' | 'slack') ?? 'email'
 
-  return <TeamClient active={active} inactive={inactive} allTeams={allTeams} hasSlack={!!slackIntegration} />
+  return <TeamClient active={active} inactive={inactive} allTeams={allTeams} hasSlack={!!slackIntegration} defaultDelivery={defaultDelivery} />
 }
 
 // ── Skeleton shown while TeamContent streams in ───────────────────────────

@@ -6,7 +6,7 @@ function slugify(name: string): string {
 }
 
 export async function POST(req: Request) {
-  const { company, yourName, priorities } = await req.json()
+  const { company, yourName, priorities, defaultDelivery } = await req.json()
 
   if (!company?.trim()) {
     return NextResponse.json({ error: 'Company name required' }, { status: 400 })
@@ -60,12 +60,16 @@ export async function POST(req: Request) {
     if (validPriorities.length === 0) validPriorities = null
   }
 
+  // Validate delivery method
+  const delivery = defaultDelivery === 'slack' ? 'slack' : 'email'
+
   // Create the organization
   const { data: org, error: orgErr } = await supabase
     .from('organizations')
     .insert({
       name: company.trim(),
       slug,
+      default_delivery: delivery,
       ...(validPriorities && { priorities: validPriorities }),
     })
     .select()

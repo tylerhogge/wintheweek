@@ -12,7 +12,7 @@ const EditMemberModal = dynamic(() => import('@/components/team/edit-member-moda
 const ImportModal = dynamic(() => import('@/components/team/import-modal').then(m => ({ default: m.ImportModal })))
 const SlackImportModal = dynamic(() => import('@/components/team/slack-import-modal').then(m => ({ default: m.SlackImportModal })))
 
-type Props = { active: Employee[]; inactive: Employee[]; allTeams: string[]; hasSlack?: boolean }
+type Props = { active: Employee[]; inactive: Employee[]; allTeams: string[]; hasSlack?: boolean; defaultDelivery?: 'email' | 'slack' }
 
 // ── Slack icon reused across the component ───────────────────────────────
 function SlackIcon({ size = 12 }: { size?: number }) {
@@ -33,7 +33,7 @@ function ManagerBadge({ teams }: { teams: string[] }) {
   )
 }
 
-export function TeamClient({ active, inactive, allTeams, hasSlack }: Props) {
+export function TeamClient({ active, inactive, allTeams, hasSlack, defaultDelivery = 'email' }: Props) {
   const [showModal, setShowModal] = useState(false)
   const [showImportModal, setShowImportModal] = useState(false)
   const [showSlackImport, setShowSlackImport] = useState(false)
@@ -57,7 +57,7 @@ export function TeamClient({ active, inactive, allTeams, hasSlack }: Props) {
       {showModal && <AddMemberModal onClose={() => setShowModal(false)} allTeams={allTeams} />}
       {editingEmployee && <EditMemberModal employee={editingEmployee} allTeams={allTeams} onClose={() => setEditingEmployee(null)} />}
       {showImportModal && <ImportModal onClose={() => setShowImportModal(false)} />}
-      {showSlackImport && <SlackImportModal onClose={() => setShowSlackImport(false)} />}
+      {showSlackImport && <SlackImportModal onClose={() => setShowSlackImport(false)} defaultDelivery={defaultDelivery} />}
 
       {/* ── Empty state: import hub ──────────────────────────────────────── */}
       {isEmpty && (
@@ -72,13 +72,17 @@ export function TeamClient({ active, inactive, allTeams, hasSlack }: Props) {
             </p>
           </div>
 
-          {/* Import options */}
+          {/* Import options — order and copy adapt to chosen delivery method */}
           <div className="space-y-3">
-            {/* Option 1: Slack (featured) — shown if connected */}
+            {/* Slack import: primary when delivery is 'slack', still shown for email as roster convenience */}
             {hasSlack && (
               <button
                 onClick={() => setShowSlackImport(true)}
-                className="w-full text-left bg-[#4A154B]/10 border border-[#4A154B]/30 hover:border-[#4A154B]/50 rounded-xl px-5 py-4 transition-colors group"
+                className={`w-full text-left border rounded-xl px-5 py-4 transition-colors group ${
+                  defaultDelivery === 'slack'
+                    ? 'bg-[#4A154B]/10 border-[#4A154B]/30 hover:border-[#4A154B]/50'
+                    : 'bg-[#4A154B]/10 border-[#4A154B]/30 hover:border-[#4A154B]/50'
+                }`}
               >
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 rounded-lg bg-[#4A154B] flex items-center justify-center shrink-0">
@@ -89,14 +93,18 @@ export function TeamClient({ active, inactive, allTeams, hasSlack }: Props) {
                       <p className="text-sm font-semibold text-white">Import from Slack</p>
                       <span className="text-[10px] font-semibold text-accent bg-accent/10 border border-accent/20 px-1.5 py-0.5 rounded-full">Recommended</span>
                     </div>
-                    <p className="text-xs text-[#a1a1aa]">Pull your team roster from Slack — everyone, or pick specific channels. You choose email vs. Slack delivery next.</p>
+                    <p className="text-xs text-[#a1a1aa]">
+                      {defaultDelivery === 'slack'
+                        ? 'Pull your team from Slack — everyone, or pick specific channels. Check-ins will be delivered via Slack DM.'
+                        : 'Pull your team roster from Slack — everyone, or pick specific channels. Check-ins will be delivered via email.'}
+                    </p>
                   </div>
                   <span className="text-[#52525b] group-hover:text-white transition-colors text-lg shrink-0">→</span>
                 </div>
               </button>
             )}
 
-            {/* Option 1 alt: Connect Slack first — shown if NOT connected */}
+            {/* Connect Slack first — shown if NOT connected */}
             {!hasSlack && (
               <a
                 href="/api/slack/install"
@@ -108,10 +116,18 @@ export function TeamClient({ active, inactive, allTeams, hasSlack }: Props) {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-0.5">
-                      <p className="text-sm font-semibold text-white">Connect Slack and import your team</p>
-                      <span className="text-[10px] font-semibold text-accent bg-accent/10 border border-accent/20 px-1.5 py-0.5 rounded-full">Fastest</span>
+                      <p className="text-sm font-semibold text-white">
+                        {defaultDelivery === 'slack' ? 'Connect Slack to get started' : 'Connect Slack and import your team'}
+                      </p>
+                      <span className="text-[10px] font-semibold text-accent bg-accent/10 border border-accent/20 px-1.5 py-0.5 rounded-full">
+                        {defaultDelivery === 'slack' ? 'Required' : 'Fastest'}
+                      </span>
                     </div>
-                    <p className="text-xs text-[#a1a1aa]">Connect your Slack workspace to pull your team roster in seconds. You'll choose email vs. Slack delivery next.</p>
+                    <p className="text-xs text-[#a1a1aa]">
+                      {defaultDelivery === 'slack'
+                        ? 'Connect your Slack workspace to import your team and deliver check-ins via DM.'
+                        : 'Connect your Slack workspace to pull your team roster in seconds. Check-ins will still go via email.'}
+                    </p>
                   </div>
                   <span className="text-[#52525b] group-hover:text-white transition-colors text-lg shrink-0">→</span>
                 </div>

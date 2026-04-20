@@ -5,17 +5,19 @@ import { useRouter } from 'next/navigation'
 
 type SlackChannel = { id: string; name: string; num_members: number }
 
-type Props = { onClose: () => void }
+type Props = { onClose: () => void; defaultDelivery?: 'email' | 'slack' }
 
 type Step = 'choose' | 'channels' | 'delivery' | 'importing' | 'done'
 type ImportMode = 'all' | 'channels'
 type DeliveryMethod = 'email' | 'slack'
 
-export function SlackImportModal({ onClose }: Props) {
+export function SlackImportModal({ onClose, defaultDelivery }: Props) {
   const router = useRouter()
   const [step, setStep] = useState<Step>('choose')
   const [importMode, setImportMode] = useState<ImportMode>('all')
-  const [delivery, setDelivery] = useState<DeliveryMethod>('email')
+  // If org already chose a delivery method during onboarding, use it and skip the step
+  const hasOrgDelivery = !!defaultDelivery
+  const [delivery, setDelivery] = useState<DeliveryMethod>(defaultDelivery ?? 'email')
   const [channels, setChannels] = useState<SlackChannel[]>([])
   const [channelsLoading, setChannelsLoading] = useState(false)
   const [selectedChannels, setSelectedChannels] = useState<Set<string>>(new Set())
@@ -74,16 +76,52 @@ export function SlackImportModal({ onClose }: Props) {
     return channels.filter((ch) => ch.name.toLowerCase().includes(q))
   }
 
-  // Called from "Import all" — go to delivery step
+  // Called from "Import all" — skip delivery step if org already chose
   function chooseAll() {
     setImportMode('all')
-    setStep('delivery')
+    if (hasOrgDelivery) {
+      doImportDirect('all')
+    } else {
+      setStep('delivery')
+    }
   }
 
-  // Called from channel picker "Continue" — go to delivery step
+  // Called from channel picker "Continue" — skip delivery step if org already chose
   function confirmChannels() {
     setImportMode('channels')
-    setStep('delivery')
+    if (hasOrgDelivery) {
+      doImportDirect('channels')
+    } else {
+      setStep('delivery')
+    }
+  }
+
+  // Direct import when delivery is already known
+  async function doImportDirect(mode: ImportMode) {
+    setStep('importing')
+    setError(null)
+    try {
+      const body: Record<string, unknown> = { mode, delivery }
+      if (mode === 'channels') body.channel_ids = [...selectedChannels]
+
+      const res = await fetch('/api/slack/import', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setError(data.error ?? 'Import failed')
+        setStep('choose')
+        return
+      }
+      setResult({ imported: data.imported, new: data.new, existing: data.existing, delivery: data.delivery })
+      setStep('done')
+      router.refresh()
+    } catch {
+      setError('Import failed')
+      setStep('choose')
+    }
   }
 
   async function doImport() {
