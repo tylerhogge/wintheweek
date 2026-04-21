@@ -38,7 +38,8 @@ export type SlackSendResult =
 
 export function buildSlackOAuthUrl(): string {
   const clientId = process.env.SLACK_CLIENT_ID
-  const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL}/api/slack/oauth`
+  const appUrl = (process.env.NEXT_PUBLIC_APP_URL ?? '').replace(/\/+$/, '')
+  const redirectUri = `${appUrl}/api/slack/oauth`
   const scopes = [
     'chat:write',
     'chat:write.public',  // post to public channels without joining
@@ -63,7 +64,8 @@ export async function exchangeSlackCode(code: string): Promise<{
   team: { id: string; name: string }
   bot_user_id: string
 } | null> {
-  const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL}/api/slack/oauth`
+  const appUrl = (process.env.NEXT_PUBLIC_APP_URL ?? '').replace(/\/+$/, '')
+  const redirectUri = `${appUrl}/api/slack/oauth`
   const params = new URLSearchParams({
     code,
     redirect_uri: redirectUri,
