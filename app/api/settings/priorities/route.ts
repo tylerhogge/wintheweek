@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/server'
 import { requireRole } from '@/lib/rbac'
 import { auditLog } from '@/lib/audit'
 
@@ -19,8 +19,8 @@ export async function PUT(req: Request) {
     return NextResponse.json({ error: 'Maximum 7 priorities' }, { status: 400 })
   }
 
-  const supabase = await createClient()
-  const { error } = await supabase
+  const service = createServiceClient()
+  const { error } = await service
     .from('organizations')
     .update({ priorities: priorities && priorities.length > 0 ? priorities : null })
     .eq('id', ctx.orgId)

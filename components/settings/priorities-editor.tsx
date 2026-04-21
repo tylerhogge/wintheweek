@@ -13,6 +13,7 @@ export function PrioritiesEditor({ initialPriorities }: Props) {
   )
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [error, setError] = useState(false)
 
   function addPriority() {
     if (priorities.length >= 7) return
@@ -32,17 +33,29 @@ export function PrioritiesEditor({ initialPriorities }: Props) {
 
   async function handleSave() {
     setSaving(true)
+    setError(false)
     const cleaned = priorities.filter((p) => p.name.trim().length > 0)
 
-    await fetch('/api/settings/priorities', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ priorities: cleaned }),
-    })
+    try {
+      const res = await fetch('/api/settings/priorities', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ priorities: cleaned }),
+      })
 
-    setSaving(false)
-    setSaved(true)
-    setTimeout(() => setSaved(false), 2000)
+      if (!res.ok) {
+        setError(true)
+        setSaving(false)
+        return
+      }
+
+      setSaved(true)
+      setTimeout(() => setSaved(false), 2000)
+    } catch {
+      setError(true)
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -96,6 +109,9 @@ export function PrioritiesEditor({ initialPriorities }: Props) {
         >
           {saving ? 'Saving…' : saved ? 'Saved ✓' : 'Save priorities'}
         </button>
+        {error && (
+          <span className="text-[10px] text-red-400">Failed to save — please try again</span>
+        )}
         {priorities.length >= 7 && (
           <span className="text-[10px] text-[#52525b]">Maximum 7 priorities</span>
         )}
