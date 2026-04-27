@@ -129,7 +129,7 @@ async function notifyAdmin({ orgId, responseId, employeeName, employeeTeam, repl
   const inboundDomain = process.env.INBOUND_DOMAIN ?? 'inbound.wintheweek.co'
   const taggedReplyTo = `${employeeName} <reply+${responseId}@${inboundDomain}>`
   const appUrl = 'https://www.wintheweek.co'
-  const emailContent = buildReplyNotification({ adminName: adminProfile.name ?? adminProfile.email.split('@')[0], employeeName, employeeTeam, replyBody, replyToAddress: taggedReplyTo, dashboardUrl: `${appUrl}/dashboard?week=${weekStart}`, weekReplied, weekTotal })
+  const emailContent = buildReplyNotification({ adminName: adminProfile.name ?? adminProfile.email.split('@')[0], employeeName, employeeTeam, replyBody, replyToAddress: taggedReplyTo, dashboardUrl: `${appUrl}/dashboard?week=${weekStart}`, weekReplied, weekTotal, weekLabel: formatWeekRange(weekStart) })
   await getResend().emails.send({ from: `Win The Week <${process.env.FROM_EMAIL ?? 'hello@wintheweek.co'}>`, to: adminProfile.email, replyTo: taggedReplyTo, subject: emailContent.subject, html: emailContent.html, text: emailContent.text })
 }
 
@@ -180,6 +180,7 @@ async function notifyManagers({ orgId, responseId, employeeName, employeeTeam, r
       dashboardUrl: `${appUrl}/dashboard?week=${weekStart}`,
       weekReplied,
       weekTotal,
+      weekLabel: formatWeekRange(weekStart),
     })
 
     await getResend().emails.send({

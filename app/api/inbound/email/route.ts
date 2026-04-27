@@ -374,6 +374,7 @@ async function notifyAdmin({
     dashboardUrl: `${appUrl}/dashboard?week=${weekStart}`,
     weekReplied,
     weekTotal,
+    weekLabel: formatWeekRange(weekStart),
   })
 
   // Gmail threading strategy:
@@ -381,8 +382,8 @@ async function notifyAdmin({
   // BUT SES passes through References and In-Reply-To headers untouched.
   // Gmail threads emails that share any Message-ID in their References chain.
   //
-  // Anchor on the EMPLOYEE, not the submission, so all weekly notifications
-  // for the same person land in one Gmail thread across weeks.
+  // Anchor on EMPLOYEE + WEEK so each week gets its own thread.
+  // Previously anchored on employee only, which merged all weeks together.
   const { data: sub } = await supabase
     .from('submissions')
     .select('employee_id, notify_thread_id')
@@ -390,11 +391,11 @@ async function notifyAdmin({
     .single()
 
   const employeeId = sub?.employee_id
-  const threadAnchor = `<wtw-notify-${employeeId ?? submissionId}@wintheweek.co>`
+  const threadAnchor = `<wtw-notify-${employeeId ?? submissionId}-${weekStart}@wintheweek.co>`
 
   const isFirstNotification = !sub?.notify_thread_id
   const headers: Record<string, string> = {
-    // Every notification references the same anchor — this is the key
+    // Every notification for this employee+week references the same anchor
     'References': threadAnchor,
   }
   let subject = emailContent.subject
@@ -503,6 +504,7 @@ async function notifyManagers({
       dashboardUrl: `${appUrl}/dashboard?week=${weekStart}`,
       weekReplied,
       weekTotal,
+      weekLabel: formatWeekRange(weekStart),
     })
 
     await resend.emails.send({

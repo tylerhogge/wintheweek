@@ -329,6 +329,7 @@ export function buildReplyNotification({
   dashboardUrl,
   weekReplied,
   weekTotal,
+  weekLabel,
 }: {
   adminName: string
   employeeName: string
@@ -338,8 +339,11 @@ export function buildReplyNotification({
   dashboardUrl: string
   weekReplied: number
   weekTotal: number
+  weekLabel?: string
 }): { subject: string; html: string; text: string } {
-  const subject = `${employeeName} submitted their weekly update`
+  const subject = weekLabel
+    ? `${employeeName} submitted their weekly update — ${weekLabel}`
+    : `${employeeName} submitted their weekly update`
   const teamLabel = employeeTeam ? ` · ${employeeTeam}` : ''
   const weekProgress = weekTotal > 0
     ? `${weekReplied} of ${weekTotal} replied this week`
