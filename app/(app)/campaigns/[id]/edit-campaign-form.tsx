@@ -87,6 +87,7 @@ export function EditCampaignForm({ campaign, allTeams, alreadySentThisWeek }: Pr
       setError(error.message)
       setSaving(false)
     } else {
+      router.refresh()
       router.push('/campaigns')
     }
   }
@@ -95,6 +96,7 @@ export function EditCampaignForm({ campaign, allTeams, alreadySentThisWeek }: Pr
     const supabase = createClient()
     await supabase.from('campaigns').update({ active: !form.active }).eq('id', campaign.id)
     setForm((prev) => ({ ...prev, active: !prev.active }))
+    router.refresh() // Invalidate server cache so campaign list shows updated status
   }
 
   return (
